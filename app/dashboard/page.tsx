@@ -139,116 +139,102 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 flex relative">
-      {/* Mobile Overlay */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile Menu Overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" 
           onClick={() => setSidebarOpen(false)}
         />
       )}
       
-      {/* Sidebar Navigation */}
+      {/* Mobile Sidebar - Only on mobile/tablet */}
       <div className={`${
-        sidebarOpen ? 'w-64 translate-x-0' : 'w-64 -translate-x-full md:w-16 md:translate-x-0'
-      } fixed md:relative z-50 md:z-auto transition-all duration-300 bg-white shadow-lg border-r border-gray-200 flex flex-col h-full md:h-auto min-h-screen`}>
-        {/* Header */}
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } fixed left-0 top-0 w-64 h-full z-50 lg:hidden transition-transform duration-300 bg-white shadow-lg border-r border-gray-200 flex flex-col`}>
+        {/* Mobile Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <div className={`flex items-center ${sidebarOpen ? '' : 'justify-center'}`}>
+            <div className="flex items-center">
               <TrendingUp className="h-8 w-8 text-blue-600" />
-              {sidebarOpen && (
-                <span className="ml-3 text-xl font-bold text-gray-900">CryptoTool</span>
-              )}
+              <span className="ml-3 text-xl font-bold text-gray-900">CryptoTool</span>
             </div>
             <button 
-              onClick={() => setSidebarOpen(!sidebarOpen)}
+              onClick={() => setSidebarOpen(false)}
               className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
             >
-              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              <X className="h-5 w-5 text-gray-600" />
             </button>
           </div>
         </div>
 
-
-
-        {/* Navigation */}
+        {/* Mobile Navigation */}
         <nav className="flex-1 p-4">
           <div className="space-y-2">
-            {/* Home Link */}
             <Link
               href="/"
               onClick={() => handleNavigation(() => {})}
-              className="w-full flex items-center justify-between p-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50 group"
+              className="w-full flex items-center p-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50"
             >
-              <div className="flex items-center">
-                <Home className="h-5 w-5" />
-                {sidebarOpen && (
-                  <span className="ml-3 font-medium">Home</span>
-                )}
-              </div>
+              <Home className="h-5 w-5" />
+              <span className="ml-3 font-medium">Home</span>
             </Link>
             
-            {/* Separator */}
-            {sidebarOpen && <div className="border-t border-gray-200 my-3"></div>}
+            <div className="border-t border-gray-200 my-3"></div>
             
             {navigationItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => handleNavigation(() => setCurrentView(item.id))}
-                className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
+                className={`w-full flex items-center p-3 rounded-lg transition-colors text-left ${
                   item.active 
-                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
+                    ? 'bg-blue-50 text-blue-700' 
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                <div className="flex items-center">
-                  <item.icon className="h-5 w-5" />
-                  {sidebarOpen && (
-                    <span className="ml-3 font-medium">{item.label}</span>
-                  )}
-                </div>
+                <item.icon className="h-5 w-5" />
+                <span className="ml-3 font-medium">{item.label}</span>
               </button>
             ))}
-          </div>
 
-          {/* Analysis Sub-navigation */}
-          {sidebarOpen && currentView === 'analysis' && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="space-y-1">
-                <button
-                  onClick={() => handleNavigation(() => setAnalysisMode('technical'))}
-                  className={`w-full flex items-start p-2 rounded-lg text-sm transition-colors ${
-                    analysisMode === 'technical'
-                      ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-500'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}>
-                  <Activity className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-                  <div className="text-left">
-                    <p className="font-medium">Technical Analysis</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => handleNavigation(() => setAnalysisMode('advanced'))}
-                  className={`w-full flex items-start p-2 rounded-lg text-sm transition-colors ${
-                    analysisMode === 'advanced'
-                      ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-500'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <BarChart2 className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-                  <div className="text-left">
-                    <p className="font-medium">Advanced Analysis</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Professional signals</p>
-                  </div>
-                </button>
+            {/* Analysis Sub-navigation on mobile */}
+            {currentView === 'analysis' && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="space-y-1">
+                  <button
+                    onClick={() => handleNavigation(() => setAnalysisMode('technical'))}
+                    className={`w-full flex items-start p-2 rounded-lg text-sm transition-colors ${
+                      analysisMode === 'technical'
+                        ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-500'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}>
+                    <Activity className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+                    <div className="text-left">
+                      <p className="font-medium">Technical Analysis</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleNavigation(() => setAnalysisMode('advanced'))}
+                    className={`w-full flex items-start p-2 rounded-lg text-sm transition-colors ${
+                      analysisMode === 'advanced'
+                        ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-500'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <BarChart2 className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+                    <div className="text-left">
+                      <p className="font-medium">Advanced Analysis</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Professional signals</p>
+                    </div>
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </nav>
 
-        {/* Footer - Simplified */}
-        {sidebarOpen && lastUpdated && (
+        {/* Mobile Footer */}
+        {lastUpdated && (
           <div className="p-4 border-t border-gray-200">
             <div className="text-xs text-gray-500 text-center">
               Last updated: {new Date(lastUpdated).toLocaleTimeString()}
@@ -257,48 +243,119 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Bar */}
-        <header className="bg-white shadow-sm border-b border-gray-200 px-4 md:px-6 py-4">
-          <div className="flex items-center justify-between">
-            {/* Mobile Menu Button */}
-            <button 
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors md:hidden"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-            
-            <div className="flex-1 md:flex-none">
-              <h1 className="text-lg md:text-2xl font-bold text-gray-900 flex items-center truncate">
-                {currentView === 'overview' && 'Market Overview'}
-                {currentView === 'analysis' && 'Analysis'}
-                {currentView === 'analysis' && cryptoData.length > 0 && (
-                  <span className="ml-2 md:ml-3 text-sm md:text-lg text-blue-600 hidden sm:inline">
-                    - {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'} ({cryptoData.find(c => c.id === selectedCrypto)?.symbol.toUpperCase() || 'BTC'})
-                  </span>
+      {/* Main Layout */}
+      <div className="flex flex-col min-h-screen">
+        {/* Top Navigation - Desktop */}
+        <header className="bg-white shadow-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              {/* Left: Logo and Mobile Menu Button */}
+              <div className="flex items-center">
+                {/* Mobile menu button */}
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
+                >
+                  <Menu className="h-6 w-6 text-gray-600" />
+                </button>
+                
+                {/* Logo */}
+                <Link href="/" className="flex items-center ml-2 lg:ml-0">
+                  <TrendingUp className="h-8 w-8 text-blue-600" />
+                  <span className="ml-3 text-xl font-bold text-gray-900">CryptoTool</span>
+                </Link>
+              </div>
+
+              {/* Center: Desktop Navigation - Only show on desktop */}
+              <nav className="hidden lg:flex space-x-8">
+                {navigationItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setCurrentView(item.id)}
+                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
+                      item.active
+                        ? 'text-blue-600 border-b-2 border-blue-600'
+                        : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4 mr-2" />
+                    {item.label}
+                  </button>
+                ))}
+                
+                {/* Analysis sub-navigation on desktop */}
+                {currentView === 'analysis' && (
+                  <div className="flex space-x-4 ml-4 pl-4 border-l border-gray-200">
+                    <button
+                      onClick={() => setAnalysisMode('technical')}
+                      className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
+                        analysisMode === 'technical'
+                          ? 'text-blue-600 border-b-2 border-blue-600'
+                          : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
+                      }`}
+                    >
+                      <Activity className="h-4 w-4 mr-2" />
+                      Technical
+                    </button>
+                    <button
+                      onClick={() => setAnalysisMode('advanced')}
+                      className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
+                        analysisMode === 'advanced'
+                          ? 'text-purple-600 border-b-2 border-purple-600'
+                          : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
+                      }`}
+                    >
+                      <BarChart2 className="h-4 w-4 mr-2" />
+                      Advanced
+                    </button>
+                  </div>
                 )}
-              </h1>
-              <p className="text-xs md:text-sm text-gray-600 mt-1 hidden sm:block">
-                {currentView === 'overview' && 'Real-time crypto market dashboard with key metrics and trends'}
-                {currentView === 'analysis' && analysisMode === 'technical' && 'Multi-timeframe technical analysis with professional trading signals'}
-                {currentView === 'analysis' && analysisMode === 'advanced' && 'Professional analysis with Phase 3 indicators and market context'}
-              </p>
+              </nav>
+
+              {/* Right: Last Updated */}
+              <div className="text-sm text-gray-500 hidden sm:block">
+                {lastUpdated && `Updated ${new Date(lastUpdated).toLocaleTimeString()}`}
+              </div>
             </div>
-            <button 
-              onClick={handleManualRefresh}
-              disabled={refreshing}
-              className="px-3 md:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:bg-gray-300 flex items-center transition-colors text-sm md:text-base"
-            >
-              <RefreshCw className={`h-4 w-4 mr-1 md:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
-            </button>
           </div>
         </header>
 
-        {/* Content Area */}
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
+                 {/* Content Area */}
+         <main className="flex-1">
+           {/* Page Header */}
+           <div className="bg-white shadow-sm border-b border-gray-200">
+             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+               <div className="flex items-center justify-between">
+                 <div>
+                   <h1 className="text-2xl font-bold text-gray-900">
+                     {currentView === 'overview' && 'Market Overview'}
+                     {currentView === 'analysis' && 'Analysis'}
+                     {currentView === 'analysis' && cryptoData.length > 0 && (
+                       <span className="ml-3 text-lg text-blue-600 hidden sm:inline">
+                         - {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'} ({cryptoData.find(c => c.id === selectedCrypto)?.symbol.toUpperCase() || 'BTC'})
+                       </span>
+                     )}
+                   </h1>
+                   <p className="text-sm text-gray-600 mt-1">
+                     {currentView === 'overview' && 'Real-time crypto market dashboard with key metrics and trends'}
+                     {currentView === 'analysis' && analysisMode === 'technical' && 'Multi-timeframe technical analysis with professional trading signals'}
+                     {currentView === 'analysis' && analysisMode === 'advanced' && 'Professional analysis with Phase 3 indicators and market context'}
+                   </p>
+                 </div>
+                 <button 
+                   onClick={handleManualRefresh}
+                   disabled={refreshing}
+                   className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:bg-gray-300 flex items-center transition-colors"
+                 >
+                   <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                   {refreshing ? 'Refreshing...' : 'Refresh'}
+                 </button>
+               </div>
+             </div>
+           </div>
+
+           {/* Main Dashboard Content */}
+           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <div className="flex">
@@ -628,6 +685,7 @@ export default function Dashboard() {
               )}
             </div>
           )}
+          </div>
         </main>
       </div>
     </div>
