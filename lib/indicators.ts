@@ -24,6 +24,27 @@ export interface MACDResult {
   timestamp: string
 }
 
+export interface CTOResult {
+  value: number
+  signal: 'bullish' | 'bearish' | 'neutral'
+  crossover: 'bullish' | 'bearish' | 'none'
+  timestamp: string
+}
+
+export interface BullMarketPeakResult {
+  signal: 'peak-warning' | 'peak-danger' | 'no-peak-signal'
+  confidence: 'low' | 'medium' | 'high'
+  indicators: {
+    extremeRSI: boolean // RSI > 90
+    piCycleSignal: boolean // Modified Pi Cycle for shorter timeframes
+    volumeDivergence: boolean // Declining volume on price highs
+    momentumDivergence: boolean // RSI making lower highs while price makes higher highs
+  }
+  score: number // 0-4 based on how many indicators are triggered
+  message: string
+  timestamp: string
+}
+
 export interface TradingSignal {
   type: 'buy' | 'sell' | 'hold'
   strength: number // 0-100
@@ -109,6 +130,165 @@ export function calculateEMA(prices: number[], period: number): number[] {
   }
   
   return emaValues
+}
+
+/**
+ * Calculates WMA (Weighted Moving Average)
+ * @param values Array of values
+ * @param period WMA period
+ * @returns WMA values
+ */
+export function calculateWMA(values: number[], period: number): number[] {
+  if (values.length < period) return []
+  
+  const wmaValues: number[] = []
+  const weights = []
+  for (let i = 1; i <= period; i++) {
+    weights.push(i)
+  }
+  const weightSum = weights.reduce((sum, weight) => sum + weight, 0)
+  
+  for (let i = period - 1; i < values.length; i++) {
+    let weightedSum = 0
+    for (let j = 0; j < period; j++) {
+      weightedSum += values[i - j] * weights[period - 1 - j]
+    }
+    wmaValues.push(weightedSum / weightSum)
+  }
+  
+  return wmaValues
+}
+
+/**
+ * Calculates Rate of Change (ROC)
+ * @param prices Array of prices
+ * @param period ROC period
+ * @returns ROC values as percentages
+ */
+export function calculateROC(prices: number[], period: number): number[] {
+  if (prices.length <= period) return []
+  
+  const rocValues: number[] = []
+  
+  for (let i = period; i < prices.length; i++) {
+    const currentPrice = prices[i]
+    const pastPrice = prices[i - period]
+    const roc = ((currentPrice - pastPrice) / pastPrice) * 100
+    rocValues.push(roc)
+  }
+  
+  return rocValues
+}
+
+/**
+ * Calculates SMMA (Smoothed Moving Average)
+ * @param values Array of values
+ * @param period Period length
+ * @returns SMMA values
+ */
+function calculateSMMA(values: number[], period: number): number[] {
+  if (values.length < period) return []
+  
+  const results: number[] = []
+  
+  // First value is SMA
+  let sum = 0
+  for (let i = 0; i < period; i++) {
+    sum += values[i]
+  }
+  let smma = sum / period
+  results.push(smma)
+  
+  // Subsequent values use SMMA formula: (smma[1] * (length - 1) + src) / length
+  for (let i = period; i < values.length; i++) {
+    smma = (smma * (period - 1) + values[i]) / period
+    results.push(smma)
+  }
+  
+  return results
+}
+
+/**
+ * Calculates CTO Line (Custom Trend Oscillator) - Your original Pine Script logic
+ * @param prices Array of price data
+ * @returns CTO results with signals
+ */
+export function calculateCTO(prices: number[]): CTOResult[] {
+  if (prices.length < 29) return [] // Need at least 29 periods for longest SMMA
+  
+  // Calculate HL2 (high + low) / 2 for each price
+  const hl2Values: number[] = []
+  for (let i = 0; i < prices.length; i++) {
+    // For simple prices array, assume high = low = price (crypto API typically gives closes)
+    const price = prices[i]
+    // Generate mock high/low based on price (±1% variation)
+    const variation = price * 0.01 * (Math.sin(i * 0.1) * 0.5 + 0.5)
+    const high = price + variation
+    const low = price - variation
+    hl2Values.push((high + low) / 2)
+  }
+  
+  // Calculate SMMA values with different periods
+  const v1 = calculateSMMA(hl2Values, 15) // smma(hl2, 15)
+  const m1 = calculateSMMA(hl2Values, 19) // smma(hl2, 19)  
+  const m2 = calculateSMMA(hl2Values, 25) // smma(hl2, 25)
+  const v2 = calculateSMMA(hl2Values, 29) // smma(hl2, 29)
+  
+  const results: CTOResult[] = []
+  const minLength = Math.min(v1.length, m1.length, m2.length, v2.length)
+  
+  for (let i = 0; i < minLength; i++) {
+    const v1Val = v1[v1.length - minLength + i]
+    const m1Val = m1[m1.length - minLength + i]
+    const m2Val = m2[m2.length - minLength + i]
+    const v2Val = v2[v2.length - minLength + i]
+    
+    // Your exact Pine Script logic:
+    // p2 = v1 < m1 != v1 < v2 or m2 < v2 != v1 < v2
+    const cond1 = (v1Val < m1Val) !== (v1Val < v2Val)
+    const cond2 = (m2Val < v2Val) !== (v1Val < v2Val)
+    const p2 = cond1 || cond2
+    
+    // p3 = not p2 and v1 < v2
+    const p3 = !p2 && (v1Val < v2Val)
+    
+    // p1 = not p2 and not p3
+    const p1 = !p2 && !p3
+    
+    // Determine signal based on your color logic:
+    // c = p1 ? color.orange : p2 ? color.silver : color.navy
+    let signal: 'bullish' | 'bearish' | 'neutral'
+    if (p1) {
+      signal = 'bullish' // orange
+    } else if (p2) {
+      signal = 'neutral' // silver  
+    } else {
+      signal = 'bearish' // navy (p3)
+    }
+    
+    // Calculate a representative value (difference between v1 and v2)
+    const value = v1Val - v2Val
+    
+    // Detect crossovers (signal changes)
+    let crossover: 'bullish' | 'bearish' | 'none' = 'none'
+    if (i > 0) {
+      const prevSignal = results[i - 1].signal
+      if (prevSignal !== 'bullish' && signal === 'bullish') {
+        crossover = 'bullish'
+      } else if (prevSignal !== 'bearish' && signal === 'bearish') {
+        crossover = 'bearish'
+      }
+    }
+    
+    results.push({
+      value,
+      signal,
+      crossover,
+      timestamp: new Date(Date.now() - (results.length * 1000 * 60 * 60)).toISOString()
+    })
+  }
+  
+  return results
 }
 
 /**

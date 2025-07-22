@@ -1,11 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { TrendingUp, TrendingDown, Bitcoin, DollarSign, Activity, Users } from 'lucide-react'
-import Link from 'next/link'
-import CryptoChart from '../../components/CryptoChart'
-import DominanceCard from '../../components/DominanceCard'
+import { TrendingUp, BarChart3, Activity, RefreshCw, X, Menu, DollarSign, TrendingDown } from 'lucide-react'
 import TechnicalAnalysisCard from '../../components/TechnicalAnalysisCard'
+import AdvancedAnalysisCard from '../../components/AdvancedAnalysisCard'
+import DominanceCard from '../../components/DominanceCard'
+import CryptoSelector from '../../components/CryptoSelector'
+import GlobalPeakAlertCard from '../../components/GlobalPeakAlertCard'
+import M2LiquidityCard from '../../components/M2LiquidityCard'
+import MarketPhaseCard from '../../components/MarketPhaseCard'
 
 interface CryptoData {
   id: string
@@ -26,291 +29,496 @@ interface ApiResponse {
   timestamp: string
 }
 
+type ViewMode = 'overview' | 'analysis'
+type AnalysisMode = 'technical' | 'advanced'
+
 export default function Dashboard() {
   const [cryptoData, setCryptoData] = useState<CryptoData[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<string>('')
+  const [currentView, setCurrentView] = useState<ViewMode>('overview')
+  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('technical')
+  const [selectedCrypto, setSelectedCrypto] = useState<string>('bitcoin')
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
-  useEffect(() => {
-    const fetchCryptoData = async () => {
-      try {
-        const response = await fetch('/api/crypto')
-        const result: ApiResponse = await response.json()
-        
+  const fetchCryptoData = async () => {
+    try {
+      setRefreshing(true)
+      setError(null)
+      
+      const response = await fetch('/api/crypto')
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const result: ApiResponse = await response.json()
+      
+      if (result.success && result.data) {
         setCryptoData(result.data)
         setLastUpdated(result.timestamp)
-        setLoading(false)
-      } catch (error) {
-        console.error('Error fetching crypto data:', error)
-        setLoading(false)
+      } else {
+        throw new Error(result.error || 'Failed to fetch data')
       }
+      
+      setLoading(false)
+    } catch (err) {
+      console.error('Error fetching crypto data:', err)
+      setError(err instanceof Error ? err.message : 'Unknown error occurred')
+      setLoading(false)
+    } finally {
+      setRefreshing(false)
     }
+  }
 
+  useEffect(() => {
     fetchCryptoData()
-    
-    // Update data every 30 seconds
-    const interval = setInterval(fetchCryptoData, 30000)
-    return () => clearInterval(interval)
   }, [])
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 8
-    }).format(price)
+  const handleManualRefresh = () => {
+    if (!refreshing) {
+      fetchCryptoData()
+      // Trigger refresh for child components
+      window.dispatchEvent(new CustomEvent('manualRefresh'))
+    }
   }
 
-  const formatMarketCap = (marketCap: number) => {
-    return new Intl.NumberFormat('en-US', {
-      notation: 'compact',
-      compactDisplay: 'short'
-    }).format(marketCap)
+  const handleCryptoChange = (cryptoId: string) => {
+    setSelectedCrypto(cryptoId)
+    // Trigger refresh for analysis components with new crypto
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('cryptoChanged', { detail: { cryptoId } }))
+    }, 100)
   }
 
-  // Calculate portfolio stats based on crypto data
-  const calculatePortfolioStats = () => {
-    if (cryptoData.length === 0) return { totalValue: 0, changePercent: 0, positiveCount: 0 }
-    
-    const totalValue = cryptoData.reduce((acc, crypto) => acc + crypto.current_price, 0)
-    const avgChangePercent = cryptoData.reduce((acc, crypto) => acc + crypto.price_change_percentage_24h, 0) / cryptoData.length
-    const positiveCount = cryptoData.filter(crypto => crypto.price_change_percentage_24h > 0).length
-    
-    return { totalValue, changePercent: avgChangePercent, positiveCount }
-  }
-
-  const { totalValue, changePercent, positiveCount } = calculatePortfolioStats()
+  const navigationItems = [
+    { id: 'overview' as ViewMode, label: 'Market Overview', icon: BarChart3, active: currentView === 'overview' },
+    { id: 'analysis' as ViewMode, label: 'Analysis', icon: Activity, active: currentView === 'analysis' }
+  ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <Link href="/" className="flex items-center">
-                <TrendingUp className="h-8 w-8 text-blue-600" />
-                <span className="ml-3 text-xl font-bold text-gray-900">Crypto Dashboard</span>
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">
-                {lastUpdated && `Updated: ${new Date(lastUpdated).toLocaleTimeString('en-US')}`}
-              </span>
-              <button className="btn-secondary">Settings</button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar Navigation */}
+      <div className={`${sidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 bg-white shadow-lg border-r border-gray-200 flex flex-col`}>
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Advanced Crypto Dashboard</h1>
-          <p className="mt-2 text-gray-600">RSI + MACD technical analysis with dominance tracking and trading signals</p>
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className={`flex items-center ${sidebarOpen ? '' : 'justify-center'}`}>
+              <TrendingUp className="h-8 w-8 text-blue-600" />
+              {sidebarOpen && (
+                <span className="ml-3 text-xl font-bold text-gray-900">CryptoTool</span>
+              )}
+            </div>
+            <button 
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="card">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <DollarSign className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Market Value</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  ${totalValue.toLocaleString()}
-                </p>
-              </div>
-            </div>
+        {/* Crypto Selector - Only show in Analysis mode */}
+        {sidebarOpen && cryptoData.length > 0 && currentView === 'analysis' && (
+          <div className="p-4 border-b border-gray-200">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Select Cryptocurrency</h4>
+            <CryptoSelector
+              cryptoData={cryptoData}
+              selectedCrypto={selectedCrypto}
+              onCryptoChange={handleCryptoChange}
+            />
           </div>
+        )}
 
-          <div className="card">
-            <div className="flex items-center">
-              <div className={`p-2 rounded-lg ${changePercent >= 0 ? 'bg-green-100' : 'bg-red-100'}`}>
-                {changePercent >= 0 ? (
-                  <TrendingUp className="h-6 w-6 text-green-600" />
-                ) : (
-                  <TrendingDown className="h-6 w-6 text-red-600" />
+        {/* Navigation */}
+        <nav className="flex-1 p-4">
+          <div className="space-y-2">
+            {navigationItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setCurrentView(item.id)}
+                className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
+                  item.active 
+                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center">
+                  <item.icon className="h-5 w-5" />
+                  {sidebarOpen && (
+                    <span className="ml-3 font-medium">{item.label}</span>
+                  )}
+                </div>
+                {sidebarOpen && item.badge && (
+                  <span className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full">
+                    {item.badge}
+                  </span>
                 )}
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Average Change</p>
-                <p className={`text-2xl font-semibold ${changePercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%
-                </p>
-              </div>
-            </div>
+              </button>
+            ))}
           </div>
 
-          <div className="card">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Activity className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Positive Coins</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {positiveCount}/{cryptoData.length}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Users className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Tracked Coins</p>
-                <p className="text-2xl font-semibold text-gray-900">{cryptoData.length}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-          {/* Crypto List - Takes up 2 columns */}
-          <div className="xl:col-span-2">
-            <div className="card">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Top Cryptocurrencies</h2>
-                <button 
-                  onClick={() => window.location.reload()} 
-                  className="btn-secondary"
-                  disabled={loading}
+          {/* Analysis Sub-navigation */}
+          {sidebarOpen && currentView === 'analysis' && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="space-y-1">
+                <button
+                  onClick={() => setAnalysisMode('technical')}
+                  className={`w-full flex items-start p-2 rounded-lg text-sm transition-colors ${
+                    analysisMode === 'technical'
+                      ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-500'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
                 >
-                  {loading ? 'Loading...' : 'Refresh'}
+                  <Activity className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+                  <div className="text-left">
+                    <p className="font-medium">Technical Analysis</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setAnalysisMode('advanced')}
+                  className={`w-full flex items-start p-2 rounded-lg text-sm transition-colors ${
+                    analysisMode === 'advanced'
+                      ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-500'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <BarChart3 className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+                  <div className="text-left">
+                    <p className="font-medium">Advanced Analysis</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Professional signals</p>
+                  </div>
                 </button>
               </div>
-              
-              {loading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="animate-pulse flex items-center space-x-4 p-4 bg-gray-100 rounded-lg">
-                      <div className="rounded-full bg-gray-300 h-10 w-10"></div>
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-                        <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+            </div>
+          )}
+        </nav>
+
+        {/* Footer */}
+        {sidebarOpen && (
+          <div className="p-4 border-t border-gray-200">
+            {lastUpdated && (
+              <div className="text-xs text-gray-500 mb-2">
+                Last updated: {new Date(lastUpdated).toLocaleTimeString()}
+              </div>
+            )}
+            <button 
+              onClick={handleManualRefresh}
+              disabled={refreshing}
+              className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 text-sm flex items-center justify-center transition-colors"
+            >
+              <RefreshCw className={`h-3 w-3 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+              {refreshing ? 'Refreshing...' : 'Refresh Data'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Bar */}
+        <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+                {currentView === 'overview' && 'Market Overview'}
+                {currentView === 'analysis' && 'Analysis'}
+                {currentView === 'analysis' && cryptoData.length > 0 && (
+                  <span className="ml-3 text-lg text-blue-600">
+                    - {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'} ({cryptoData.find(c => c.id === selectedCrypto)?.symbol.toUpperCase() || 'BTC'})
+                  </span>
+                )}
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">
+                {currentView === 'overview' && 'Real-time crypto market dashboard with key metrics and trends'}
+                {currentView === 'analysis' && analysisMode === 'technical' && 'RSI and MACD technical indicators with trading signals'}
+                {currentView === 'analysis' && analysisMode === 'advanced' && 'Professional analysis with Phase 3 indicators and market context'}
+              </p>
+            </div>
+            <button 
+              onClick={handleManualRefresh}
+              disabled={refreshing}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:bg-gray-300 flex items-center transition-colors"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              {refreshing ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <main className="flex-1 p-6 overflow-y-auto">
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <X className="h-5 w-5 text-red-400" />
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">Error</h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    <p>{error}</p>
+                  </div>
+                  <div className="mt-4">
+                    <button
+                      onClick={handleManualRefresh}
+                      className="text-sm bg-red-100 text-red-800 px-3 py-1 rounded-md hover:bg-red-200 transition-colors"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentView === 'overview' && (
+            <div className="space-y-6">
+              {/* Global Market Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Total Market Cap */}
+                <div className="bg-white p-4 rounded-lg shadow-sm border">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <DollarSign className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-gray-500">Total Market Cap</p>
+                      <p className="text-xl font-bold text-gray-900">
+                        {cryptoData.length > 0 && (
+                          `$${(cryptoData.reduce((acc, crypto) => acc + crypto.market_cap, 0) / 1e12).toFixed(2)}T`
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 24h Volume */}
+                <div className="bg-white p-4 rounded-lg shadow-sm border">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Activity className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-gray-500">24h Volume</p>
+                      <p className="text-xl font-bold text-gray-900">
+                        {cryptoData.length > 0 && (
+                          `$${(cryptoData.reduce((acc, crypto) => acc + crypto.total_volume, 0) / 1e9).toFixed(1)}B`
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Market Trend */}
+                <div className="bg-white p-4 rounded-lg shadow-sm border">
+                  <div className="flex items-center">
+                    <div className={`p-2 rounded-lg ${
+                      cryptoData.length > 0 && (cryptoData.reduce((acc, crypto) => acc + crypto.price_change_percentage_24h, 0) / cryptoData.length) >= 0 
+                        ? 'bg-green-100' 
+                        : 'bg-red-100'
+                    }`}>
+                      {cryptoData.length > 0 && (cryptoData.reduce((acc, crypto) => acc + crypto.price_change_percentage_24h, 0) / cryptoData.length) >= 0 ? (
+                        <TrendingUp className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <TrendingDown className="h-5 w-5 text-red-600" />
+                      )}
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-gray-500">Market Trend</p>
+                      <p className={`text-xl font-bold ${
+                        cryptoData.length > 0 && (cryptoData.reduce((acc, crypto) => acc + crypto.price_change_percentage_24h, 0) / cryptoData.length) >= 0 
+                          ? 'text-green-600' 
+                          : 'text-red-600'
+                      }`}>
+                        {cryptoData.length > 0 && (
+                          `${(cryptoData.reduce((acc, crypto) => acc + crypto.price_change_percentage_24h, 0) / cryptoData.length) >= 0 ? '+' : ''}${((cryptoData.reduce((acc, crypto) => acc + crypto.price_change_percentage_24h, 0) / cryptoData.length)).toFixed(2)}%`
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Main Content Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Main Content - 2 columns */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Global Market Peak Alert */}
+                  <GlobalPeakAlertCard cryptoData={cryptoData} />
+
+                  {/* M2 Liquidity Card */}
+                  <M2LiquidityCard cryptoData={cryptoData} />
+
+                  {/* Market Phase Card */}
+                  <MarketPhaseCard cryptoData={cryptoData} />
+
+                  {/* Crypto Table */}
+                  <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-900">Market Overview</h3>
+                        <div className="flex items-center space-x-2 text-sm text-gray-500">
+                          <span>Last updated: {lastUpdated ? new Date(lastUpdated).toLocaleTimeString() : 'Never'}</span>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {cryptoData.slice(0, 5).map((crypto) => (
-                    <div key={crypto.id} className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors">
-                      <div className="flex items-center space-x-4">
-                        <div className="relative">
-                          <img 
-                            src={crypto.image} 
-                            alt={crypto.name}
-                            className="w-10 h-10 rounded-full"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none'
-                              e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                            }}
-                          />
-                          <div className="hidden p-2 bg-orange-100 rounded-full w-10 h-10 flex items-center justify-center">
-                            <Bitcoin className="h-6 w-6 text-orange-600" />
+                    {loading ? (
+                      <div className="flex items-center justify-center py-12">
+                        <RefreshCw className="h-8 w-8 animate-spin text-blue-500" />
+                        <span className="ml-3 text-gray-600">Loading market data...</span>
+                      </div>
+                    ) : cryptoData.length > 0 ? (
+                      <div className="space-y-3">
+                        {cryptoData.slice(0, 8).map((crypto, index) => (
+                          <div key={crypto.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                            <div className="flex items-center space-x-3">
+                              <span className="text-sm text-gray-500 font-medium w-8">#{index + 1}</span>
+                              <img 
+                                src={crypto.image} 
+                                alt={crypto.name}
+                                className="w-8 h-8 rounded-full"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none'
+                                  e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                                }}
+                              />
+                              <div className="hidden p-2 bg-orange-100 rounded-full w-8 h-8 flex items-center justify-center">
+                                <Activity className="h-4 w-4 text-orange-600" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium text-gray-900">{crypto.name}</h4>
+                                <p className="text-sm text-gray-500">{crypto.symbol.toUpperCase()}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-semibold text-gray-900">
+                                ${crypto.current_price.toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: crypto.current_price < 1 ? 4 : 2
+                                })}
+                              </div>
+                              <div className={`text-sm font-medium ${crypto.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {crypto.price_change_percentage_24h >= 0 ? '+' : ''}
+                                {crypto.price_change_percentage_24h.toFixed(2)}%
+                              </div>
+                            </div>
+                            <div className="text-right text-sm text-gray-500 ml-6">
+                              <p className="font-medium">${(crypto.market_cap / 1e9).toFixed(1)}B</p>
+                              <p className="text-xs">Market Cap</p>
+                            </div>
                           </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-gray-500">
+                        <p>No market data available</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Sidebar - 1 column */}
+                <div className="space-y-6">
+                  {/* Market Dominance */}
+                  <DominanceCard />
+                  
+                  {/* Market Movers */}
+                  <div className="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">24h Movers</h3>
+                    {cryptoData.length > 0 && (
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="text-sm font-medium text-green-900 mb-2">Top Gainers</h4>
+                          {cryptoData
+                            .filter(crypto => crypto.price_change_percentage_24h > 0)
+                            .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
+                            .slice(0, 3)
+                            .map(crypto => (
+                              <div key={crypto.id} className="flex items-center justify-between py-1">
+                                <span className="text-sm font-medium">{crypto.symbol.toUpperCase()}</span>
+                                <span className="text-sm text-green-600 font-medium">
+                                  +{crypto.price_change_percentage_24h.toFixed(2)}%
+                                </span>
+                              </div>
+                            ))}
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">{crypto.name}</h3>
-                          <p className="text-sm text-gray-500">{crypto.symbol.toUpperCase()}</p>
+                          <h4 className="text-sm font-medium text-red-900 mb-2">Top Losers</h4>
+                          {cryptoData
+                            .filter(crypto => crypto.price_change_percentage_24h < 0)
+                            .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h)
+                            .slice(0, 3)
+                            .map(crypto => (
+                              <div key={crypto.id} className="flex items-center justify-between py-1">
+                                <span className="text-sm font-medium">{crypto.symbol.toUpperCase()}</span>
+                                <span className="text-sm text-red-600 font-medium">
+                                  {crypto.price_change_percentage_24h.toFixed(2)}%
+                                </span>
+                              </div>
+                            ))}
                         </div>
                       </div>
-                      
-                      <div className="text-right">
-                        <p className="font-semibold text-gray-900">{formatPrice(crypto.current_price)}</p>
-                        <div className="flex items-center space-x-1">
-                          {crypto.price_change_percentage_24h >= 0 ? (
-                            <TrendingUp className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <TrendingDown className="h-4 w-4 text-red-500" />
-                          )}
-                          <span className={`text-sm font-medium ${
-                            crypto.price_change_percentage_24h >= 0 ? 'text-green-500' : 'text-red-500'
-                          }`}>
-                            {crypto.price_change_percentage_24h.toFixed(2)}%
-                          </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentView === 'analysis' && (
+            <div className="space-y-6">
+              {analysisMode === 'technical' && (
+                <div className="space-y-6">
+                  {/* Main Technical Analysis - Centralized RSI + MACD */}
+                  <TechnicalAnalysisCard symbol={selectedCrypto} className="w-full" />
+                  
+
+                </div>
+              )}
+
+              {analysisMode === 'advanced' && (
+                <div className="space-y-6">
+                  {/* Advanced Analysis Card */}
+                  <AdvancedAnalysisCard symbol={selectedCrypto} className="w-full" />
+                  
+                  {/* Market Context */}
+                  <div className="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Market Context</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                        <h4 className="font-medium text-purple-900 mb-2">Volume Analysis</h4>
+                        <p className="text-sm text-purple-700 mb-3">
+                          Current 24h volume indicates {cryptoData.length > 0 && 
+                            cryptoData.find(c => c.id === selectedCrypto)?.total_volume && 
+                            cryptoData.find(c => c.id === selectedCrypto)!.total_volume > 1e9 ? 'high' : 'moderate'
+                          } trading activity.
+                        </p>
+                        <div className="text-xs text-purple-600">
+                          Volume: {cryptoData.length > 0 && cryptoData.find(c => c.id === selectedCrypto) && 
+                            `$${(cryptoData.find(c => c.id === selectedCrypto)!.total_volume / 1e9).toFixed(2)}B`
+                          }
                         </div>
                       </div>
-                      
-                      <div className="text-right text-sm text-gray-500">
-                        <p>Market Cap</p>
-                        <p>{formatMarketCap(crypto.market_cap)}</p>
+                      <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                        <h4 className="font-medium text-orange-900 mb-2">Market Cap Rank</h4>
+                        <p className="text-sm text-orange-700 mb-3">
+                          {selectedCrypto === 'bitcoin' ? 'Leading cryptocurrency by market dominance' :
+                           selectedCrypto === 'ethereum' ? 'Second-largest crypto by market cap' :
+                           'Alternative cryptocurrency with growth potential'}
+                        </p>
+                        <div className="text-xs text-orange-600">
+                          Rank: #{cryptoData.findIndex(c => c.id === selectedCrypto) + 1 || 'N/A'}
+                        </div>
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Right Sidebar - Two columns of analytics */}
-          <div className="xl:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Market Dominance Card */}
-            <DominanceCard />
-
-            {/* Technical Analysis Card */}
-            <TechnicalAnalysisCard symbol="bitcoin" />
-
-            {/* Real Chart - Spans both columns */}
-            <div className="lg:col-span-2">
-              {cryptoData.length > 0 && (
-                <CryptoChart
-                  symbol={cryptoData[0].symbol}
-                  name={cryptoData[0].name}
-                  height={300}
-                />
-              )}
-            </div>
-
-            {/* Market Summary - Spans both columns */}
-            <div className="card lg:col-span-2">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Market Summary</h3>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">Global Market Cap</p>
-                  <p className="font-semibold">
-                    {cryptoData.length > 0 && formatMarketCap(
-                      cryptoData.reduce((acc, crypto) => acc + crypto.market_cap, 0)
-                    )}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">24h Volume</p>
-                  <p className="font-semibold">
-                    {cryptoData.length > 0 && formatMarketCap(
-                      cryptoData.reduce((acc, crypto) => acc + crypto.total_volume, 0)
-                    )}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">Avg Change</p>
-                  <p className={`font-semibold ${changePercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {changePercent.toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">Active Signals</p>
-                  <p className="font-semibold text-blue-600">RSI + MACD</p>
-                </div>
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="text-center text-xs text-gray-500">
-                  <p className="mb-1">✅ <strong>Phase 2 Complete:</strong> RSI + MACD (8,21,5) with trading signals</p>
-                  <p><strong>Next:</strong> CTO Line indicator + Bull Market Peak Detection</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          )}
+        </main>
       </div>
     </div>
   )
