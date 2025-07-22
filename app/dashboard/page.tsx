@@ -130,9 +130,19 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex relative">
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" 
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
       {/* Sidebar Navigation */}
-      <div className={`${sidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 bg-white shadow-lg border-r border-gray-200 flex flex-col`}>
+      <div className={`${
+        sidebarOpen ? 'w-64 translate-x-0' : 'w-64 -translate-x-full md:w-16 md:translate-x-0'
+      } fixed md:relative z-50 md:z-auto transition-all duration-300 bg-white shadow-lg border-r border-gray-200 flex flex-col h-full md:h-auto min-h-screen`}>
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -243,21 +253,29 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+        <header className="bg-white shadow-sm border-b border-gray-200 px-4 md:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            {/* Mobile Menu Button */}
+            <button 
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors md:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            
+            <div className="flex-1 md:flex-none">
+              <h1 className="text-lg md:text-2xl font-bold text-gray-900 flex items-center truncate">
                 {currentView === 'overview' && 'Market Overview'}
                 {currentView === 'analysis' && 'Analysis'}
                 {currentView === 'analysis' && cryptoData.length > 0 && (
-                  <span className="ml-3 text-lg text-blue-600">
+                  <span className="ml-2 md:ml-3 text-sm md:text-lg text-blue-600 hidden sm:inline">
                     - {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'} ({cryptoData.find(c => c.id === selectedCrypto)?.symbol.toUpperCase() || 'BTC'})
                   </span>
                 )}
               </h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-xs md:text-sm text-gray-600 mt-1 hidden sm:block">
                 {currentView === 'overview' && 'Real-time crypto market dashboard with key metrics and trends'}
                 {currentView === 'analysis' && analysisMode === 'technical' && 'RSI and MACD technical indicators with trading signals'}
                 {currentView === 'analysis' && analysisMode === 'advanced' && 'Professional analysis with Phase 3 indicators and market context'}
@@ -266,16 +284,16 @@ export default function Dashboard() {
             <button 
               onClick={handleManualRefresh}
               disabled={refreshing}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:bg-gray-300 flex items-center transition-colors"
+              className="px-3 md:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:bg-gray-300 flex items-center transition-colors text-sm md:text-base"
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              {refreshing ? 'Refreshing...' : 'Refresh'}
+              <RefreshCw className={`h-4 w-4 mr-1 md:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
             </button>
           </div>
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <div className="flex">
@@ -303,17 +321,17 @@ export default function Dashboard() {
           {currentView === 'overview' && (
             <div className="space-y-6">
               {/* Global Market Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 {/* Total Market Cap - Uses Global Data */}
                 <Tooltip tooltip="Det totala värdet av alla kryptovalutor kombinerat. Beräknas genom att multiplicera varje coins pris med dess cirkulerande tillgång och summera allt.">
-                  <div className="bg-white p-4 rounded-lg shadow-sm border cursor-help">
+                  <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm border cursor-help">
                     <div className="flex items-center">
                       <div className="p-2 bg-blue-100 rounded-lg">
                         <DollarSign className="h-5 w-5 text-blue-600" />
                       </div>
                       <div className="ml-3">
-                        <p className="text-sm font-medium text-gray-500">Total Market Cap</p>
-                        <p className="text-xl font-bold text-gray-900">
+                        <p className="text-xs md:text-sm font-medium text-gray-500">Total Market Cap</p>
+                        <p className="text-lg md:text-xl font-bold text-gray-900">
                           {globalData && (
                             `$${(globalData.total_market_cap_usd / 1e12).toFixed(2)}T`
                           )}
@@ -325,14 +343,14 @@ export default function Dashboard() {
 
                 {/* 24h Volume - Uses Global Data */}
                 <Tooltip tooltip="Total handelsvolym för alla kryptovalutor under senaste 24 timmarna. Visar hur mycket som handlas aktivt på marknaden - högre volym indikerar mer likviditet och aktivitet.">
-                  <div className="bg-white p-4 rounded-lg shadow-sm border cursor-help">
+                  <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm border cursor-help">
                     <div className="flex items-center">
                       <div className="p-2 bg-green-100 rounded-lg">
                         <Activity className="h-5 w-5 text-green-600" />
                       </div>
                       <div className="ml-3">
-                        <p className="text-sm font-medium text-gray-500">24h Volume</p>
-                        <p className="text-xl font-bold text-gray-900">
+                        <p className="text-xs md:text-sm font-medium text-gray-500">24h Volume</p>
+                        <p className="text-lg md:text-xl font-bold text-gray-900">
                           {globalData && (
                             `$${(globalData.total_volume_usd / 1e9).toFixed(1)}B`
                           )}
@@ -344,7 +362,7 @@ export default function Dashboard() {
 
                 {/* Market Trend - Uses Global Market Cap Change */}
                 <Tooltip tooltip="Procentuell förändring av den totala kryptomarknadens värde under senaste 24 timmarna. Använder samma beräkningsmetod som TradingView och CoinMarketCap - baserat på total market cap förändring, inte genomsnitt av individuella coins.">
-                  <div className="bg-white p-4 rounded-lg shadow-sm border cursor-help">
+                  <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm border cursor-help">
                     <div className="flex items-center">
                       <div className={`p-2 rounded-lg ${
                         globalData && globalData.total_market_cap_change_24h >= 0 
@@ -358,8 +376,8 @@ export default function Dashboard() {
                         )}
                       </div>
                       <div className="ml-3">
-                        <p className="text-sm font-medium text-gray-500">Market Trend</p>
-                        <p className={`text-xl font-bold ${
+                        <p className="text-xs md:text-sm font-medium text-gray-500">Market Trend</p>
+                        <p className={`text-lg md:text-xl font-bold ${
                           globalData && globalData.total_market_cap_change_24h >= 0 
                             ? 'text-green-600' 
                             : 'text-red-600'
@@ -375,9 +393,9 @@ export default function Dashboard() {
               </div>
 
               {/* Main Content Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
                 {/* Main Content - 2 columns */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="xl:col-span-2 space-y-4 md:space-y-6">
                   {/* Global Market Peak Alert */}
                   <GlobalPeakAlertCard cryptoData={cryptoData} />
 
@@ -386,10 +404,10 @@ export default function Dashboard() {
 
                   {/* Crypto Table */}
                   <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-200">
+                    <div className="px-4 md:px-6 py-4 border-b border-gray-200">
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-semibold text-gray-900">Market Overview</h3>
-                        <div className="flex items-center space-x-2 text-sm text-gray-500">
+                        <div className="hidden md:flex items-center space-x-2 text-sm text-gray-500">
                           <span>Last updated: {lastUpdated ? new Date(lastUpdated).toLocaleTimeString() : 'Never'}</span>
                         </div>
                       </div>
@@ -400,41 +418,40 @@ export default function Dashboard() {
                         <span className="ml-3 text-gray-600">Loading market data...</span>
                       </div>
                     ) : cryptoData.length > 0 ? (
-                      <div className="space-y-3">
+                      <div className="divide-y divide-gray-100">
                         {cryptoData.slice(0, 8).map((crypto, index) => (
-                          <div key={crypto.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                            <div className="flex items-center space-x-3">
-                              <span className="text-sm text-gray-500 font-medium w-8">#{index + 1}</span>
+                          <div key={crypto.id} className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center space-x-2 md:space-x-3 flex-1 min-w-0">
+                              <span className="text-xs md:text-sm text-gray-500 font-medium w-6 md:w-8 flex-shrink-0">#{index + 1}</span>
                               <Image 
                                 src={crypto.image} 
                                 alt={crypto.name}
-                                width={32}
-                                height={32}
-                                className="rounded-full"
+                                width={28}
+                                height={28}
+                                className="rounded-full flex-shrink-0 md:w-8 md:h-8"
                               />
-                              <div className="hidden p-2 bg-orange-100 rounded-full w-8 h-8 flex items-center justify-center">
-                                <Activity className="h-4 w-4 text-orange-600" />
-                              </div>
-                              <div>
-                                <h4 className="font-medium text-gray-900">{crypto.name}</h4>
-                                <p className="text-sm text-gray-500">{crypto.symbol.toUpperCase()}</p>
+                              <div className="min-w-0">
+                                <h4 className="font-medium text-gray-900 text-sm md:text-base truncate">{crypto.name}</h4>
+                                <p className="text-xs md:text-sm text-gray-500">{crypto.symbol.toUpperCase()}</p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <div className="font-semibold text-gray-900">
-                                ${crypto.current_price.toLocaleString(undefined, {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: crypto.current_price < 1 ? 4 : 2
-                                })}
+                            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6 flex-shrink-0">
+                              <div className="text-right">
+                                <div className="font-semibold text-gray-900 text-sm md:text-base">
+                                  ${crypto.current_price.toLocaleString(undefined, {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: crypto.current_price < 1 ? 4 : 2
+                                  })}
+                                </div>
+                                <div className={`text-xs md:text-sm font-medium ${crypto.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {crypto.price_change_percentage_24h >= 0 ? '+' : ''}
+                                  {crypto.price_change_percentage_24h.toFixed(2)}%
+                                </div>
                               </div>
-                              <div className={`text-sm font-medium ${crypto.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                {crypto.price_change_percentage_24h >= 0 ? '+' : ''}
-                                {crypto.price_change_percentage_24h.toFixed(2)}%
+                              <div className="text-right text-xs md:text-sm text-gray-500 hidden sm:block">
+                                <p className="font-medium">${(crypto.market_cap / 1e9).toFixed(1)}B</p>
+                                <p className="text-xs">Market Cap</p>
                               </div>
-                            </div>
-                            <div className="text-right text-sm text-gray-500 ml-6">
-                              <p className="font-medium">${(crypto.market_cap / 1e9).toFixed(1)}B</p>
-                              <p className="text-xs">Market Cap</p>
                             </div>
                           </div>
                         ))}
@@ -448,12 +465,12 @@ export default function Dashboard() {
                 </div>
 
                 {/* Sidebar - 1 column */}
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   {/* Market Dominance */}
                   <DominanceCard />
                   
                   {/* Market Movers */}
-                  <div className="bg-white p-6 rounded-lg shadow-sm">
+                  <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">24h Movers</h3>
                     {cryptoData.length > 0 && (
                       <div className="space-y-3">
@@ -496,9 +513,9 @@ export default function Dashboard() {
           )}
 
           {currentView === 'analysis' && (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               {analysisMode === 'technical' && (
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   {/* Main Technical Analysis - Centralized RSI + MACD */}
                   <TechnicalAnalysisCard symbol={selectedCrypto} className="w-full" />
                   
@@ -507,14 +524,14 @@ export default function Dashboard() {
               )}
 
               {analysisMode === 'advanced' && (
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   {/* Advanced Analysis Card */}
                   <AdvancedAnalysisCard symbol={selectedCrypto} className="w-full" />
                   
                   {/* Market Context */}
-                  <div className="bg-white p-6 rounded-lg shadow-sm">
+                  <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Market Context</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                         <h4 className="font-medium text-purple-900 mb-2">Volume Analysis</h4>
                         <p className="text-sm text-purple-700 mb-3">

@@ -1,0 +1,85 @@
+# Page snapshot
+
+```yaml
+- main:
+  - text: CryptoTool
+  - button
+  - navigation:
+    - button "Market Overview"
+    - button "Analysis"
+  - text: "Last updated: 7:23:51 PM"
+  - button "Refresh Data"
+  - button
+  - heading "Market Overview" [level=1]
+  - button
+  - main:
+    - paragraph: Total Market Cap
+    - paragraph: $4.00T
+    - paragraph: 24h Volume
+    - paragraph: $261.5B
+    - paragraph: Market Trend
+    - paragraph: "-4.21%"
+    - text: 🟢
+    - heading "Global Peak Alert" [level=3]
+    - text: Market-Wide 85% Confidence HEALTHY MARKET
+    - paragraph: Healthy market conditions
+    - text: Indicators Hit 0/10
+    - button "Professional indicators • Click to learn more ▶"
+    - heading "Market Overview" [level=3]
+    - text: "#1"
+    - img "Bitcoin"
+    - heading "Bitcoin" [level=4]
+    - paragraph: BTC
+    - text: "$118,685.00 +0.56% #2"
+    - img "Ethereum"
+    - heading "Ethereum" [level=4]
+    - paragraph: ETH
+    - text: "$3,689.99 -2.48% #3"
+    - img "XRP"
+    - heading "XRP" [level=4]
+    - paragraph: XRP
+    - text: "$3.52 -2.67% #4"
+    - img "Tether"
+    - heading "Tether" [level=4]
+    - paragraph: USDT
+    - text: "$1.00 -0.01% #5"
+    - img "Solana"
+    - heading "Solana" [level=4]
+    - paragraph: SOL
+    - text: "$202.92 +3.66% #6"
+    - img "BNB"
+    - heading "BNB" [level=4]
+    - paragraph: BNB
+    - text: "$766.33 -0.00% #7"
+    - img "USDC"
+    - heading "USDC" [level=4]
+    - paragraph: USDC
+    - text: "$0.9999 -0.00% #8"
+    - img "Dogecoin"
+    - heading "Dogecoin" [level=4]
+    - paragraph: DOGE
+    - text: $0.2667 -7.02%
+    - heading "Market Dominance" [level=3]
+    - text: 7:23:51 PM
+    - paragraph: Bitcoin
+    - paragraph: BTC Dominance
+    - paragraph: 59.0%
+    - text: +0.0%
+    - paragraph: Ethereum
+    - paragraph: ETH Dominance
+    - paragraph: 11.2%
+    - text: +0.0%
+    - paragraph: Others
+    - paragraph: Rest of Market
+    - paragraph: 29.8%
+    - paragraph: Total Market Cap
+    - paragraph: Global crypto market
+    - paragraph: $4T
+    - text: "-5.8%"
+    - heading "24h Movers" [level=3]
+    - heading "Top Gainers" [level=4]
+    - text: SOL +3.66% BTC +0.56%
+    - heading "Top Losers" [level=4]
+    - text: DOGE -7.02% ADA -2.78% XRP -2.67%
+- alert
+```

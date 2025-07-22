@@ -14,18 +14,63 @@
 
 @layer components {
   .card {
-    @apply bg-white rounded-lg shadow-lg p-6 border border-gray-100;
+    @apply bg-white rounded-lg shadow-lg p-4 md:p-6 border border-gray-100;
   }
   
   .btn-primary {
-    @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 md:px-6 rounded-lg transition-all duration-200 active:scale-95 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
   }
   
   .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2.5 px-4 md:px-6 rounded-lg transition-all duration-200 border border-gray-300 active:scale-95 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
   }
   
   .crypto-card {
-    @apply bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100;
+    @apply bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 transform hover:-translate-y-0.5;
+  }
+
+  /* Responsive utilities */
+  .mobile-scroll {
+    @apply overflow-x-auto scrollbar-hide;
+  }
+  
+  .mobile-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6;
+  }
+
+  .mobile-text {
+    @apply text-sm md:text-base;
+  }
+
+  .mobile-heading {
+    @apply text-lg md:text-xl lg:text-2xl;
+  }
+
+  .mobile-padding {
+    @apply p-4 md:p-6;
+  }
+
+  .mobile-spacing {
+    @apply space-y-4 md:space-y-6;
+  }
+
+  /* Scrollbar hide utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Touch improvements for mobile */
+  .touch-action {
+    touch-action: manipulation;
+  }
+
+  /* Focus improvements for accessibility */
+  .focus-visible {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2;
   }
 } 
