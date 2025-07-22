@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, TrendingUp, Shield, Zap, Clock, Users, CheckCircle, ArrowRight } from 'lucide-react'
+import { BookOpen, TrendingUp, Shield, Zap, Clock, Users, ArrowRight } from 'lucide-react'
 
 interface LearningModule {
   id: string

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { TrendingUp, TrendingDown, BarChart2, Globe, Activity, Zap, X, RefreshCw, DollarSign } from 'lucide-react'
+import { TrendingUp, TrendingDown, BarChart2, Activity, X, RefreshCw, DollarSign } from 'lucide-react'
 import TechnicalAnalysisCard from '../../components/TechnicalAnalysisCard'
 import AdvancedAnalysisCard from '../../components/AdvancedAnalysisCard'
 import DominanceCard from '../../components/DominanceCard'
@@ -381,7 +381,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Global Peak Alert */}
-                <GlobalPeakAlertCard />
+                <GlobalPeakAlertCard cryptoData={cryptoData} />
               </div>
 
               {/* Market Dominance */}

@@ -33,8 +33,8 @@ export default function BitcoinBasicsPage() {
         <div className="space-y-6">
           <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
             <p className="text-lg leading-relaxed text-gray-700">
-              <strong>Bitcoin</strong> is the world's first successful digital currency that works without a central authority like a bank or government. 
-              It's completely digital money that you can send anywhere in the world, instantly, with very low fees.
+              <strong>Bitcoin</strong> is the world&apos;s first successful digital currency that works without a central authority like a bank or government. 
+              It&apos;s completely digital money that you can send anywhere in the world, instantly, with very low fees.
             </p>
           </div>
           
@@ -64,7 +64,7 @@ export default function BitcoinBasicsPage() {
           
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-yellow-800">
-              <strong>Key Takeaway:</strong> Bitcoin is "programmable money" that gives you complete control over your wealth without needing permission from anyone.
+              <strong>Key Takeaway:</strong> Bitcoin is &quot;programmable money&quot; that gives you complete control over your wealth without needing permission from anyone.
             </p>
           </div>
         </div>
@@ -85,7 +85,7 @@ export default function BitcoinBasicsPage() {
                   <h4 className="font-semibold text-gray-900">2008 - The White Paper</h4>
                   <p className="text-gray-600">
                     An anonymous person (or group) using the name <strong>Satoshi Nakamoto</strong> published the Bitcoin whitepaper: 
-                    "Bitcoin: A Peer-to-Peer Electronic Cash System"
+                    &quot;Bitcoin: A Peer-to-Peer Electronic Cash System&quot;
                   </p>
                 </div>
               </div>
@@ -96,7 +96,7 @@ export default function BitcoinBasicsPage() {
                   <h4 className="font-semibold text-gray-900">January 3, 2009 - Genesis Block</h4>
                   <p className="text-gray-600">
                     The first Bitcoin block was mined, officially launching the Bitcoin network. 
-                    Satoshi embedded the message: "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
+                    Satoshi embedded the message: &quot;The Times 03/Jan/2009 Chancellor on brink of second bailout for banks&quot;
                   </p>
                 </div>
               </div>
@@ -107,7 +107,7 @@ export default function BitcoinBasicsPage() {
                   <h4 className="font-semibold text-gray-900">May 22, 2010 - First Real Purchase</h4>
                   <p className="text-gray-600">
                     Laszlo Hanyecz bought two pizzas for 10,000 Bitcoin (~$25 then). 
-                    This date is now celebrated as "Bitcoin Pizza Day"
+                    This date is now celebrated as &quot;Bitcoin Pizza Day&quot;
                   </p>
                 </div>
               </div>
@@ -140,8 +140,8 @@ export default function BitcoinBasicsPage() {
       content: (
         <div className="space-y-6">
           <p className="text-lg text-gray-700">
-            Decentralization means that no single entity controls Bitcoin. Instead, it's maintained by thousands 
-            of computers (called "nodes") around the world working together.
+            Decentralization means that no single entity controls Bitcoin. Instead, it&apos;s maintained by thousands 
+            of computers (called &quot;nodes&quot;) around the world working together.
           </p>
           
           <div className="grid md:grid-cols-3 gap-4">
@@ -194,7 +194,7 @@ export default function BitcoinBasicsPage() {
       content: (
         <div className="space-y-6">
           <p className="text-lg text-gray-700">
-            Bitcoin exists only as digital information - there are no physical Bitcoin coins. But this doesn't make it less "real" than physical money.
+            Bitcoin exists only as digital information - there are no physical Bitcoin coins. But this doesn&apos;t make it less &quot;real&quot; than physical money.
           </p>
           
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 overflow-x-auto">
@@ -235,7 +235,7 @@ export default function BitcoinBasicsPage() {
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
             <p className="text-purple-800">
               <strong>Did you know?</strong> Most money today is already digital! When you use a credit card or bank transfer, 
-              you're moving digital numbers in bank databases - just like Bitcoin, but controlled by banks.
+              you&apos;re moving digital numbers in bank databases - just like Bitcoin, but controlled by banks.
             </p>
           </div>
         </div>
@@ -310,7 +310,7 @@ export default function BitcoinBasicsPage() {
           </div>
 
           {/* Content Sections */}
-          {sections.map((section, index) => (
+          {sections.map((section) => (
             <div key={section.id} className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-4 md:p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
