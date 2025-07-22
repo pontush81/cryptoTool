@@ -8,7 +8,6 @@ import DominanceCard from '../../components/DominanceCard'
 import CryptoSelector from '../../components/CryptoSelector'
 import GlobalPeakAlertCard from '../../components/GlobalPeakAlertCard'
 import M2LiquidityCard from '../../components/M2LiquidityCard'
-import MarketPhaseCard from '../../components/MarketPhaseCard'
 
 interface CryptoData {
   id: string
@@ -25,6 +24,11 @@ interface CryptoData {
 interface ApiResponse {
   success: boolean
   data: CryptoData[]
+  global?: {
+    total_market_cap_usd: number
+    total_market_cap_change_24h: number
+    total_volume_usd: number
+  }
   error?: string
   timestamp: string
 }
@@ -32,8 +36,32 @@ interface ApiResponse {
 type ViewMode = 'overview' | 'analysis'
 type AnalysisMode = 'technical' | 'advanced'
 
+// Tooltip komponent
+interface TooltipProps {
+  children: React.ReactNode
+  tooltip: string
+  className?: string
+}
+
+function Tooltip({ children, tooltip, className = '' }: TooltipProps) {
+  return (
+    <div className={`relative group ${className}`}>
+      {children}
+      <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 w-64 text-center">
+        {tooltip}
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
+      </div>
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const [cryptoData, setCryptoData] = useState<CryptoData[]>([])
+  const [globalData, setGlobalData] = useState<{
+    total_market_cap_usd: number
+    total_market_cap_change_24h: number
+    total_volume_usd: number
+  } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
@@ -57,6 +85,9 @@ export default function Dashboard() {
       
       if (result.success && result.data) {
         setCryptoData(result.data)
+        if (result.global) {
+          setGlobalData(result.global)
+        }
         setLastUpdated(result.timestamp)
       } else {
         throw new Error(result.error || 'Failed to fetch data')
@@ -277,68 +308,74 @@ export default function Dashboard() {
             <div className="space-y-6">
               {/* Global Market Stats */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Total Market Cap */}
-                <div className="bg-white p-4 rounded-lg shadow-sm border">
-                  <div className="flex items-center">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <DollarSign className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-500">Total Market Cap</p>
-                      <p className="text-xl font-bold text-gray-900">
-                        {cryptoData.length > 0 && (
-                          `$${(cryptoData.reduce((acc, crypto) => acc + crypto.market_cap, 0) / 1e12).toFixed(2)}T`
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 24h Volume */}
-                <div className="bg-white p-4 rounded-lg shadow-sm border">
-                  <div className="flex items-center">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <Activity className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-500">24h Volume</p>
-                      <p className="text-xl font-bold text-gray-900">
-                        {cryptoData.length > 0 && (
-                          `$${(cryptoData.reduce((acc, crypto) => acc + crypto.total_volume, 0) / 1e9).toFixed(1)}B`
-                        )}
-                      </p>
+                {/* Total Market Cap - Uses Global Data */}
+                <Tooltip tooltip="Det totala värdet av alla kryptovalutor kombinerat. Beräknas genom att multiplicera varje coins pris med dess cirkulerande tillgång och summera allt.">
+                  <div className="bg-white p-4 rounded-lg shadow-sm border cursor-help">
+                    <div className="flex items-center">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <DollarSign className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm font-medium text-gray-500">Total Market Cap</p>
+                        <p className="text-xl font-bold text-gray-900">
+                          {globalData && (
+                            `$${(globalData.total_market_cap_usd / 1e12).toFixed(2)}T`
+                          )}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Tooltip>
 
-                {/* Market Trend */}
-                <div className="bg-white p-4 rounded-lg shadow-sm border">
-                  <div className="flex items-center">
-                    <div className={`p-2 rounded-lg ${
-                      cryptoData.length > 0 && (cryptoData.reduce((acc, crypto) => acc + crypto.price_change_percentage_24h, 0) / cryptoData.length) >= 0 
-                        ? 'bg-green-100' 
-                        : 'bg-red-100'
-                    }`}>
-                      {cryptoData.length > 0 && (cryptoData.reduce((acc, crypto) => acc + crypto.price_change_percentage_24h, 0) / cryptoData.length) >= 0 ? (
-                        <TrendingUp className="h-5 w-5 text-green-600" />
-                      ) : (
-                        <TrendingDown className="h-5 w-5 text-red-600" />
-                      )}
+                {/* 24h Volume - Uses Global Data */}
+                <Tooltip tooltip="Total handelsvolym för alla kryptovalutor under senaste 24 timmarna. Visar hur mycket som handlas aktivt på marknaden - högre volym indikerar mer likviditet och aktivitet.">
+                  <div className="bg-white p-4 rounded-lg shadow-sm border cursor-help">
+                    <div className="flex items-center">
+                      <div className="p-2 bg-green-100 rounded-lg">
+                        <Activity className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm font-medium text-gray-500">24h Volume</p>
+                        <p className="text-xl font-bold text-gray-900">
+                          {globalData && (
+                            `$${(globalData.total_volume_usd / 1e9).toFixed(1)}B`
+                          )}
+                        </p>
+                      </div>
                     </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-500">Market Trend</p>
-                      <p className={`text-xl font-bold ${
-                        cryptoData.length > 0 && (cryptoData.reduce((acc, crypto) => acc + crypto.price_change_percentage_24h, 0) / cryptoData.length) >= 0 
-                          ? 'text-green-600' 
-                          : 'text-red-600'
+                  </div>
+                </Tooltip>
+
+                {/* Market Trend - Uses Global Market Cap Change */}
+                <Tooltip tooltip="Procentuell förändring av den totala kryptomarknadens värde under senaste 24 timmarna. Använder samma beräkningsmetod som TradingView och CoinMarketCap - baserat på total market cap förändring, inte genomsnitt av individuella coins.">
+                  <div className="bg-white p-4 rounded-lg shadow-sm border cursor-help">
+                    <div className="flex items-center">
+                      <div className={`p-2 rounded-lg ${
+                        globalData && globalData.total_market_cap_change_24h >= 0 
+                          ? 'bg-green-100' 
+                          : 'bg-red-100'
                       }`}>
-                        {cryptoData.length > 0 && (
-                          `${(cryptoData.reduce((acc, crypto) => acc + crypto.price_change_percentage_24h, 0) / cryptoData.length) >= 0 ? '+' : ''}${((cryptoData.reduce((acc, crypto) => acc + crypto.price_change_percentage_24h, 0) / cryptoData.length)).toFixed(2)}%`
+                        {globalData && globalData.total_market_cap_change_24h >= 0 ? (
+                          <TrendingUp className="h-5 w-5 text-green-600" />
+                        ) : (
+                          <TrendingDown className="h-5 w-5 text-red-600" />
                         )}
-                      </p>
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm font-medium text-gray-500">Market Trend</p>
+                        <p className={`text-xl font-bold ${
+                          globalData && globalData.total_market_cap_change_24h >= 0 
+                            ? 'text-green-600' 
+                            : 'text-red-600'
+                        }`}>
+                          {globalData && (
+                            `${globalData.total_market_cap_change_24h >= 0 ? '+' : ''}${globalData.total_market_cap_change_24h.toFixed(2)}%`
+                          )}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Tooltip>
               </div>
 
               {/* Main Content Grid */}
@@ -350,9 +387,6 @@ export default function Dashboard() {
 
                   {/* M2 Liquidity Card */}
                   <M2LiquidityCard cryptoData={cryptoData} />
-
-                  {/* Market Phase Card */}
-                  <MarketPhaseCard cryptoData={cryptoData} />
 
                   {/* Crypto Table */}
                   <div className="bg-white rounded-lg shadow-sm overflow-hidden">

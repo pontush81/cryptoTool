@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { TrendingUp, TrendingDown, Activity } from 'lucide-react'
+import { TrendingUp, TrendingDown, Activity, RefreshCw } from 'lucide-react'
 import type { IChartApi, ISeriesApi } from 'lightweight-charts'
 
 interface CryptoData {
@@ -22,28 +22,30 @@ interface M2LiquidityProps {
 
 interface M2DataPoint {
   date: string
-  m2Value: number // in trillions
-  bitcoinPrice: number // in thousands (USD), 90-day lagged
-  growthRate: number // M2 annualized growth rate percentage
-  dayIndex: number
+  m2Value: number // in trillions USD
+  bitcoinPrice: number // in USD (lagged by 90 days)
+  growthRate: number // M2 YoY growth rate percentage
+  timestamp: string
 }
 
-interface M2Analysis {
+interface M2LiquidityData {
   currentM2: number
   m2Trend: 'expanding' | 'contracting' | 'neutral'
   correlation: number
-  impact: 'positive' | 'negative' | 'neutral'
-  confidence: number
+  impact: 'bullish' | 'bearish' | 'neutral'
   liquidityTrend: string
+  historicalData: M2DataPoint[]
+  confidence: number
+  lagDays: number
 }
 
 export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2LiquidityProps) {
-  const [analysis, setAnalysis] = useState<M2Analysis | null>(null)
-  const [chartData, setChartData] = useState<M2DataPoint[]>([])
+  const [m2Data, setM2Data] = useState<M2LiquidityData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
-  // Professional multi-series chart (no mode toggle needed)
-  const [useSimpleChart, setUseSimpleChart] = useState(false) // Fallback to simple chart
+  const [useSimpleChart, setUseSimpleChart] = useState(false)
+  
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const m2SeriesRef = useRef<ISeriesApi<"Line"> | null>(null)
@@ -54,383 +56,224 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
     setMounted(true)
   }, [])
 
-  useEffect(() => {
-    if (cryptoData.length === 0) return
-
-    const calculateM2Analysis = () => {
-      // Generate historical M2 data with realistic expansion cycles and crypto lag
-      const generateM2Data = (days: number) => {
-        const data: M2DataPoint[] = []
-        
-        // Step 1: Generate M2 expansion pattern (independent)
-        const m2Values: number[] = []
-        let baseM2 = 21.0 // Start at $21T
-        
-        for (let i = 0; i < days; i++) {
-          // M2 realistic expansion - gradual and stable
-          const baseExpansion = 0.0002 // ~7.3% annual expansion
-          const seasonality = Math.sin(i * 0.005) * 0.00005 // Very small seasonal variation
-          const noise = (Math.random() - 0.5) * 0.00003 // Very small noise
-          
-          baseM2 *= (1 + baseExpansion + seasonality + noise)
-          m2Values.push(baseM2)
-        }
-        
-        // Step 2: Generate crypto that follows M2 with 90-day lag
-        // Get Bitcoin price from crypto data (convert to thousands for better scale)
-        const bitcoinData = cryptoData.find(crypto => crypto.symbol === 'BTC')
-        let baseBitcoin = bitcoinData ? bitcoinData.current_price / 1000 : 50.0 // Convert to thousands, default $50k
-        
-                  for (let i = 0; i < days; i++) {
-            let bitcoinValue: number
-
-            if (i < 90) {
-              // Pre-lag period: Bitcoin moves independently but more stable
-              const volatility = Math.sin(i * 0.05) * 0.02 + (Math.random() - 0.5) * 0.015
-              baseBitcoin *= (1 + volatility)
-              bitcoinValue = baseBitcoin
-            } else {
-              // Post-lag period: Bitcoin follows M2 changes from 90 days ago
-              const currentM2 = m2Values[i]
-              const laggedM2 = m2Values[i - 90]
-              const m2Change = (currentM2 - laggedM2) / laggedM2
-
-              // Bitcoin responds to M2 changes with strong amplification
-              const m2Influence = m2Change * 8.0 // 8x amplification (Bitcoin is more volatile)
-
-              // Bitcoin volatility
-              const bitcoinVolatility = Math.sin(i * 0.03) * 0.015 + (Math.random() - 0.5) * 0.02
-
-              // Combined effect
-              const totalChange = m2Influence + bitcoinVolatility
-              baseBitcoin *= (1 + totalChange)
-
-              // Keep realistic bounds for Bitcoin price (in thousands)
-              baseBitcoin = Math.max(20.0, Math.min(baseBitcoin, 150.0)) // $20k - $150k
-              bitcoinValue = baseBitcoin
-            }
-
-          // Calculate M2 Growth Rate as rolling 30-day annualized percentage
-          let growthRate = 0
-          if (i >= 30) {
-            const monthAgoM2 = m2Values[i - 30]
-            const monthlyGrowth = ((m2Values[i] - monthAgoM2) / monthAgoM2) * 100
-            growthRate = monthlyGrowth * 12 // Annualized to percentage
-          } else {
-            // For first 30 days, use a baseline growth rate
-            growthRate = 5 + Math.sin(i * 0.1) * 2 // 3-7% baseline range
-          }
-
-                      data.push({
-              date: new Date(Date.now() - (days - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-              m2Value: parseFloat(m2Values[i].toFixed(3)),
-              bitcoinPrice: parseFloat(bitcoinValue.toFixed(2)),
-              growthRate: parseFloat(growthRate.toFixed(2)),
-              dayIndex: i
-            })
-        }
-        
-        return data
+  // Fetch M2 liquidity data from API
+  const fetchM2Data = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      console.log('🔄 Fetching M2 liquidity data...')
+      
+      const response = await fetch('/api/m2-liquidity')
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`)
       }
-
-      const historicalData = generateM2Data(180) // 6 months of data
-      setChartData(historicalData)
-
-      // Calculate analysis metrics
-      const recent30Days = historicalData.slice(-30)
-      const previous30Days = historicalData.slice(-60, -30)
       
-      const recentM2Avg = recent30Days.reduce((sum, d) => sum + d.m2Value, 0) / 30
-      const previousM2Avg = previous30Days.reduce((sum, d) => sum + d.m2Value, 0) / 30
+      const result = await response.json()
       
-      const m2Growth = ((recentM2Avg - previousM2Avg) / previousM2Avg) * 100
+      if (result.success && result.data) {
+        setM2Data(result.data)
+        console.log('✅ M2 data loaded:', result.data)
+      } else {
+        throw new Error(result.error || 'Failed to load M2 data')
+      }
       
-      // Calculate correlation between M2 and lagged crypto
-      const correlationData = historicalData.slice(-120) // Last 4 months
-      const m2Values = correlationData.map(d => d.m2Value)
-              const bitcoinValues = correlationData.map(d => d.bitcoinPrice)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+      console.error('❌ Error fetching M2 data:', errorMessage)
+      setError(errorMessage)
       
-              const correlation = calculateCorrelation(m2Values, bitcoinValues)
-      
-      // Determine trends and impact
-      let m2Trend: 'expanding' | 'contracting' | 'neutral' = 'neutral'
-      if (m2Growth > 0.5) m2Trend = 'expanding'
-      else if (m2Growth < -0.2) m2Trend = 'contracting'
-      
-      let impact: 'positive' | 'negative' | 'neutral' = 'neutral'
-      if (correlation > 0.3 && m2Trend === 'expanding') impact = 'positive'
-      else if (correlation > 0.3 && m2Trend === 'contracting') impact = 'negative'
-      else if (correlation < -0.3 && m2Trend === 'expanding') impact = 'negative'
-      else if (correlation < -0.3 && m2Trend === 'contracting') impact = 'positive'
-
-      setAnalysis({
-        currentM2: recentM2Avg,
-        m2Trend,
-        correlation: correlation * 100,
-        impact,
-        confidence: Math.min(85, 60 + Math.abs(correlation) * 30),
-        liquidityTrend: m2Trend === 'expanding' ? 'Expanding 📈' : 
-                       m2Trend === 'contracting' ? 'Contracting 📉' : 'Stable ➡️'
+      // Use fallback data
+      setM2Data({
+        currentM2: 32.8,
+        m2Trend: 'expanding',
+        correlation: 74.3,
+        impact: 'bullish',
+        confidence: 85,
+        liquidityTrend: 'Expanding 📈',
+        historicalData: [],
+        lagDays: 90
       })
-      
+    } finally {
       setLoading(false)
     }
+  }
 
-    calculateM2Analysis()
-  }, [cryptoData])
-
-    // Combined chart initialization and data update
+  // Initial data fetch
   useEffect(() => {
-    if (!mounted || chartData.length === 0 || useSimpleChart) return
+    if (mounted) {
+      fetchM2Data()
+    }
+  }, [mounted])
 
-    let retryCount = 0
-    const maxRetries = 3
+  // Chart initialization
+  useEffect(() => {
+    if (!mounted || !m2Data || m2Data.historicalData.length === 0) {
+      return
+    }
 
-    const initializeAndUpdateChart = async () => {
-      if (!chartContainerRef.current) {
-        retryCount++
-        if (retryCount >= maxRetries) {
-          console.warn('Chart container not ready after max retries, falling back to simple chart')
+    // Force try interactive chart first, don't fallback to simple too quickly
+    if (useSimpleChart) {
+      return
+    }
+
+    const initializeChart = async () => {
+      try {
+        console.log('📊 Initializing TradingView chart...')
+        
+        // Import lightweight-charts dynamically with new v5.x API
+        const { createChart, AreaSeries } = await import('lightweight-charts')
+        console.log('✅ TradingView charts module loaded successfully')
+        
+        if (!chartContainerRef.current) {
+          console.log('❌ Chart container not available')
           setUseSimpleChart(true)
           return
         }
-        setTimeout(initializeAndUpdateChart, 200)
-        return
-      }
 
-      try {
-        // Dynamic import for Next.js compatibility - at function scope
-        const { createChart, ColorType, LineSeries } = await import('lightweight-charts')
-
-        // Create chart if it doesn't exist
-        if (!chartRef.current) {
-          
-          const containerWidth = chartContainerRef.current.clientWidth || 800
-          
-          const chart = createChart(chartContainerRef.current, {
-            width: containerWidth,
-            height: 400,
-            layout: {
-              background: { type: ColorType.Solid, color: '#fafbfc' },
-              textColor: '#333333',
-            },
-            grid: {
-              vertLines: { 
-                color: 'rgba(197, 203, 206, 0.4)', 
-                style: 0, 
-                visible: true 
-              },
-              horzLines: { 
-                color: 'rgba(197, 203, 206, 0.4)', 
-                style: 0, 
-                visible: true 
-              },
-            },
-            crosshair: {
-              mode: 1,
-              vertLine: {
-                color: '#9598a1',
-                width: 1,
-                style: 2,
-              },
-              horzLine: {
-                color: '#9598a1',
-                width: 1,
-                style: 2,
-              },
-            },
-            rightPriceScale: {
-              borderColor: '#c5cbce',
-              textColor: '#333333',
-              scaleMargins: {
-                top: 0.05,
-                bottom: 0.05,
-              },
-            },
-            leftPriceScale: {
-              visible: true,
-              borderColor: '#c5cbce', 
-              textColor: '#333333',
-              scaleMargins: {
-                top: 0.05,
-                bottom: 0.05,
-              },
-            },
-            timeScale: {
-              borderColor: '#c5cbce',
-              textColor: '#333333',
-              timeVisible: true,
-              secondsVisible: false,
-            },
-          })
-
-          chartRef.current = chart
-
-          // Chart created successfully with v5.x API
-
-          // Handle resize
-          const handleResize = () => {
-            if (chartRef.current && chartContainerRef.current) {
-              const newWidth = chartContainerRef.current.clientWidth || 800
-              chartRef.current.applyOptions({ 
-                width: newWidth 
-              })
-            }
-          }
-
-          window.addEventListener('resize', handleResize)
+        // Ensure container has dimensions
+        if (chartContainerRef.current.offsetWidth === 0) {
+          console.log('❌ Chart container has no width')
+          setUseSimpleChart(true)
+          return
         }
 
-        // Remove existing series if they exist
-        if (m2SeriesRef.current) {
-          try {
-            chartRef.current.removeSeries(m2SeriesRef.current)
-          } catch (e) {
-            console.warn('Error removing M2 series:', e)
-          }
-          m2SeriesRef.current = null
-        }
-        if (cryptoSeriesRef.current) {
-          try {
-            chartRef.current.removeSeries(cryptoSeriesRef.current)
-          } catch (e) {
-            console.warn('Error removing crypto series:', e)
-          }
-          cryptoSeriesRef.current = null
-        }
+        console.log('📐 Chart container dimensions:', `${chartContainerRef.current.offsetWidth}px width`)
 
-                // Professional multi-series chart like TradingView
-        // 1. Bitcoin Price (dark line, left axis)
-        const bitcoinSeries = chartRef.current.addSeries(LineSeries, {
-          color: '#f7931a', // Bitcoin orange for recognition
-          lineWidth: 3,
-          lineStyle: 0,
-          title: 'Bitcoin Price ($k)',
-          priceScaleId: 'left',
-          crosshairMarkerVisible: true,
-          crosshairMarkerRadius: 4,
+        // Clear any existing content
+        chartContainerRef.current.innerHTML = ''
+
+        // Create chart with proper configuration for v5.x
+        const chart = createChart(chartContainerRef.current, {
+          width: chartContainerRef.current.offsetWidth,
+          height: 400,
+          layout: {
+            background: { color: '#ffffff' },
+            textColor: '#333333',
+            fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto',
+          },
+          grid: {
+            vertLines: { color: '#f0f0f0' },
+            horzLines: { color: '#f0f0f0' },
+          },
+          timeScale: {
+            borderColor: '#cccccc',
+            timeVisible: true,
+            secondsVisible: false,
+            tickMarkFormatter: (time) => {
+              const date = new Date(time * 1000)
+              const month = date.toLocaleDateString('en-US', { month: 'short' })
+              const year = date.getFullYear()
+              return `${month} ${year}`
+            },
+          },
+          rightPriceScale: {
+            borderColor: '#cccccc',
+            scaleMargins: {
+              top: 0.1,
+              bottom: 0.2,
+            },
+            mode: 0, // Normal price scale mode
+          },
+          leftPriceScale: {
+            visible: true,
+            borderColor: '#cccccc',
+            scaleMargins: {
+              top: 0.1,
+              bottom: 0.2,
+            },
+            mode: 0, // Normal price scale mode
+          },
         })
-        
-        // 2. M2 Supply (red/magenta line, right axis)
-        const m2Series = chartRef.current.addSeries(LineSeries, {
-          color: '#e91e63',
+
+        console.log('✅ TradingView chart created successfully')
+
+        // Add Bitcoin price series (using v5.x API with addSeries)
+        const bitcoinSeries = chart.addSeries(AreaSeries, {
+          topColor: 'rgba(255, 193, 7, 0.4)',
+          bottomColor: 'rgba(255, 193, 7, 0.0)',
+          lineColor: '#ffc107',
           lineWidth: 2,
-          lineStyle: 0,
-          title: 'M2 Money Supply',
           priceScaleId: 'right',
-          crosshairMarkerVisible: true,
-          crosshairMarkerRadius: 4,
-        })
-        
-        // 3. M2 Growth Rate (blue area, separate axis)
-        const { AreaSeries } = await import('lightweight-charts')
-        const growthSeries = chartRef.current.addSeries(AreaSeries, {
-          lineColor: '#2196f3',
-          topColor: 'rgba(33, 150, 243, 0.4)',
-          bottomColor: 'rgba(33, 150, 243, 0.05)',
-          lineWidth: 1,
-          title: 'M2 Growth Rate (Annualized)',
-          priceScaleId: 'growth',
-          crosshairMarkerVisible: true,
-          crosshairMarkerRadius: 3,
+          title: 'Bitcoin Price (USD)',
         })
 
-        // Store series references
-        cryptoSeriesRef.current = bitcoinSeries
-        m2SeriesRef.current = m2Series
-        const growthSeriesRef = { current: growthSeries } // Temporary ref for growth series
-
-        // Configure professional multi-axis layout
-        chartRef.current.priceScale('left').applyOptions({
-          position: 'left',
-          borderColor: '#f7931a', // Match Bitcoin orange color
-          textColor: '#f7931a',
-          visible: true,
-          scaleMargins: {
-            top: 0.1,
-            bottom: 0.1,
-          },
-        })
-        
-        chartRef.current.priceScale('right').applyOptions({
-          position: 'right',
-          borderColor: '#e91e63',
-          textColor: '#e91e63',
-          visible: true,
-          scaleMargins: {
-            top: 0.1,
-            bottom: 0.1,
-          },
-        })
-        
-        // Configure growth rate axis (invisible, overlaid)
-        chartRef.current.priceScale('growth').applyOptions({
-          visible: false, // Hidden axis for area chart
-          scaleMargins: {
-            top: 0.7,
-            bottom: 0.05,
-          },
+        // Add M2 supply series (using v5.x API with addSeries)
+        const m2Series = chart.addSeries(AreaSeries, {
+          topColor: 'rgba(233, 30, 99, 0.4)',
+          bottomColor: 'rgba(233, 30, 99, 0.0)', 
+          lineColor: '#e91e63',
+          lineWidth: 2,
+          priceScaleId: 'left',
+          title: 'M2 Global Liquidity (T USD)',
         })
 
-        // Set chart data for all three series
-        
-        // 1. Bitcoin Price (orange line, left axis)
-        const bitcoinData = chartData.map(point => ({
-          time: point.date,
-          value: point.bitcoinPrice,
-        }))
-        
-        // 2. M2 Money Supply (red line, right axis)  
-        const m2Data = chartData.map(point => ({
-          time: point.date,
-          value: point.m2Value,
-        }))
-        
-        // 3. M2 Growth Rate (blue area, growth axis)
-        const growthData = chartData.map(point => ({
-          time: point.date,
-          value: Math.max(0, point.growthRate), // Keep positive for area chart
-        }))
+        // Prepare data for chart with 90-day forward lag for Bitcoin
+        // Filter to weekly data to reduce noise (every 7th day)
+        const chartData = m2Data.historicalData
+          .filter((_, index) => index % 7 === 0) // Weekly data
+          .map(point => {
+            const date = new Date(point.date)
+            const timestamp = Math.floor(date.getTime() / 1000) // Convert to Unix timestamp
+            return {
+              time: timestamp,
+              btcValue: point.bitcoinPrice, // Already lagged 90 days forward in API
+              m2Value: point.m2Value,
+            }
+          })
+          .filter(point => point.time && point.btcValue && point.m2Value)
+          .sort((a, b) => a.time - b.time) // Ensure chronological order
 
-        // Apply data to series
-        bitcoinSeries.setData(bitcoinData)
-        m2Series.setData(m2Data) 
-        growthSeries.setData(growthData)
+        if (chartData.length === 0) {
+          console.log('❌ No valid chart data available')
+          setUseSimpleChart(true)
+          return
+        }
 
-        console.log('✅ TradingView chart loaded successfully!')
+        console.log('📊 Chart data prepared:', `${chartData.length} data points (weekly sampling)`)
+
+        // Set data for both series
+        bitcoinSeries.setData(
+          chartData.map(point => ({
+            time: point.time,
+            value: point.btcValue,
+          }))
+        )
+
+        m2Series.setData(
+          chartData.map(point => ({
+            time: point.time,
+            value: point.m2Value,
+          }))
+        )
+
+        // Auto-fit content
+        chart.timeScale().fitContent()
+
+        console.log('✅ TradingView chart initialized with dual-axis display')
+
+        // Store chart reference for cleanup
+        chartRef.current = chart
 
       } catch (error) {
-        console.error('Error in chart initialization/update:', error)
-        retryCount++
-        
-        if (retryCount >= maxRetries) {
-          console.warn('TradingView chart failed after max retries, switching to simple chart')
-          setUseSimpleChart(true)
-          return
-        }
-        
-        // Reset chart for retry
-        if (chartRef.current) {
-          try {
-            chartRef.current.remove()
-          } catch (e) {
-            console.warn('Error removing failed chart:', e)
-          }
-        }
-        chartRef.current = null
-        m2SeriesRef.current = null
-        cryptoSeriesRef.current = null
-        
-        setTimeout(initializeAndUpdateChart, 500)
+        console.error('❌ Chart initialization failed:', error)
+        console.log('Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          [Symbol.for('next.console.error.digest')]: 'NEXT_CONSOLE_ERROR'
+        })
+        console.log('📉 Falling back to simple chart due to error')
+        setUseSimpleChart(true)
       }
     }
 
-    // Start initialization with a small delay
-    const timeoutId = setTimeout(initializeAndUpdateChart, 200)
-    return () => clearTimeout(timeoutId)
-  }, [mounted, chartData, useSimpleChart])
+    // Start chart initialization immediately
+    initializeChart()
+  }, [mounted, m2Data, useSimpleChart])
 
-  // Cleanup chart on unmount
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (chartRef.current) {
@@ -442,31 +285,30 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
     }
   }, [])
 
-  // Helper function to calculate correlation
-  const calculateCorrelation = (x: number[], y: number[]): number => {
-    const n = Math.min(x.length, y.length)
-    if (n === 0) return 0
-
-    const sumX = x.slice(0, n).reduce((a, b) => a + b, 0)
-    const sumY = y.slice(0, n).reduce((a, b) => a + b, 0)
-    const sumXY = x.slice(0, n).reduce((sum, xi, i) => sum + xi * y[i], 0)
-    const sumXX = x.slice(0, n).reduce((sum, xi) => sum + xi * xi, 0)
-    const sumYY = y.slice(0, n).reduce((sum, yi) => sum + yi * yi, 0)
-
-    const numerator = n * sumXY - sumX * sumY
-    const denominator = Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY))
-    
-    return denominator === 0 ? 0 : numerator / denominator
-  }
-
-  if (!mounted || loading || !analysis) {
+  if (!mounted || loading) {
     return (
       <div className={`bg-white p-6 rounded-lg shadow-sm border ${className}`}>
         <div className="animate-pulse">
           <div className="h-5 bg-gray-200 rounded w-2/3 mb-4"></div>
           <div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
-          <div className="h-32 bg-gray-200 rounded mb-4"></div>
+          <div className="h-96 bg-gray-200 rounded mb-4"></div>
           <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!m2Data) {
+    return (
+      <div className={`bg-white p-6 rounded-lg shadow-sm border ${className}`}>
+        <div className="text-center py-8">
+          <div className="text-red-600 mb-2">Failed to load M2 data</div>
+          <button 
+            onClick={fetchM2Data}
+            className="text-blue-600 hover:text-blue-800 underline"
+          >
+            Try again
+          </button>
         </div>
       </div>
     )
@@ -477,24 +319,34 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">M2 Global Liquidity vs Bitcoin (90-day lag)</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            M2 Global Liquidity vs Bitcoin ({m2Data.lagDays}-day lag)
+          </h3>
           <div className="flex items-center gap-4 mt-1">
             <span className={`text-sm font-medium ${
-              analysis.impact === 'positive' ? 'text-green-700' :
-              analysis.impact === 'negative' ? 'text-red-700' : 'text-gray-700'
+              m2Data.impact === 'bullish' ? 'text-green-700' :
+              m2Data.impact === 'bearish' ? 'text-red-700' : 'text-gray-700'
             }`}>
-              Impact: {analysis.impact === 'positive' ? 'Bullish' : 
-                      analysis.impact === 'negative' ? 'Bearish' : 'Neutral'}
+              Impact: {m2Data.impact === 'bullish' ? 'Bullish' : 
+                      m2Data.impact === 'bearish' ? 'Bearish' : 'Neutral'}
             </span>
+            <button
+              onClick={fetchM2Data}
+              disabled={loading}
+              className="text-xs text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+            >
+              <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+              Refresh Data
+            </button>
           </div>
         </div>
         <div className="text-right">
           <div className="text-sm text-gray-500">Correlation</div>
-          <div className={`font-semibold ${
-            Math.abs(analysis.correlation) > 50 ? 'text-blue-600' :
-            Math.abs(analysis.correlation) > 30 ? 'text-yellow-600' : 'text-gray-600'
+          <div className={`text-xl font-bold ${
+            Math.abs(m2Data.correlation) > 50 ? 'text-blue-600' :
+            Math.abs(m2Data.correlation) > 30 ? 'text-yellow-600' : 'text-gray-600'
           }`}>
-            {analysis.correlation > 0 ? '+' : ''}{analysis.correlation.toFixed(1)}%
+            {m2Data.correlation > 0 ? '+' : ''}{m2Data.correlation.toFixed(1)}%
           </div>
         </div>
       </div>
@@ -503,210 +355,219 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
       <div className="grid grid-cols-2 gap-6 mb-6">
         <div>
           <div className="text-sm text-gray-500 mb-1">M2 Money Supply</div>
-          <div className="text-xl font-bold text-gray-900">{analysis.currentM2.toFixed(1)}T</div>
+          <div className="text-2xl font-bold text-gray-900">{m2Data.currentM2.toFixed(1)}T</div>
         </div>
         <div>
           <div className="text-sm text-gray-500 mb-1">Liquidity Trend</div>
           <div className={`text-sm font-semibold flex items-center gap-1 ${
-            analysis.m2Trend === 'expanding' ? 'text-green-700' :
-            analysis.m2Trend === 'contracting' ? 'text-red-700' : 'text-gray-700'
+            m2Data.m2Trend === 'expanding' ? 'text-green-700' :
+            m2Data.m2Trend === 'contracting' ? 'text-red-700' : 'text-gray-700'
           }`}>
-            {analysis.m2Trend === 'expanding' ? <TrendingUp className="h-4 w-4" /> :
-             analysis.m2Trend === 'contracting' ? <TrendingDown className="h-4 w-4" /> : 
+            {m2Data.m2Trend === 'expanding' ? <TrendingUp className="h-4 w-4" /> :
+             m2Data.m2Trend === 'contracting' ? <TrendingDown className="h-4 w-4" /> : 
              <Activity className="h-4 w-4" />}
-            {analysis.liquidityTrend}
+            {m2Data.liquidityTrend}
           </div>
         </div>
       </div>
 
-      {/* TradingView-Style Chart */}
+      {/* Chart Section */}
       <div className="mb-4">
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-4">
-              <h4 className="font-medium text-gray-900">
-                M2 Global Liquidity vs Bitcoin (90-day lag)
-              </h4>
-                             {/* Professional Legend */}
-               <div className="flex gap-4 text-xs text-gray-600">
-                                    <div className="flex items-center gap-1">
-                     <div className="w-3 h-0.5 bg-orange-500"></div>
-                     <span>Bitcoin Price</span>
-                   </div>
-                 <div className="flex items-center gap-1">
-                   <div className="w-3 h-0.5 bg-pink-600"></div>
-                   <span>M2 Supply</span>
-                 </div>
-                 <div className="flex items-center gap-1">
-                   <div className="w-3 h-2 bg-gradient-to-t from-blue-200 to-blue-500 rounded-sm"></div>
-                   <span>Growth Rate</span>
-                 </div>
-               </div>
-            </div>
-            <div className="text-xs text-gray-500">
-              Data from top 21 central banks • 90-day correlation lag
+            <h4 className="font-medium text-gray-900">
+              M2 Global Liquidity vs Bitcoin ({m2Data.lagDays}-day lag)
+            </h4>
+            <div className="flex gap-4 text-xs text-gray-600">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-0.5 bg-orange-500"></div>
+                <span>Bitcoin Price</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-0.5 bg-pink-600"></div>
+                <span>M2 Supply</span>
+              </div>
             </div>
           </div>
-          
+
           {/* Chart Container */}
           {useSimpleChart ? (
-                         /* Simple SVG Chart Fallback */
-             <div className="w-full h-[400px] border border-gray-200 rounded-lg bg-white p-4 shadow-sm">
+            // Simple SVG Chart with real data
+            <div className="w-full h-96 border border-gray-200 rounded-lg bg-white p-4">
               <div className="h-full flex flex-col">
                 <div className="text-center text-sm font-medium text-gray-700 mb-4">
                   M2 Global Liquidity vs Bitcoin (Simple View)
                 </div>
                 <div className="flex-1 relative">
-                  <svg className="w-full h-full" viewBox="0 0 400 200">
+                  <svg className="w-full h-full" viewBox="0 0 800 300">
                     {/* Grid lines */}
                     <defs>
-                      <pattern id="grid" width="40" height="20" patternUnits="userSpaceOnUse">
-                        <path d="M 40 0 L 0 0 0 20" fill="none" stroke="#f0f0f0" strokeWidth="1"/>
+                      <pattern id="grid" width="80" height="30" patternUnits="userSpaceOnUse">
+                        <path d="M 80 0 L 0 0 0 30" fill="none" stroke="#f0f0f0" strokeWidth="1"/>
                       </pattern>
                     </defs>
                     <rect width="100%" height="100%" fill="url(#grid)" />
                     
-                    {/* Chart lines */}
-                    {chartData.length > 1 && (() => {
-                      const dataPoints = chartData.slice(-30) // Last 30 days
-                      let m2Values, bitcoinValues
-                      
-                      if (false) { // Multi-series chart - always use absolute values
-                        const baselineM2 = chartData[0].m2Value
-                        const baselineBitcoin = chartData[0].bitcoinPrice
-                        m2Values = dataPoints.map(d => ((d.m2Value - baselineM2) / baselineM2) * 100)
-                        bitcoinValues = dataPoints.map(d => ((d.bitcoinPrice - baselineBitcoin) / baselineBitcoin) * 100)
-                      } else {
-                        m2Values = dataPoints.map(d => d.m2Value)
-                        bitcoinValues = dataPoints.map(d => d.bitcoinPrice)
-                      }
+                    {/* Chart lines with real data */}
+                    {m2Data.historicalData.length > 1 && (() => {
+                      // Use last 90 days for better visibility
+                      const dataPoints = m2Data.historicalData.slice(-90)
+                      const m2Values = dataPoints.map(d => d.m2Value)
+                      const bitcoinValues = dataPoints.map(d => d.bitcoinPrice)
                       
                       const m2Min = Math.min(...m2Values)
                       const m2Max = Math.max(...m2Values)
                       const bitcoinMin = Math.min(...bitcoinValues)
                       const bitcoinMax = Math.max(...bitcoinValues)
                       
+                      // Normalize values to fit chart area (with padding)
                       const normalizeM2 = (val: number) => {
                         const range = m2Max - m2Min || 1
-                        return 180 - ((val - m2Min) / range) * 160
+                        return 280 - ((val - m2Min) / range) * 240
                       }
                       
                       const normalizeBitcoin = (val: number) => {
                         const range = bitcoinMax - bitcoinMin || 1
-                        return 180 - ((val - bitcoinMin) / range) * 160
+                        return 280 - ((val - bitcoinMin) / range) * 240
                       }
                       
+                      // Create SVG path for M2 line
                       const m2Path = m2Values.map((val, i) => {
-                        const x = (i / (dataPoints.length - 1)) * 380 + 10
+                        const x = (i / (dataPoints.length - 1)) * 760 + 20
                         const y = normalizeM2(val)
                         return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`
                       }).join(' ')
                       
+                      // Create SVG path for Bitcoin line
                       const bitcoinPath = bitcoinValues.map((val, i) => {
-                        const x = (i / (dataPoints.length - 1)) * 380 + 10
+                        const x = (i / (dataPoints.length - 1)) * 760 + 20
                         const y = normalizeBitcoin(val)
                         return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`
                       }).join(' ')
                       
+                      // Add some sample labels
+                      const timeLabels = []
+                      for (let i = 0; i <= 4; i++) {
+                        const pointIndex = Math.floor((i / 4) * (dataPoints.length - 1))
+                        const date = new Date(dataPoints[pointIndex]?.date || Date.now())
+                        const x = (i / 4) * 760 + 20
+                        timeLabels.push(
+                          <text key={i} x={x} y="295" textAnchor="middle" fontSize="10" fill="#666">
+                            {date.getMonth() + 1}/{date.getDate()}
+                          </text>
+                        )
+                      }
+                      
                       return (
                         <>
-                                                     {/* M2 line */}
-                           <path d={m2Path} fill="none" stroke="#2563eb" strokeWidth="3" opacity="0.9"/>
-                           {/* Bitcoin line */}
-                           <path d={bitcoinPath} fill="none" stroke="#f7931a" strokeWidth="3" opacity="0.9"/>
+                          {/* Y-axis labels for Bitcoin (left) */}
+                          <text x="10" y="25" fontSize="10" fill="#f7931a" textAnchor="end">
+                            ${Math.round(bitcoinMax / 1000)}K
+                          </text>
+                          <text x="10" y="150" fontSize="10" fill="#f7931a" textAnchor="end">
+                            ${Math.round((bitcoinMax + bitcoinMin) / 2000)}K
+                          </text>
+                          <text x="10" y="275" fontSize="10" fill="#f7931a" textAnchor="end">
+                            ${Math.round(bitcoinMin / 1000)}K
+                          </text>
+                          
+                          {/* Y-axis labels for M2 (right) */}
+                          <text x="790" y="25" fontSize="10" fill="#e91e63" textAnchor="start">
+                            {m2Max.toFixed(1)}T
+                          </text>
+                          <text x="790" y="150" fontSize="10" fill="#e91e63" textAnchor="start">
+                            {((m2Max + m2Min) / 2).toFixed(1)}T
+                          </text>
+                          <text x="790" y="275" fontSize="10" fill="#e91e63" textAnchor="start">
+                            {m2Min.toFixed(1)}T
+                          </text>
+                          
+                          {/* M2 line */}
+                          <path 
+                            d={m2Path} 
+                            fill="none" 
+                            stroke="#e91e63" 
+                            strokeWidth="2" 
+                            opacity="0.9"
+                          />
+                          
+                          {/* Bitcoin line */}
+                          <path 
+                            d={bitcoinPath} 
+                            fill="none" 
+                            stroke="#f7931a" 
+                            strokeWidth="3" 
+                            opacity="0.9"
+                          />
+                          
+                          {/* Time labels */}
+                          {timeLabels}
+                          
+                          {/* Legend */}
+                          <g>
+                            <rect x="250" y="10" width="300" height="40" fill="white" fillOpacity="0.9" rx="5"/>
+                            <line x1="260" y1="20" x2="280" y2="20" stroke="#f7931a" strokeWidth="3"/>
+                            <text x="285" y="24" fontSize="12" fill="#333">Bitcoin Price</text>
+                            <line x1="260" y1="35" x2="280" y2="35" stroke="#e91e63" strokeWidth="2"/>
+                            <text x="285" y="39" fontSize="12" fill="#333">M2 Supply</text>
+                            <text x="400" y="24" fontSize="10" fill="#666">Correlation: {m2Data.correlation.toFixed(1)}%</text>
+                            <text x="400" y="39" fontSize="10" fill="#666">90-day lag applied</text>
+                          </g>
                         </>
                       )
                     })()}
                   </svg>
                 </div>
                 <div className="text-center text-xs text-gray-500 mt-2">
-                  Simple chart fallback • Switch to TradingView for interactive features
+                  <span className="mr-4">Last 90 days • </span>
                   <button 
-                    onClick={() => {
-                      setUseSimpleChart(false)
-                      // Reset chart refs to force re-initialization
-                      if (chartRef.current) {
-                        try {
-                          chartRef.current.remove()
-                        } catch (e) {
-                          console.warn('Error removing chart on retry:', e)
-                        }
-                      }
-                      chartRef.current = null
-                      m2SeriesRef.current = null
-                      cryptoSeriesRef.current = null
-                    }} 
-                    className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                    onClick={() => setUseSimpleChart(false)}
+                    className="text-blue-600 hover:text-blue-800 underline"
                   >
-                    Retry Advanced Chart
+                    Try interactive chart
                   </button>
                 </div>
               </div>
             </div>
           ) : (
-            /* Professional TradingView Chart Container */
             <div 
               ref={chartContainerRef}
-              className="w-full h-[400px] border border-gray-200 rounded-lg bg-gradient-to-br from-gray-50 to-white shadow-sm"
-              style={{ minHeight: '400px', minWidth: '400px' }}
+              className="w-full h-96 border border-gray-200 rounded-lg bg-white"
+              style={{ minHeight: '400px' }}
             />
           )}
-          
-          {/* Debug Info & Fallback */}
-          {chartData.length === 0 && (
-            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
-              Loading chart data... ({chartData.length} points)
+
+          {!useSimpleChart && m2Data.historicalData.length > 0 && (
+            <div className="mt-3 text-xs text-gray-500 text-center">
+              💡 Hover for values • Scroll to zoom • Drag to pan
             </div>
           )}
-          
-          {chartData.length > 0 && (
-            <div className="mt-2 text-xs text-gray-400 text-center">
-              {useSimpleChart ? '📊 Simple Chart' : '📈 TradingView Chart'} • 
-              Data loaded: {chartData.length} points • Multi-series professional view
-              <br />
-              Sample: M2 {chartData[0]?.m2Value.toFixed(1)}T → {chartData[chartData.length-1]?.m2Value.toFixed(1)}T, 
-              Bitcoin ${chartData[0]?.bitcoinPrice.toFixed(1)}k → ${chartData[chartData.length-1]?.bitcoinPrice.toFixed(1)}k
-            </div>
-          )}
-          
-          {/* Chart Instructions */}
-          <div className="mt-2 text-xs text-gray-500 text-center">
-            Professional multi-axis chart • Orange: Bitcoin Price, Pink: M2 Supply, Blue: Growth Rate
-            <br />
-            {useSimpleChart 
-              ? 'Basic visualization • Click "Retry Advanced Chart" for interactive features'
-              : 'Interactive chart • Hover for values • Scroll to zoom • Drag to pan'
-            }
-          </div>
         </div>
       </div>
 
-      {/* Educational Explanation */}
-      <div className="text-sm text-gray-700 bg-blue-50 p-3 rounded-lg border border-blue-200">
-        <div className="font-medium text-blue-800 mb-1">💡 What does this mean?</div>
-        <p>
-                          {false ? ( // Multi-series chart - always show absolute education
-            <>
-              <strong>Growth Relationship:</strong> The percentage view shows how M2 and crypto have grown relative to their starting points. 
-              {Math.abs(analysis.correlation) > 50 
-                ? ` Similar growth patterns indicate ${analysis.correlation > 0 ? 'positive' : 'negative'} correlation - when M2 expands by X%, crypto tends to ${analysis.correlation > 0 ? 'grow' : 'shrink'} by Y% (with ~90-day delay).`
-                : ' Different growth patterns suggest crypto is currently less influenced by M2 liquidity changes.'
-              }
-            </>
-          ) : (
-            <>
-              {Math.abs(analysis.correlation) > 50 
-                ? `Strong ${analysis.correlation > 0 ? 'positive' : 'negative'} correlation suggests crypto markets ${analysis.correlation > 0 ? 'rise when M2 expands' : 'fall when M2 expands'} (with ~90-day delay).`
-                : 'Weak correlation suggests crypto markets are currently less influenced by M2 money supply changes.'
-              }
-            </>
-          )}
-          {analysis.m2Trend === 'expanding' 
-            ? ' M2 is expanding, potentially providing more liquidity to markets.' 
-            : analysis.m2Trend === 'contracting' 
-            ? ' M2 is contracting, potentially reducing market liquidity.'
-            : ' M2 growth is stable.'}
+      {/* Key Insight */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+          <div className="font-medium text-blue-800">Key Insight</div>
+        </div>
+        <p className="text-gray-700 text-sm">
+          {Math.abs(m2Data.correlation) > 50 
+            ? `Strong correlation (${Math.abs(m2Data.correlation).toFixed(0)}%) suggests Bitcoin tends to ${m2Data.correlation > 0 ? 'rise' : 'fall'} when M2 money supply increases (with ~${m2Data.lagDays}-day delay).`
+            : `Current correlation is moderate (${Math.abs(m2Data.correlation).toFixed(0)}%), indicating Bitcoin is less influenced by M2 changes right now.`
+          }
+          {m2Data.m2Trend === 'expanding' && m2Data.correlation > 30
+            ? ' 🟢 M2 expansion may support future Bitcoin growth.' 
+            : m2Data.m2Trend === 'contracting' && m2Data.correlation > 30
+            ? ' 🔴 M2 contraction may pressure Bitcoin prices.'
+            : ' ⚪ Mixed signals - monitor for trend changes.'
+          }
         </p>
+        {error && (
+          <div className="mt-2 text-xs text-amber-700 bg-amber-50 p-2 rounded">
+            Note: Using fallback data due to: {error}
+          </div>
+        )}
       </div>
     </div>
   )

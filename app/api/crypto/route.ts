@@ -14,23 +14,33 @@ export interface CryptoData {
 
 export async function GET() {
   try {
-    // Använder CoinGecko's fria API
-    const response = await fetch(
-      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false&locale=en',
-      {
-        next: { revalidate: 60 }, // Cache i 60 sekunder
-      }
-    )
+    // Hämta både individual coins OCH global market cap data
+    const [coinsResponse, globalResponse] = await Promise.all([
+      fetch(
+        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false&locale=en',
+        { next: { revalidate: 60 } }
+      ),
+      fetch(
+        'https://api.coingecko.com/api/v3/global',
+        { next: { revalidate: 60 } }
+      )
+    ])
 
-    if (!response.ok) {
-      throw new Error(`CoinGecko API error: ${response.status}`)
+    if (!coinsResponse.ok || !globalResponse.ok) {
+      throw new Error(`CoinGecko API error: ${coinsResponse.status} / ${globalResponse.status}`)
     }
 
-    const data: CryptoData[] = await response.json()
+    const coinsData: CryptoData[] = await coinsResponse.json()
+    const globalData = await globalResponse.json()
 
     return NextResponse.json({
       success: true,
-      data,
+      data: coinsData,
+      global: {
+        total_market_cap_usd: globalData.data.total_market_cap.usd,
+        total_market_cap_change_24h: globalData.data.market_cap_change_percentage_24h_usd,
+        total_volume_usd: globalData.data.total_volume.usd
+      },
       timestamp: new Date().toISOString()
     })
   } catch (error) {
@@ -76,6 +86,11 @@ export async function GET() {
     return NextResponse.json({
       success: false,
       data: mockData,
+      global: {
+        total_market_cap_usd: 2.45e12, // $2.45T fallback
+        total_market_cap_change_24h: -1.85, // -1.85% fallback
+        total_volume_usd: 89e9 // $89B fallback
+      },
       error: 'Using fallback data due to API error',
       timestamp: new Date().toISOString()
     }, { status: 200 }) // Returnera 200 med mock data istället för error
