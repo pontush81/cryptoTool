@@ -29,15 +29,16 @@ interface TimeframeSelectorProps {
 function TimeframeSelector({ selectedTimeframe, onTimeframeChange, className = '' }: TimeframeSelectorProps) {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <Clock className="h-4 w-4 text-gray-500" />
-      <span className="text-sm font-medium text-gray-700">Timeframe:</span>
+      <Clock className="h-4 w-4 text-gray-500 flex-shrink-0" />
+      <span className="text-sm font-medium text-gray-700 hidden sm:inline">Timeframe:</span>
+      <span className="text-sm font-medium text-gray-700 sm:hidden">Time:</span>
       <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
         {TIMEFRAME_OPTIONS.map((option) => (
           <button
             key={option.value}
             onClick={() => onTimeframeChange(option.value)}
             title={option.description}
-            className={`px-3 py-1 text-xs font-medium rounded transition-all duration-200 ${
+            className={`px-2 sm:px-3 py-1 text-xs font-medium rounded transition-all duration-200 min-w-[32px] ${
               selectedTimeframe === option.value
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-gray-600 hover:bg-gray-200'
@@ -371,179 +372,190 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
     <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
       {/* Clean Header */}
       <div className="p-4 md:p-6 border-b border-gray-100">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-gray-50">
-              <Activity className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+        {/* Mobile-First Layout */}
+        <div className="space-y-3">
+          {/* Top Row: Icon, Title, and Time (hidden on mobile) */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-gray-50">
+                <Activity className="h-5 w-5 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">
                 Technical Analysis - {taData.symbol.toUpperCase()}
               </h3>
-              <div className="flex items-center gap-2">
-                <TimeframeSelector 
-                  selectedTimeframe={selectedTimeframe}
-                  onTimeframeChange={setSelectedTimeframe}
-                  className="text-sm"
-                />
-              </div>
+            </div>
+            
+            {/* Time - Only on desktop */}
+            <div className="text-xs text-gray-400 hidden md:block">
+              {new Date(taData.timestamp).toLocaleTimeString('en-US')}
             </div>
           </div>
           
-          <div className="text-right">
-            <div className="text-sm text-gray-500">
+          {/* Bottom Row: Timeframe Selector and Description */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <TimeframeSelector 
+              selectedTimeframe={selectedTimeframe}
+              onTimeframeChange={setSelectedTimeframe}
+              className="text-sm"
+            />
+            
+            {/* Description - Responsive */}
+            <div className="text-sm text-gray-500 sm:text-right">
               {TIMEFRAME_OPTIONS.find(opt => opt.value === selectedTimeframe)?.description}
             </div>
-            <div className="text-xs text-gray-400 mt-1">
-              {new Date(taData.timestamp).toLocaleTimeString('en-US')}
-            </div>
+          </div>
+          
+          {/* Time - Only on mobile */}
+          <div className="text-xs text-gray-400 md:hidden">
+            Updated: {new Date(taData.timestamp).toLocaleTimeString('en-US')}
           </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="p-4 md:p-6">
-        {/* Current Price - Simplified */}
+        {/* Current Price - Responsive */}
         <div className="mb-6 text-center">
           <p className="text-sm text-gray-600 mb-1">Current Price</p>
-          <p className="text-3xl font-bold text-gray-900">
+          <p className="text-2xl sm:text-3xl font-bold text-gray-900 break-all">
             {formatPrice(taData.current_price)}
           </p>
         </div>
 
-        {/* Technical Indicators - Modern Design */}
+        {/* Technical Indicators - Improved Design based on UX best practices */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-          {/* RSI Card - Clean Design */}
+          {/* RSI Card - Focused on Action */}
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[180px] flex flex-col">
-            <div className="flex items-center justify-between mb-3">
-              <h5 className="font-semibold text-gray-900">RSI Signal</h5>
+            <div className="flex items-center justify-between mb-4">
+              <h5 className="text-sm sm:text-base font-semibold text-gray-900">RSI</h5>
               <span className={`w-2 h-2 rounded-full ${
                 safeRSI.current <= 30 ? 'bg-green-500' :
-                safeRSI.current >= 70 ? 'bg-red-500' : 'bg-blue-500'
+                safeRSI.current >= 70 ? 'bg-red-500' : 'bg-gray-400'
               }`}></span>
             </div>
             
-            <div className="text-center mb-3 flex-1 flex flex-col justify-center">
-              <div className={`text-lg font-bold mb-1 ${
-                safeRSI.current <= 30 ? 'text-green-700' :
-                safeRSI.current >= 70 ? 'text-red-700' : 'text-blue-700'
+            {/* Current Value - Most Prominent */}
+            <div className="text-center mb-4">
+              <div className={`text-3xl sm:text-4xl font-bold mb-1 ${
+                safeRSI.current <= 30 ? 'text-green-600' :
+                safeRSI.current >= 70 ? 'text-red-600' : 'text-gray-700'
               }`}>
-                {safeRSI.current <= 30 ? 'Oversold Zone' :
-                 safeRSI.current >= 70 ? 'Overbought Zone' : 'Neutral Zone'}
+                {safeRSI.current.toFixed(0)}
               </div>
-              
-              <div className={`text-xs font-medium px-2 py-1 rounded-full ${
-                safeRSI.current <= 30 ? 'bg-green-100 text-green-700' :
-                safeRSI.current >= 70 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-              }`}>
-                {safeRSI.current <= 30 ? 'Buy Signal' :
-                 safeRSI.current >= 70 ? 'Sell Signal' : 'Hold Position'}
-              </div>
+              <div className="text-xs text-gray-500">Current RSI</div>
             </div>
             
-            {/* Progress bar instead of large colored background */}
-            <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
-              <div 
-                className={`h-1.5 rounded-full transition-all duration-500 ${
-                  safeRSI.current <= 30 ? 'bg-green-500' :
-                  safeRSI.current >= 70 ? 'bg-red-500' : 'bg-blue-500'
-                }`}
-                style={{ width: `${safeRSI.current}%` }}
-              ></div>
+            {/* Action Signal */}
+            <div className="flex-1 flex items-end">
+              <div className={`w-full text-center py-2 rounded-lg font-medium text-sm ${
+                safeRSI.current <= 30 ? 'bg-green-100 text-green-800' :
+                safeRSI.current >= 70 ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-700'
+              }`}>
+                {safeRSI.current <= 30 ? 'BUY SIGNAL' :
+                 safeRSI.current >= 70 ? 'SELL SIGNAL' : 'NEUTRAL'}
+              </div>
             </div>
           </div>
 
-          {/* MACD Card - Clean Design */}
+          {/* MACD Card - Focused on Momentum */}
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[180px] flex flex-col">
-            <div className="flex items-center justify-between mb-3">
-              <h5 className="font-semibold text-gray-900">MACD Signal</h5>
+            <div className="flex items-center justify-between mb-4">
+              <h5 className="text-sm sm:text-base font-semibold text-gray-900">MACD</h5>
               <span className={`w-2 h-2 rounded-full ${
                 safeMACD.crossover === 'bullish' ? 'bg-green-500' :
-                safeMACD.crossover === 'bearish' ? 'bg-red-500' : 'bg-gray-500'
+                safeMACD.crossover === 'bearish' ? 'bg-red-500' : 'bg-gray-400'
               }`}></span>
             </div>
             
-            <div className="text-center mb-3 flex-1 flex flex-col justify-center">
-              <div className={`text-lg font-bold mb-1 ${
-                safeMACD.crossover === 'bullish' ? 'text-green-700' :
-                safeMACD.crossover === 'bearish' ? 'text-red-700' : 'text-gray-700'
+            {/* Current Value - Most Prominent */}
+            <div className="text-center mb-4">
+              <div className={`text-2xl sm:text-3xl font-bold mb-1 ${
+                safeMACD.crossover === 'bullish' ? 'text-green-600' :
+                safeMACD.crossover === 'bearish' ? 'text-red-600' : 'text-gray-700'
               }`}>
-                {safeMACD.crossover === 'bullish' ? 'Bullish Momentum' :
-                 safeMACD.crossover === 'bearish' ? 'Bearish Momentum' : 'Sideways Movement'}
+                {safeMACD.current.histogram > 0 ? '▲' : safeMACD.current.histogram < 0 ? '▼' : '→'}
               </div>
-              
-              <div className={`text-xs font-medium px-2 py-1 rounded-full ${
-                safeMACD.crossover === 'bullish' ? 'bg-green-100 text-green-700' :
-                safeMACD.crossover === 'bearish' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+              <div className="text-xs text-gray-500">Momentum</div>
+            </div>
+            
+            {/* Action Signal */}
+            <div className="flex-1 flex items-end">
+              <div className={`w-full text-center py-2 rounded-lg font-medium text-sm ${
+                safeMACD.crossover === 'bullish' ? 'bg-green-100 text-green-800' :
+                safeMACD.crossover === 'bearish' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-700'
               }`}>
-                {safeMACD.crossover === 'bullish' ? 'Upward Pressure' :
-                 safeMACD.crossover === 'bearish' ? 'Downward Pressure' : 'Wait for Signal'}
+                {safeMACD.crossover === 'bullish' ? 'BULLISH' :
+                 safeMACD.crossover === 'bearish' ? 'BEARISH' : 'SIDEWAYS'}
               </div>
             </div>
           </div>
 
-          {/* Trend Direction Card - Clean Design */}
+          {/* Trend Direction Card - Visual Trend */}
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[180px] flex flex-col">
-            <div className="flex items-center justify-between mb-3">
-              <h5 className="font-semibold text-gray-900">Trend Direction</h5>
+            <div className="flex items-center justify-between mb-4">
+              <h5 className="text-sm sm:text-base font-semibold text-gray-900">Trend</h5>
               <span className={`w-2 h-2 rounded-full ${
                 safeCTO.current.signal === 'bullish' ? 'bg-green-500' :
-                safeCTO.current.signal === 'bearish' ? 'bg-red-500' : 'bg-gray-500'
+                safeCTO.current.signal === 'bearish' ? 'bg-red-500' : 'bg-gray-400'
               }`}></span>
             </div>
             
-            <div className="text-center mb-3 flex-1 flex flex-col justify-center">
-              <div className="text-lg font-bold text-gray-900 mb-1">
-                {safeCTO.current.signal === 'bullish' ? 'Strong Uptrend' :
-                 safeCTO.current.signal === 'bearish' ? 'Strong Downtrend' : 'Sideways Movement'}
-              </div>
-              <div className={`text-xs font-medium px-2 py-1 rounded-full ${
-                safeCTO.current.signal === 'bullish' ? 'bg-green-100 text-green-700' :
-                safeCTO.current.signal === 'bearish' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+            {/* Trend Visualization */}
+            <div className="text-center mb-4">
+              <div className={`text-4xl mb-1 ${
+                safeCTO.current.signal === 'bullish' ? 'text-green-600' :
+                safeCTO.current.signal === 'bearish' ? 'text-red-600' : 'text-gray-500'
               }`}>
-                {safeCTO.current.signal === 'bullish' ? 'Bullish' :
-                 safeCTO.current.signal === 'bearish' ? 'Bearish' : 'Neutral'}
+                {safeCTO.current.signal === 'bullish' ? '📈' :
+                 safeCTO.current.signal === 'bearish' ? '📉' : '➡️'}
+              </div>
+              <div className="text-xs text-gray-500">Direction</div>
+            </div>
+            
+            {/* Trend Strength */}
+            <div className="flex-1 flex items-end">
+              <div className={`w-full text-center py-2 rounded-lg font-medium text-sm ${
+                safeCTO.current.signal === 'bullish' ? 'bg-green-100 text-green-800' :
+                safeCTO.current.signal === 'bearish' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-700'
+              }`}>
+                {safeCTO.current.signal === 'bullish' ? 'UPTREND' :
+                 safeCTO.current.signal === 'bearish' ? 'DOWNTREND' : 'SIDEWAYS'}
               </div>
             </div>
           </div>
 
-          {/* Risk Assessment Card - Clean Design */}
+          {/* Risk Assessment Card - Clear Risk Level */}
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[180px] flex flex-col">
-            <div className="flex items-center justify-between mb-3">
-              <h5 className="font-semibold text-gray-900">Risk Assessment</h5>
+            <div className="flex items-center justify-between mb-4">
+              <h5 className="text-sm sm:text-base font-semibold text-gray-900">Risk</h5>
               <span className={`w-2 h-2 rounded-full ${
                 safePeak.risk_level === 'danger' ? 'bg-red-500' :
                 safePeak.risk_level === 'warning' ? 'bg-amber-500' : 'bg-green-500'
               }`}></span>
             </div>
             
-            <div className="text-center mb-3 flex-1 flex flex-col justify-center">
-              {/* Show risk level more prominently */}
-              <div className={`text-lg font-bold mb-1 ${
-                safePeak.risk_level === 'danger' ? 'text-red-700' :
-                safePeak.risk_level === 'warning' ? 'text-amber-700' : 'text-green-700'
+            {/* Risk Level - Most Prominent */}
+            <div className="text-center mb-4">
+              <div className={`text-2xl sm:text-3xl font-bold mb-1 ${
+                safePeak.risk_level === 'danger' ? 'text-red-600' :
+                safePeak.risk_level === 'warning' ? 'text-amber-600' : 'text-green-600'
+              }`}>
+                {safePeak.risk_level === 'danger' ? '🔴' :
+                 safePeak.risk_level === 'warning' ? '🟡' : '🟢'}
+              </div>
+              <div className="text-xs text-gray-500">{safePeak.confidence}% confidence</div>
+            </div>
+            
+            {/* Risk Action */}
+            <div className="flex-1 flex items-end">
+              <div className={`w-full text-center py-2 rounded-lg font-medium text-sm ${
+                safePeak.risk_level === 'danger' ? 'bg-red-100 text-red-800' :
+                safePeak.risk_level === 'warning' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'
               }`}>
                 {safePeak.risk_level === 'danger' ? 'HIGH RISK' :
                  safePeak.risk_level === 'warning' ? 'MEDIUM RISK' : 'LOW RISK'}
               </div>
-              
-              <div className={`text-xs font-medium px-2 py-1 rounded-full ${
-                safePeak.risk_level === 'danger' ? 'bg-red-100 text-red-700' :
-                safePeak.risk_level === 'warning' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
-              }`}>
-                {safePeak.risk_level === 'danger' ? 'Consider selling' :
-                 safePeak.risk_level === 'warning' ? 'Monitor closely' : 'Safe to hold'}
-              </div>
-            </div>
-            
-            <div className="text-xs text-center text-gray-500">
-              {safePeak.confidence}% confidence • <button 
-                onClick={() => setShowPeakModal(true)}
-                className="text-blue-600 hover:text-blue-800 underline"
-              >
-                Learn more
-              </button>
             </div>
           </div>
 
