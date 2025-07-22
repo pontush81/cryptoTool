@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { TrendingUp, TrendingDown, BarChart2, Globe, Activity, Zap, X, Menu, RefreshCw, DollarSign } from 'lucide-react'
+import Link from 'next/link'
+import { TrendingUp, TrendingDown, BarChart2, Globe, Activity, Zap, X, Menu, RefreshCw, DollarSign, Home } from 'lucide-react'
 import TechnicalAnalysisCard from '../../components/TechnicalAnalysisCard'
 import AdvancedAnalysisCard from '../../components/AdvancedAnalysisCard'
 import DominanceCard from '../../components/DominanceCard'
@@ -161,21 +162,27 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Crypto Selector - Only show in Analysis mode */}
-        {sidebarOpen && cryptoData.length > 0 && currentView === 'analysis' && (
-          <div className="p-4 border-b border-gray-200">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Select Cryptocurrency</h4>
-            <CryptoSelector
-              cryptoData={cryptoData}
-              selectedCrypto={selectedCrypto}
-              onCryptoChange={handleCryptoChange}
-            />
-          </div>
-        )}
+
 
         {/* Navigation */}
         <nav className="flex-1 p-4">
           <div className="space-y-2">
+            {/* Home Link */}
+            <Link
+              href="/"
+              className="w-full flex items-center justify-between p-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50 group"
+            >
+              <div className="flex items-center">
+                <Home className="h-5 w-5" />
+                {sidebarOpen && (
+                  <span className="ml-3 font-medium">Home</span>
+                )}
+              </div>
+            </Link>
+            
+            {/* Separator */}
+            {sidebarOpen && <div className="border-t border-gray-200 my-3"></div>}
+            
             {navigationItems.map((item) => (
               <button
                 key={item.id}
@@ -199,6 +206,18 @@ export default function Dashboard() {
           {/* Analysis Sub-navigation */}
           {sidebarOpen && currentView === 'analysis' && (
             <div className="mt-4 pt-4 border-t border-gray-200">
+              {/* Crypto Selector - Only show in Analysis mode */}
+              {cryptoData.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Select Cryptocurrency</h4>
+                  <CryptoSelector
+                    cryptoData={cryptoData}
+                    selectedCrypto={selectedCrypto}
+                    onCryptoChange={handleCryptoChange}
+                  />
+                </div>
+              )}
+              
               <div className="space-y-1">
                 <button
                   onClick={() => setAnalysisMode('technical')}
@@ -232,22 +251,12 @@ export default function Dashboard() {
           )}
         </nav>
 
-        {/* Footer */}
-        {sidebarOpen && (
+        {/* Footer - Simplified */}
+        {sidebarOpen && lastUpdated && (
           <div className="p-4 border-t border-gray-200">
-            {lastUpdated && (
-              <div className="text-xs text-gray-500 mb-2">
-                Last updated: {new Date(lastUpdated).toLocaleTimeString()}
-              </div>
-            )}
-            <button 
-              onClick={handleManualRefresh}
-              disabled={refreshing}
-              className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400 text-sm flex items-center justify-center transition-colors"
-            >
-              <RefreshCw className={`h-3 w-3 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
-              {refreshing ? 'Refreshing...' : 'Refresh Data'}
-            </button>
+            <div className="text-xs text-gray-500 text-center">
+              Last updated: {new Date(lastUpdated).toLocaleTimeString()}
+            </div>
           </div>
         )}
       </div>
@@ -376,7 +385,7 @@ export default function Dashboard() {
                         )}
                       </div>
                       <div className="ml-3">
-                        <p className="text-xs md:text-sm font-medium text-gray-500">Market Trend</p>
+                        <p className="text-xs md:text-sm font-medium text-gray-500">Market Trend (24h)</p>
                         <p className={`text-lg md:text-xl font-bold ${
                           globalData && globalData.total_market_cap_change_24h >= 0 
                             ? 'text-green-600' 

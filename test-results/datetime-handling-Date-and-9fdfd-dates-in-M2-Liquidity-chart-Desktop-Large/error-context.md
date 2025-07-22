@@ -1,0 +1,32 @@
+# Page snapshot
+
+```yaml
+- main:
+  - text: CryptoTool
+  - button
+  - navigation:
+    - button "Market Overview"
+    - button "Analysis"
+  - button "Refreshing..." [disabled]
+  - heading "Market Overview" [level=1]
+  - paragraph: Real-time crypto market dashboard with key metrics and trends
+  - button "Refreshing..." [disabled]
+  - main:
+    - paragraph: Total Market Cap
+    - paragraph
+    - paragraph: 24h Volume
+    - paragraph
+    - paragraph: Market Trend
+    - paragraph
+    - heading "M2 Global Liquidity vs Bitcoin (90-day lag)" [level=3]
+    - text: "Impact: Neutral"
+    - button "Refresh Data"
+    - text: Correlation +24.4% M2 Money Supply 131.3T Liquidity Trend Expanding 📈
+    - heading "M2 Global Liquidity vs Bitcoin (90-day lag)" [level=4]
+    - text: Bitcoin Price M2 Supply 💡 Hover for values • Scroll to zoom • Drag to pan Key Insight
+    - paragraph: Current correlation is moderate (24%), indicating Bitcoin is less influenced by M2 changes right now. ⚪ Mixed signals - monitor for trend changes.
+    - heading "Market Overview" [level=3]
+    - text: "Last updated: Never Loading market data..."
+    - heading "24h Movers" [level=3]
+- alert
+```

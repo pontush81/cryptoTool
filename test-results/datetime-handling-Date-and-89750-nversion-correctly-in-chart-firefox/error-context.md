@@ -1,0 +1,66 @@
+# Page snapshot
+
+```yaml
+- main:
+  - text: CryptoTool
+  - button
+  - navigation:
+    - button "Market Overview"
+    - button "Analysis"
+  - button "Refresh Data"
+  - heading "Market Overview" [level=1]
+  - paragraph: Real-time crypto market dashboard with key metrics and trends
+  - button "Refresh"
+  - main:
+    - heading "Error" [level=3]
+    - paragraph: Using fallback data due to API error
+    - button "Try Again"
+    - paragraph: Total Market Cap
+    - paragraph
+    - paragraph: 24h Volume
+    - paragraph
+    - paragraph: Market Trend
+    - paragraph
+    - heading "M2 Global Liquidity vs Bitcoin (90-day lag)" [level=3]
+    - text: "Impact: Neutral"
+    - button "Refresh Data"
+    - text: Correlation +24.4% M2 Money Supply 131.3T Liquidity Trend Expanding 📈
+    - heading "M2 Global Liquidity vs Bitcoin (90-day lag)" [level=4]
+    - text: Bitcoin Price M2 Supply
+    - table:
+      - row:
+        - cell
+        - cell:
+          - link "Charting by TradingView":
+            - /url: https://www.tradingview.com/?utm_medium=lwc-link&utm_campaign=lwc-chart&utm_source=localhost/dashboard
+            - img
+        - cell
+      - row:
+        - cell
+        - cell
+        - cell
+    - text: 💡 Hover for values • Scroll to zoom • Drag to pan Key Insight
+    - paragraph: Current correlation is moderate (24%), indicating Bitcoin is less influenced by M2 changes right now. ⚪ Mixed signals - monitor for trend changes.
+    - heading "Market Overview" [level=3]
+    - text: "Last updated: Never"
+    - paragraph: No market data available
+    - heading "Market Dominance" [level=3]
+    - text: 7:27:08 PM
+    - paragraph: Bitcoin
+    - paragraph: BTC Dominance
+    - paragraph: 52.3%
+    - text: +0.0%
+    - paragraph: Ethereum
+    - paragraph: ETH Dominance
+    - paragraph: 18.7%
+    - text: +0.0%
+    - paragraph: Others
+    - paragraph: Rest of Market
+    - paragraph: 29.0%
+    - paragraph: Total Market Cap
+    - paragraph: Global crypto market
+    - paragraph: $1.2T
+    - text: "-5.8%"
+    - heading "24h Movers" [level=3]
+- alert
+```

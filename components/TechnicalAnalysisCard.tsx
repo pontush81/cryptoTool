@@ -420,58 +420,58 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
           </div>
         </div>
 
-        {/* Overall Market Sentiment - Hero Section */}
+        {/* Overall Market Sentiment - Mobile Optimized */}
         <div className="border-2 border-blue-200 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50">
-          <div className="p-6">
-            <h4 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-              <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+          <div className="p-4 md:p-6">
+            <h4 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4 flex items-center">
+              <div className="w-3 h-3 bg-blue-500 rounded-full mr-2 md:mr-3"></div>
               Overall Market Sentiment
             </h4>
             
             {(() => {
               const sentiment = getOverallSentiment(safeRSI.current, safeMACD.crossover, safeCTO.current.signal, safeCTO.crossover, safePeak.risk_level)
               return (
-                <div className={`p-6 rounded-xl border-2 ${sentiment.bgColor} shadow-sm`}>
-                  <div className={`flex items-center justify-between mb-4 ${sentiment.color}`}>
-                    <div className="flex items-center gap-4">
-                      <span className="text-4xl">{sentiment.emoji}</span>
+                <div className={`p-4 md:p-6 rounded-xl border-2 ${sentiment.bgColor} shadow-sm`}>
+                  <div className={`flex items-center justify-between mb-3 md:mb-4 ${sentiment.color}`}>
+                    <div className="flex items-center gap-3 md:gap-4">
+                      <span className="text-3xl md:text-4xl">{sentiment.emoji}</span>
                       <div>
-                        <div className="text-2xl font-bold">{sentiment.sentiment}</div>
-                        <div className="text-lg font-medium opacity-75">{sentiment.strength} Signal</div>
+                        <div className="text-xl md:text-2xl font-bold">{sentiment.sentiment}</div>
+                        <div className="text-sm md:text-lg font-medium opacity-75">{sentiment.strength} Signal</div>
                       </div>
                     </div>
                   </div>
                   
-                  <p className={`text-base font-medium ${sentiment.color} mb-4`}>
+                  <p className={`text-sm md:text-base font-medium ${sentiment.color} mb-3 md:mb-4`}>
                     {sentiment.message}
                   </p>
                   
-                  <div className="flex items-center justify-center gap-6 text-sm">
-                    <span className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+                  <div className="flex flex-wrap items-center justify-center gap-2 md:gap-6 text-xs md:text-sm">
+                    <span className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 rounded-full ${
                       safeRSI.current <= 30 ? 'bg-green-100 text-green-700' : 
                       safeRSI.current >= 70 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
                     }`}>
-                      <span className="w-2 h-2 rounded-full bg-current"></span>
-                      RSI: {safeRSI.current <= 30 ? 'Oversold' : 
-                            safeRSI.current >= 70 ? 'Overbought' : 'Neutral'}
+                      <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-current"></span>
+                      <span className="whitespace-nowrap">RSI: {safeRSI.current <= 30 ? 'Oversold' : 
+                            safeRSI.current >= 70 ? 'Overbought' : 'Neutral'}</span>
                     </span>
                     
-                    <span className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+                    <span className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 rounded-full ${
                       safeMACD.crossover === 'bullish' ? 'bg-green-100 text-green-700' :
                       safeMACD.crossover === 'bearish' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
                     }`}>
-                      <span className="w-2 h-2 rounded-full bg-current"></span>
-                      MACD: {safeMACD.crossover === 'bullish' ? 'Bullish' :
-                             safeMACD.crossover === 'bearish' ? 'Bearish' : 'No Signal'}
+                      <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-current"></span>
+                      <span className="whitespace-nowrap">MACD: {safeMACD.crossover === 'bullish' ? 'Bullish' :
+                             safeMACD.crossover === 'bearish' ? 'Bearish' : 'No Signal'}</span>
                     </span>
                     
-                    <span className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+                    <span className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 rounded-full ${
                       safeCTO.current.signal === 'bullish' ? 'bg-green-100 text-green-700' :
                       safeCTO.current.signal === 'bearish' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
                     }`}>
-                      <span className="w-2 h-2 rounded-full bg-current"></span>
-                      Trend: {safeCTO.current.signal === 'bullish' ? 'Bullish' :
-                              safeCTO.current.signal === 'bearish' ? 'Bearish' : 'Neutral'}
+                      <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-current"></span>
+                      <span className="whitespace-nowrap">Trend: {safeCTO.current.signal === 'bullish' ? 'Bullish' :
+                              safeCTO.current.signal === 'bearish' ? 'Bearish' : 'Neutral'}</span>
                     </span>
                     
                     <span className={`flex items-center gap-2 px-3 py-1 rounded-full ${
