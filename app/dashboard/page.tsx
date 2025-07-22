@@ -316,97 +316,108 @@ export default function Dashboard() {
 
           {currentView === 'overview' && (
             <div className="space-y-6">
-              {/* Global Market Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                {/* Total Market Cap - Uses Global Data */}
-                <Tooltip tooltip="Det totala värdet av alla kryptovalutor kombinerat. Beräknas genom att multiplicera varje coins pris med dess cirkulerande tillgång och summera allt.">
-                  <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm border cursor-help">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <DollarSign className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-xs md:text-sm font-medium text-gray-500">Total Market Cap</p>
-                        <p className="text-lg md:text-xl font-bold text-gray-900">
-                          {globalData && (
-                            `$${(globalData.total_market_cap_usd / 1e12).toFixed(2)}T`
-                          )}
-                        </p>
+              {/* Global Market Stats - Improved Design */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900">Market Overview</h2>
+                  <div className="text-sm text-gray-500">
+                    {lastUpdated && `Updated ${new Date(lastUpdated).toLocaleTimeString()}`}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Total Market Cap */}
+                  <Tooltip tooltip="Det totala värdet av alla kryptovalutor kombinerat. Beräknas genom att multiplicera varje coins pris med dess cirkulerande tillgång och summera allt.">
+                    <div className="p-4 rounded-lg bg-blue-50 border border-blue-100 cursor-help">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-blue-700 mb-1">Total Market Cap</p>
+                          <p className="text-xl font-bold text-blue-900">
+                            {globalData && (
+                              `$${(globalData.total_market_cap_usd / 1e12).toFixed(2)}T`
+                            )}
+                          </p>
+                        </div>
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <DollarSign className="h-5 w-5 text-blue-600" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Tooltip>
+                  </Tooltip>
 
-                {/* 24h Volume - Uses Global Data */}
-                <Tooltip tooltip="Total handelsvolym för alla kryptovalutor under senaste 24 timmarna. Visar hur mycket som handlas aktivt på marknaden - högre volym indikerar mer likviditet och aktivitet.">
-                  <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm border cursor-help">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-green-100 rounded-lg">
-                        <Activity className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-xs md:text-sm font-medium text-gray-500">24h Volume</p>
-                        <p className="text-lg md:text-xl font-bold text-gray-900">
-                          {globalData && (
-                            `$${(globalData.total_volume_usd / 1e9).toFixed(1)}B`
-                          )}
-                        </p>
+                  {/* 24h Volume */}
+                  <Tooltip tooltip="Total handelsvolym för alla kryptovalutor under senaste 24 timmarna. Visar hur mycket som handlas aktivt på marknaden - högre volym indikerar mer likviditet och aktivitet.">
+                    <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 cursor-help">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 mb-1">24h Volume</p>
+                          <p className="text-xl font-bold text-gray-900">
+                            {globalData && (
+                              `$${(globalData.total_volume_usd / 1e9).toFixed(1)}B`
+                            )}
+                          </p>
+                        </div>
+                        <div className="p-2 bg-gray-100 rounded-lg">
+                          <Activity className="h-5 w-5 text-gray-600" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Tooltip>
+                  </Tooltip>
 
-                {/* Market Trend - Uses Global Market Cap Change */}
-                <Tooltip tooltip="Procentuell förändring av den totala kryptomarknadens värde under senaste 24 timmarna. Använder samma beräkningsmetod som TradingView och CoinMarketCap - baserat på total market cap förändring, inte genomsnitt av individuella coins.">
-                  <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm border cursor-help">
-                    <div className="flex items-center">
-                      <div className={`p-2 rounded-lg ${
-                        globalData && globalData.total_market_cap_change_24h >= 0 
-                          ? 'bg-green-100' 
-                          : 'bg-red-100'
-                      }`}>
-                        {globalData && globalData.total_market_cap_change_24h >= 0 ? (
-                          <TrendingUp className="h-5 w-5 text-green-600" />
-                        ) : (
-                          <TrendingDown className="h-5 w-5 text-red-600" />
-                        )}
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-xs md:text-sm font-medium text-gray-500">Market Trend (24h)</p>
-                        <p className={`text-lg md:text-xl font-bold ${
+                  {/* Market Trend */}
+                  <Tooltip tooltip="Procentuell förändring av den totala kryptomarknadens värde under senaste 24 timmarna. Använder samma beräkningsmetod som TradingView och CoinMarketCap - baserat på total market cap förändring, inte genomsnitt av individuella coins.">
+                    <div className={`p-4 rounded-lg border cursor-help ${
+                      globalData && globalData.total_market_cap_change_24h >= 0 
+                        ? 'bg-green-50 border-green-100' 
+                        : 'bg-red-50 border-red-100'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className={`text-sm font-medium mb-1 ${
+                            globalData && globalData.total_market_cap_change_24h >= 0 
+                              ? 'text-green-700' 
+                              : 'text-red-700'
+                          }`}>Market Trend (24h)</p>
+                          <p className={`text-xl font-bold ${
+                            globalData && globalData.total_market_cap_change_24h >= 0 
+                              ? 'text-green-900' 
+                              : 'text-red-900'
+                          }`}>
+                            {globalData && (
+                              `${globalData.total_market_cap_change_24h >= 0 ? '+' : ''}${globalData.total_market_cap_change_24h.toFixed(2)}%`
+                            )}
+                          </p>
+                        </div>
+                        <div className={`p-2 rounded-lg ${
                           globalData && globalData.total_market_cap_change_24h >= 0 
-                            ? 'text-green-600' 
-                            : 'text-red-600'
+                            ? 'bg-green-100' 
+                            : 'bg-red-100'
                         }`}>
-                          {globalData && (
-                            `${globalData.total_market_cap_change_24h >= 0 ? '+' : ''}${globalData.total_market_cap_change_24h.toFixed(2)}%`
+                          {globalData && globalData.total_market_cap_change_24h >= 0 ? (
+                            <TrendingUp className="h-5 w-5 text-green-600" />
+                          ) : (
+                            <TrendingDown className="h-5 w-5 text-red-600" />
                           )}
-                        </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Tooltip>
+                  </Tooltip>
+                </div>
               </div>
 
               {/* Main Content Grid */}
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 {/* Main Content - 2 columns */}
-                <div className="xl:col-span-2 space-y-4 md:space-y-6">
-                  {/* Global Market Peak Alert */}
+                <div className="xl:col-span-2 space-y-6">
+                  {/* Analysis Cards */}
                   <GlobalPeakAlertCard cryptoData={cryptoData} />
-
-                  {/* M2 Liquidity Card */}
                   <M2LiquidityCard cryptoData={cryptoData} />
 
-                  {/* Crypto Table */}
-                  <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div className="px-4 md:px-6 py-4 border-b border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-gray-900">Market Overview</h3>
-                        <div className="hidden md:flex items-center space-x-2 text-sm text-gray-500">
-                          <span>Last updated: {lastUpdated ? new Date(lastUpdated).toLocaleTimeString() : 'Never'}</span>
-                        </div>
-                      </div>
+                  {/* Crypto Market Table */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="px-4 md:px-6 py-4 border-b border-gray-100">
+                      <h3 className="text-lg font-semibold text-gray-900">Top Cryptocurrencies</h3>
+                      <p className="text-sm text-gray-600 mt-1">Live prices and 24h performance</p>
                     </div>
                     {loading ? (
                       <div className="flex items-center justify-center py-12">
@@ -416,35 +427,35 @@ export default function Dashboard() {
                     ) : cryptoData.length > 0 ? (
                       <div className="divide-y divide-gray-100">
                         {cryptoData.slice(0, 8).map((crypto, index) => (
-                          <div key={crypto.id} className="flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 transition-colors">
-                            <div className="flex items-center space-x-2 md:space-x-3 flex-1 min-w-0">
-                              <span className="text-xs md:text-sm text-gray-500 font-medium w-6 md:w-8 flex-shrink-0">#{index + 1}</span>
+                          <div key={crypto.id} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center space-x-3 flex-1 min-w-0">
+                              <span className="text-sm text-gray-500 font-medium w-8 flex-shrink-0">#{index + 1}</span>
                               <Image 
                                 src={crypto.image} 
                                 alt={crypto.name}
-                                width={28}
-                                height={28}
-                                className="rounded-full flex-shrink-0 md:w-8 md:h-8"
+                                width={32}
+                                height={32}
+                                className="rounded-full flex-shrink-0"
                               />
                               <div className="min-w-0">
-                                <h4 className="font-medium text-gray-900 text-sm md:text-base truncate">{crypto.name}</h4>
-                                <p className="text-xs md:text-sm text-gray-500">{crypto.symbol.toUpperCase()}</p>
+                                <h4 className="font-medium text-gray-900 text-base truncate">{crypto.name}</h4>
+                                <p className="text-sm text-gray-500">{crypto.symbol.toUpperCase()}</p>
                               </div>
                             </div>
-                            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6 flex-shrink-0">
+                            <div className="flex flex-col md:flex-row md:items-center gap-4 flex-shrink-0">
                               <div className="text-right">
-                                <div className="font-semibold text-gray-900 text-sm md:text-base">
+                                <div className="font-semibold text-gray-900 text-base">
                                   ${crypto.current_price.toLocaleString(undefined, {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: crypto.current_price < 1 ? 4 : 2
                                   })}
                                 </div>
-                                <div className={`text-xs md:text-sm font-medium ${crypto.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                <div className={`text-sm font-medium ${crypto.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                   {crypto.price_change_percentage_24h >= 0 ? '+' : ''}
                                   {crypto.price_change_percentage_24h.toFixed(2)}%
                                 </div>
                               </div>
-                              <div className="text-right text-xs md:text-sm text-gray-500 hidden sm:block">
+                              <div className="text-right text-sm text-gray-500 hidden lg:block">
                                 <p className="font-medium">${(crypto.market_cap / 1e9).toFixed(1)}B</p>
                                 <p className="text-xs">Market Cap</p>
                               </div>
@@ -461,47 +472,80 @@ export default function Dashboard() {
                 </div>
 
                 {/* Sidebar - 1 column */}
-                <div className="space-y-4 md:space-y-6">
+                <div className="space-y-6">
                   {/* Market Dominance */}
                   <DominanceCard />
                   
-                  {/* Market Movers */}
-                  <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">24h Movers</h3>
-                    {cryptoData.length > 0 && (
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="text-sm font-medium text-green-900 mb-2">Top Gainers</h4>
-                          {cryptoData
-                            .filter(crypto => crypto.price_change_percentage_24h > 0)
-                            .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
-                            .slice(0, 3)
-                            .map(crypto => (
-                              <div key={crypto.id} className="flex items-center justify-between py-1">
-                                <span className="text-sm font-medium">{crypto.symbol.toUpperCase()}</span>
-                                <span className="text-sm text-green-600 font-medium">
-                                  +{crypto.price_change_percentage_24h.toFixed(2)}%
-                                </span>
-                              </div>
-                            ))}
+                  {/* Market Movers - Improved Design */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="px-4 py-4 border-b border-gray-100">
+                      <h3 className="text-lg font-semibold text-gray-900">24h Market Movers</h3>
+                      <p className="text-sm text-gray-600 mt-1">Top gainers and losers</p>
+                    </div>
+                    <div className="p-4">
+                      {cryptoData.length > 0 && (
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                              <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
+                              Top Gainers
+                            </h4>
+                            <div className="space-y-2">
+                              {cryptoData
+                                .filter(crypto => crypto.price_change_percentage_24h > 0)
+                                .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
+                                .slice(0, 3)
+                                .map(crypto => (
+                                  <div key={crypto.id} className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                                    <div className="flex items-center space-x-2">
+                                      <Image 
+                                        src={crypto.image} 
+                                        alt={crypto.name}
+                                        width={20}
+                                        height={20}
+                                        className="rounded-full"
+                                      />
+                                      <span className="text-sm font-medium text-gray-900">{crypto.symbol.toUpperCase()}</span>
+                                    </div>
+                                    <span className="text-sm text-green-600 font-semibold">
+                                      +{crypto.price_change_percentage_24h.toFixed(2)}%
+                                    </span>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                              <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
+                              Top Losers
+                            </h4>
+                            <div className="space-y-2">
+                              {cryptoData
+                                .filter(crypto => crypto.price_change_percentage_24h < 0)
+                                .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h)
+                                .slice(0, 3)
+                                .map(crypto => (
+                                  <div key={crypto.id} className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
+                                    <div className="flex items-center space-x-2">
+                                      <Image 
+                                        src={crypto.image} 
+                                        alt={crypto.name}
+                                        width={20}
+                                        height={20}
+                                        className="rounded-full"
+                                      />
+                                      <span className="text-sm font-medium text-gray-900">{crypto.symbol.toUpperCase()}</span>
+                                    </div>
+                                    <span className="text-sm text-red-600 font-semibold">
+                                      {crypto.price_change_percentage_24h.toFixed(2)}%
+                                    </span>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="text-sm font-medium text-red-900 mb-2">Top Losers</h4>
-                          {cryptoData
-                            .filter(crypto => crypto.price_change_percentage_24h < 0)
-                            .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h)
-                            .slice(0, 3)
-                            .map(crypto => (
-                              <div key={crypto.id} className="flex items-center justify-between py-1">
-                                <span className="text-sm font-medium">{crypto.symbol.toUpperCase()}</span>
-                                <span className="text-sm text-red-600 font-medium">
-                                  {crypto.price_change_percentage_24h.toFixed(2)}%
-                                </span>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

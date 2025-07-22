@@ -15,7 +15,7 @@ interface TimeframeOption {
 const TIMEFRAME_OPTIONS: TimeframeOption[] = [
   { value: '1h', label: '1H', description: 'Hourly - Fast signals, good for day trading' },
   { value: '4h', label: '4H', description: '4-Hour - Balanced view, less noise' },
-  { value: '1d', label: '1D', description: 'Daily - Strong trends, institutional grade' },
+  { value: '1d', label: '1D', description: 'Daily - Strong trends' },
   { value: '1w', label: '1W', description: 'Weekly - Long-term trends, minimal noise' }
 ]
 
@@ -368,151 +368,179 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
 
 
   return (
-    <div className={`card ${className}`}>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-          <Activity className="h-5 w-5 text-blue-600 mr-2" />
-          Technical Analysis - {taData.symbol.toUpperCase()}
-        </h3>
-        <span className="text-xs text-gray-500">
-          {new Date(taData.timestamp).toLocaleTimeString('en-US')}
-        </span>
-      </div>
-
-      {/* Timeframe Selector */}
-      <div className="mb-6 flex items-center justify-between">
-        <TimeframeSelector 
-          selectedTimeframe={selectedTimeframe}
-          onTimeframeChange={setSelectedTimeframe}
-        />
-        <div className="text-xs text-gray-500 bg-blue-50 px-3 py-1 rounded-full">
-          <span className="font-medium">
-            {TIMEFRAME_OPTIONS.find(opt => opt.value === selectedTimeframe)?.description}
-          </span>
+    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
+      {/* Clean Header */}
+      <div className="p-4 md:p-6 border-b border-gray-100">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-gray-50">
+              <Activity className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                Technical Analysis - {taData.symbol.toUpperCase()}
+              </h3>
+              <div className="flex items-center gap-2">
+                <TimeframeSelector 
+                  selectedTimeframe={selectedTimeframe}
+                  onTimeframeChange={setSelectedTimeframe}
+                  className="text-sm"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-right">
+            <div className="text-sm text-gray-500">
+              {TIMEFRAME_OPTIONS.find(opt => opt.value === selectedTimeframe)?.description}
+            </div>
+            <div className="text-xs text-gray-400 mt-1">
+              {new Date(taData.timestamp).toLocaleTimeString('en-US')}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Current Price */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
-        <div className="text-center">
+      {/* Main Content */}
+      <div className="p-4 md:p-6">
+        {/* Current Price - Simplified */}
+        <div className="mb-6 text-center">
           <p className="text-sm text-gray-600 mb-1">Current Price</p>
-          <p className="text-2xl font-bold text-gray-900">
+          <p className="text-3xl font-bold text-gray-900">
             {formatPrice(taData.current_price)}
           </p>
         </div>
-      </div>
 
-      {/* Technical Indicators */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">Technical Analysis</h3>
-          <div className="text-sm text-gray-500">
-            {TIMEFRAME_OPTIONS.find(opt => opt.value === selectedTimeframe)?.description}
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Technical Indicators - Modern Design */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-          {/* RSI Card */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          {/* RSI Card - Clean Design */}
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[180px] flex flex-col">
             <div className="flex items-center justify-between mb-3">
-              <h5 className="font-medium text-gray-900">RSI</h5>
-              <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                safeRSI.current <= 30 ? 'bg-green-100 text-green-800' :
-                safeRSI.current >= 70 ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+              <h5 className="font-semibold text-gray-900">RSI Signal</h5>
+              <span className={`w-2 h-2 rounded-full ${
+                safeRSI.current <= 30 ? 'bg-green-500' :
+                safeRSI.current >= 70 ? 'bg-red-500' : 'bg-blue-500'
+              }`}></span>
+            </div>
+            
+            <div className="text-center mb-3 flex-1 flex flex-col justify-center">
+              <div className={`text-lg font-bold mb-1 ${
+                safeRSI.current <= 30 ? 'text-green-700' :
+                safeRSI.current >= 70 ? 'text-red-700' : 'text-blue-700'
               }`}>
-                {safeRSI.current <= 30 ? 'Buy Zone' :
-                 safeRSI.current >= 70 ? 'Sell Zone' : 'Neutral'}
-              </span>
-            </div>
-            
-            <div className={`text-center py-3 px-3 rounded-lg text-xl font-bold mb-3 ${
-              safeRSI.current <= 30 ? 'bg-green-100 text-green-700' :
-              safeRSI.current >= 70 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-            }`}>
-              {safeRSI.current.toFixed(1)}
-            </div>
-            
-            <div className="text-xs text-gray-600 text-center">
-              <div>{safeRSI.current <= 30 ? 'Oversold' : safeRSI.current >= 70 ? 'Overbought' : 'Neutral'}</div>
-            </div>
-          </div>
-
-          {/* MACD Card */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-3">
-              <h5 className="font-medium text-gray-900">MACD</h5>
-              <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                safeMACD.crossover === 'bullish' ? 'bg-green-100 text-green-800' :
-                safeMACD.crossover === 'bearish' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+                {safeRSI.current <= 30 ? 'Oversold Zone' :
+                 safeRSI.current >= 70 ? 'Overbought Zone' : 'Neutral Zone'}
+              </div>
+              
+              <div className={`text-xs font-medium px-2 py-1 rounded-full ${
+                safeRSI.current <= 30 ? 'bg-green-100 text-green-700' :
+                safeRSI.current >= 70 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
               }`}>
-                {safeMACD.crossover === 'bullish' ? 'Bullish' :
-                 safeMACD.crossover === 'bearish' ? 'Bearish' : 'Neutral'}
-              </span>
+                {safeRSI.current <= 30 ? 'Buy Signal' :
+                 safeRSI.current >= 70 ? 'Sell Signal' : 'Hold Position'}
+              </div>
             </div>
             
-            <div className={`text-center py-3 px-3 rounded-lg text-xl font-bold mb-3 ${
-              safeMACD.crossover === 'bullish' ? 'bg-green-100 text-green-700' :
-              safeMACD.crossover === 'bearish' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-            }`}>
-              {safeMACD.current.macd.toFixed(3)}
-            </div>
-            
-            <div className="text-xs text-gray-600 text-center">
-              <div>Signal: {safeMACD.current.signal.toFixed(3)}</div>
+            {/* Progress bar instead of large colored background */}
+            <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
+              <div 
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  safeRSI.current <= 30 ? 'bg-green-500' :
+                  safeRSI.current >= 70 ? 'bg-red-500' : 'bg-blue-500'
+                }`}
+                style={{ width: `${safeRSI.current}%` }}
+              ></div>
             </div>
           </div>
 
-          {/* Trend Direction Card */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          {/* MACD Card - Clean Design */}
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[180px] flex flex-col">
             <div className="flex items-center justify-between mb-3">
-              <h5 className="font-medium text-gray-900">Trend Direction</h5>
-              <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                safeCTO.current.signal === 'bullish' ? 'bg-green-100 text-green-800' :
-                safeCTO.current.signal === 'bearish' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+              <h5 className="font-semibold text-gray-900">MACD Signal</h5>
+              <span className={`w-2 h-2 rounded-full ${
+                safeMACD.crossover === 'bullish' ? 'bg-green-500' :
+                safeMACD.crossover === 'bearish' ? 'bg-red-500' : 'bg-gray-500'
+              }`}></span>
+            </div>
+            
+            <div className="text-center mb-3 flex-1 flex flex-col justify-center">
+              <div className={`text-lg font-bold mb-1 ${
+                safeMACD.crossover === 'bullish' ? 'text-green-700' :
+                safeMACD.crossover === 'bearish' ? 'text-red-700' : 'text-gray-700'
+              }`}>
+                {safeMACD.crossover === 'bullish' ? 'Bullish Momentum' :
+                 safeMACD.crossover === 'bearish' ? 'Bearish Momentum' : 'Sideways Movement'}
+              </div>
+              
+              <div className={`text-xs font-medium px-2 py-1 rounded-full ${
+                safeMACD.crossover === 'bullish' ? 'bg-green-100 text-green-700' :
+                safeMACD.crossover === 'bearish' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+              }`}>
+                {safeMACD.crossover === 'bullish' ? 'Upward Pressure' :
+                 safeMACD.crossover === 'bearish' ? 'Downward Pressure' : 'Wait for Signal'}
+              </div>
+            </div>
+          </div>
+
+          {/* Trend Direction Card - Clean Design */}
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[180px] flex flex-col">
+            <div className="flex items-center justify-between mb-3">
+              <h5 className="font-semibold text-gray-900">Trend Direction</h5>
+              <span className={`w-2 h-2 rounded-full ${
+                safeCTO.current.signal === 'bullish' ? 'bg-green-500' :
+                safeCTO.current.signal === 'bearish' ? 'bg-red-500' : 'bg-gray-500'
+              }`}></span>
+            </div>
+            
+            <div className="text-center mb-3 flex-1 flex flex-col justify-center">
+              <div className="text-lg font-bold text-gray-900 mb-1">
+                {safeCTO.current.signal === 'bullish' ? 'Strong Uptrend' :
+                 safeCTO.current.signal === 'bearish' ? 'Strong Downtrend' : 'Sideways Movement'}
+              </div>
+              <div className={`text-xs font-medium px-2 py-1 rounded-full ${
+                safeCTO.current.signal === 'bullish' ? 'bg-green-100 text-green-700' :
+                safeCTO.current.signal === 'bearish' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
               }`}>
                 {safeCTO.current.signal === 'bullish' ? 'Bullish' :
                  safeCTO.current.signal === 'bearish' ? 'Bearish' : 'Neutral'}
-              </span>
-            </div>
-            
-            <div className={`text-center py-3 px-3 rounded-lg text-xl font-bold mb-3 ${
-              safeCTO.current.signal === 'bullish' ? 'bg-green-100 text-green-700' :
-              safeCTO.current.signal === 'bearish' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-            }`}>
-              {safeCTO.current.signal === 'bullish' ? 'Strong Uptrend' :
-               safeCTO.current.signal === 'bearish' ? 'Strong Downtrend' : 'Sideways Movement'}
-            </div>
-            
-            <div className="text-xs text-gray-600 text-center">
-              <div>Crossover: {safeCTO.crossover || 'none'}</div>
+              </div>
             </div>
           </div>
 
-          {/* Peak Risk Card */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          {/* Risk Assessment Card - Clean Design */}
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[180px] flex flex-col">
             <div className="flex items-center justify-between mb-3">
-              <h5 className="font-medium text-gray-900">Peak Risk</h5>
-              <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                safePeak.risk_level === 'danger' ? 'bg-red-100 text-red-800' :
-                safePeak.risk_level === 'warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+              <h5 className="font-semibold text-gray-900">Risk Assessment</h5>
+              <span className={`w-2 h-2 rounded-full ${
+                safePeak.risk_level === 'danger' ? 'bg-red-500' :
+                safePeak.risk_level === 'warning' ? 'bg-amber-500' : 'bg-green-500'
+              }`}></span>
+            </div>
+            
+            <div className="text-center mb-3 flex-1 flex flex-col justify-center">
+              {/* Show risk level more prominently */}
+              <div className={`text-lg font-bold mb-1 ${
+                safePeak.risk_level === 'danger' ? 'text-red-700' :
+                safePeak.risk_level === 'warning' ? 'text-amber-700' : 'text-green-700'
               }`}>
-                {safePeak.risk_level === 'danger' ? 'High Risk' :
-                 safePeak.risk_level === 'warning' ? 'Medium Risk' : 'Low Risk'}
-              </span>
+                {safePeak.risk_level === 'danger' ? 'HIGH RISK' :
+                 safePeak.risk_level === 'warning' ? 'MEDIUM RISK' : 'LOW RISK'}
+              </div>
+              
+              <div className={`text-xs font-medium px-2 py-1 rounded-full ${
+                safePeak.risk_level === 'danger' ? 'bg-red-100 text-red-700' :
+                safePeak.risk_level === 'warning' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+              }`}>
+                {safePeak.risk_level === 'danger' ? 'Consider selling' :
+                 safePeak.risk_level === 'warning' ? 'Monitor closely' : 'Safe to hold'}
+              </div>
             </div>
             
-            <div className={`text-center py-3 px-3 rounded-lg text-xl font-bold mb-3 ${
-              safePeak.risk_level === 'danger' ? 'bg-red-100 text-red-700' :
-              safePeak.risk_level === 'warning' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
-            }`}>
-              {safePeak.confidence}%
-            </div>
-            
-            <div className="text-xs text-gray-600 text-center">
-              <button 
+            <div className="text-xs text-center text-gray-500">
+              {safePeak.confidence}% confidence • <button 
                 onClick={() => setShowPeakModal(true)}
-                className="text-blue-600 hover:text-blue-700 underline"
+                className="text-blue-600 hover:text-blue-800 underline"
               >
                 Learn more
               </button>
@@ -522,7 +550,7 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
         </div>
       </div>
 
-      {/* Educational Peak Alert Modal */}
+      {/* Educational Peak Alert Modal - Unchanged */}
       {showPeakModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { TrendingUp, TrendingDown, Activity, RefreshCw } from 'lucide-react'
+import { TrendingUp, TrendingDown, Activity, RefreshCw, BarChart3 } from 'lucide-react'
 import type { IChartApi, ISeriesApi } from 'lightweight-charts'
 
 interface CryptoData {
@@ -284,7 +284,7 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
 
   if (!mounted || loading) {
     return (
-      <div className={`bg-white p-6 rounded-lg shadow-sm border ${className}`}>
+      <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${className}`}>
         <div className="animate-pulse">
           <div className="h-5 bg-gray-200 rounded w-2/3 mb-4"></div>
           <div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
@@ -297,7 +297,7 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
 
   if (!m2Data) {
     return (
-      <div className={`bg-white p-6 rounded-lg shadow-sm border ${className}`}>
+      <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${className}`}>
         <div className="text-center py-8">
           <div className="text-red-600 mb-2">Failed to load M2 data</div>
           <button 
@@ -311,65 +311,120 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
     )
   }
 
+  const getCorrelationStrength = (correlation: number) => {
+    const absCorr = Math.abs(correlation)
+    if (absCorr >= 70) return { label: 'Strong', color: 'text-green-600' }
+    if (absCorr >= 40) return { label: 'Moderate', color: 'text-blue-600' }
+    if (absCorr >= 20) return { label: 'Weak', color: 'text-yellow-600' }
+    return { label: 'Very Weak', color: 'text-gray-600' }
+  }
+
+  const correlationInfo = getCorrelationStrength(m2Data.correlation)
+
   return (
-    <div className={`bg-white p-4 md:p-6 rounded-lg shadow-sm border ${className}`}>
-      {/* Simplified Mobile-First Header */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="text-right">
-            <div className="text-xs md:text-sm text-gray-500">Correlation</div>
-            <div className={`text-lg md:text-xl font-bold ${
-              Math.abs(m2Data.correlation) >= 70 ? 'text-green-600' :
-              Math.abs(m2Data.correlation) >= 40 ? 'text-blue-600' :
-              Math.abs(m2Data.correlation) >= 20 ? 'text-yellow-600' : 'text-gray-600'
-            }`}>
-              {(() => {
-                const absCorr = Math.abs(m2Data.correlation)
-                if (absCorr >= 90) return 'Very Strong'
-                if (absCorr >= 70) return 'Strong'
-                if (absCorr >= 40) return 'Moderate'
-                if (absCorr >= 20) return 'Weak'
-                return 'Very Weak'
-              })()}
+    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
+      {/* Clean Header */}
+      <div className="p-4 md:p-6 border-b border-gray-100">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-gray-50">
+              <BarChart3 className="h-5 w-5 text-purple-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                M2 Global Liquidity Analysis
+              </h3>
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                  m2Data.impact === 'bullish' ? 'bg-green-100 text-green-700 border-green-200' :
+                  m2Data.impact === 'bearish' ? 'bg-red-100 text-red-700 border-red-200' :
+                  'bg-gray-100 text-gray-700 border-gray-200'
+                }`}>
+                  {m2Data.impact === 'bullish' ? 'Bullish Impact' : 
+                   m2Data.impact === 'bearish' ? 'Bearish Impact' : 'Neutral Impact'}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-        
-        {/* Mobile Summary Line */}
-        <div className="flex items-center justify-between text-sm">
-          <span className={`font-medium ${
-            m2Data.impact === 'bullish' ? 'text-green-700' :
-            m2Data.impact === 'bearish' ? 'text-red-700' : 'text-gray-700'
-          }`}>
-            Impact: {m2Data.impact === 'bullish' ? 'Bullish' : 
-                    m2Data.impact === 'bearish' ? 'Bearish' : 'Neutral'}
-          </span>
+          
           <button
             onClick={fetchM2Data}
             disabled={loading}
-            className="text-xs text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+            className="p-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
-            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
+            <RefreshCw className={`h-4 w-4 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
 
-      {/* Chart Section */}
-      <div className="mb-4">
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="font-medium text-gray-900">
-              Chart Legend
-            </h4>
-            <div className="flex gap-4 text-xs text-gray-600">
+      {/* Main Content */}
+      <div className="p-4 md:p-6">
+        {/* Key Metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="text-center">
+            <div className="text-lg font-bold text-gray-900">
+              {m2Data.currentM2.toFixed(1)}T
+            </div>
+            <div className="text-xs text-gray-500">M2 Supply</div>
+          </div>
+          <div className="text-center">
+            <div className={`text-lg font-bold ${correlationInfo.color}`}>
+              {correlationInfo.label}
+            </div>
+            <div className="text-xs text-gray-500">Correlation</div>
+          </div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-gray-900">
+              {m2Data.lagDays}d
+            </div>
+            <div className="text-xs text-gray-500">Lag Applied</div>
+          </div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-gray-900">
+              {m2Data.correlation.toFixed(1)}%
+            </div>
+            <div className="text-xs text-gray-500">Correlation</div>
+          </div>
+        </div>
+
+        {/* Status Indicator */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <div className={`w-2 h-2 rounded-full ${
+              m2Data.impact === 'bullish' ? 'bg-green-500' :
+              m2Data.impact === 'bearish' ? 'bg-red-500' : 'bg-gray-500'
+            }`}></div>
+            <span className="text-sm font-medium text-gray-700">
+              {Math.abs(m2Data.correlation) > 30 
+                ? `Bitcoin ${m2Data.correlation > 0 ? 'rises' : 'falls'} when M2 increases (${m2Data.lagDays}d lag)`
+                : 'Bitcoin currently moving independently of M2 trends'
+              }
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className={`h-2 rounded-full transition-all duration-500 ${
+                m2Data.impact === 'bullish' ? 'bg-green-500' :
+                m2Data.impact === 'bearish' ? 'bg-red-500' : 'bg-gray-500'
+              }`}
+              style={{ width: `${Math.abs(m2Data.correlation)}%` }}
+            ></div>
+          </div>
+        </div>
+
+        {/* Chart Section */}
+        <div className="mb-4">
+          {/* Chart Legend */}
+          <div className="flex items-center justify-between mb-3 p-3 bg-gray-50 rounded-lg">
+            <h4 className="font-medium text-gray-900">Historical Correlation</h4>
+            <div className="flex gap-4 text-xs">
               <div className="flex items-center gap-1">
                 <div className="w-3 h-0.5 bg-orange-500"></div>
-                <span>Bitcoin Price</span>
+                <span className="text-gray-600">Bitcoin Price</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-0.5 bg-pink-600"></div>
-                <span>M2 Supply</span>
+                <div className="w-3 h-0.5 bg-purple-600"></div>
+                <span className="text-gray-600">M2 Supply</span>
               </div>
             </div>
           </div>
@@ -379,9 +434,6 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
             // Simple SVG Chart with real data
             <div className="w-full h-80 md:h-96 border border-gray-200 rounded-lg bg-white p-2 md:p-4">
               <div className="h-full flex flex-col">
-                                  <div className="text-center text-xs md:text-sm font-medium text-gray-700 mb-2 md:mb-4">
-                    Bitcoin vs M2 Correlation Chart
-                  </div>
                 <div className="flex-1 relative overflow-hidden">
                   <svg className="w-full h-full" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid meet">
                     {/* Grid lines */}
@@ -456,10 +508,10 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
                           </text>
                           
                           {/* Y-axis labels for M2 (right) - Simplified on mobile */}
-                          <text x="790" y="25" fontSize="8" fill="#e91e63" textAnchor="start" className="hidden sm:block">
+                          <text x="790" y="25" fontSize="8" fill="#8b5cf6" textAnchor="start" className="hidden sm:block">
                             {m2Max.toFixed(1)}T
                           </text>
-                          <text x="790" y="275" fontSize="8" fill="#e91e63" textAnchor="start" className="hidden sm:block">
+                          <text x="790" y="275" fontSize="8" fill="#8b5cf6" textAnchor="start" className="hidden sm:block">
                             {m2Min.toFixed(1)}T
                           </text>
                           
@@ -467,7 +519,7 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
                           <path 
                             d={m2Path} 
                             fill="none" 
-                            stroke="#e91e63" 
+                            stroke="#8b5cf6" 
                             strokeWidth="2" 
                             opacity="0.9"
                           />
@@ -483,17 +535,6 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
                           
                           {/* Time labels */}
                           {timeLabels}
-                          
-                          {/* Legend */}
-                          <g>
-                            <rect x="250" y="10" width="300" height="40" fill="white" fillOpacity="0.9" rx="5"/>
-                            <line x1="260" y1="20" x2="280" y2="20" stroke="#f7931a" strokeWidth="3"/>
-                            <text x="285" y="24" fontSize="12" fill="#333">Bitcoin Price</text>
-                            <line x1="260" y1="35" x2="280" y2="35" stroke="#e91e63" strokeWidth="2"/>
-                            <text x="285" y="39" fontSize="12" fill="#333">M2 Supply</text>
-                            <text x="400" y="24" fontSize="10" fill="#666">Correlation: {m2Data.correlation.toFixed(1)}%</text>
-                            <text x="400" y="39" fontSize="10" fill="#666">90-day lag applied</text>
-                          </g>
                         </>
                       )
                     })()}
@@ -524,54 +565,52 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
             </div>
           )}
         </div>
+
+        {/* Progressive Disclosure - Analysis */}
+        <details className="group">
+          <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-800 py-2 select-none">
+            <span>View detailed analysis</span>
+            <span className="group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="space-y-3">
+              <div>
+                <h4 className="font-medium text-blue-900 mb-2">Current Analysis</h4>
+                <p className="text-sm text-blue-800">
+                  {Math.abs(m2Data.correlation) > 30 
+                    ? `M2 money supply shows ${correlationInfo.label.toLowerCase()} correlation with Bitcoin. 
+                       Current trend is ${m2Data.liquidityTrend.toLowerCase()} which ${
+                         m2Data.impact === 'bullish' ? 'supports' : 
+                         m2Data.impact === 'bearish' ? 'pressures' : 'has neutral impact on'
+                       } Bitcoin pricing.`
+                    : 'Bitcoin is currently moving independently of M2 liquidity trends, suggesting other factors are dominating price action.'
+                  }
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-3 bg-white bg-opacity-60 rounded">
+                  <div className="font-medium text-sm text-blue-900 mb-1">M2 Status</div>
+                  <div className="text-sm text-blue-800">{m2Data.liquidityTrend}</div>
+                  <div className="text-xs text-blue-700 mt-1">Current: ${m2Data.currentM2.toFixed(1)}T USD</div>
+                </div>
+                <div className="p-3 bg-white bg-opacity-60 rounded">
+                  <div className="font-medium text-sm text-blue-900 mb-1">Methodology</div>
+                  <div className="text-sm text-blue-800">90-day forward lag applied</div>
+                  <div className="text-xs text-blue-700 mt-1">Accounts for policy transmission delays</div>
+                </div>
+              </div>
+
+              {error && (
+                <div className="text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
+                  Note: Using fallback data due to API error
+                </div>
+              )}
+            </div>
+          </div>
+        </details>
       </div>
-
-      {/* Progressive Disclosure - Simplified Key Insights */}
-      <details className="group">
-        <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-blue-700 hover:text-blue-800 py-2 select-none">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <span>📊 Analysis & Insights</span>
-          </div>
-          <span className="group-open:rotate-180 transition-transform text-blue-600">▼</span>
-        </summary>
-        
-        <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="space-y-2 text-sm text-gray-700">
-            {/* Current Status Summary */}
-            <div className="font-medium text-blue-800">
-              {Math.abs(m2Data.correlation) > 50 ? '🔵 Strong M2 influence' : 
-               Math.abs(m2Data.correlation) > 30 ? '🔵 Moderate M2 influence' : '⚪ Weak M2 influence'}
-            </div>
-            
-            {/* Simplified Explanation */}
-            <p>
-              {Math.abs(m2Data.correlation) > 30 
-                ? `Bitcoin ${m2Data.correlation > 0 ? 'rises' : 'falls'} when M2 increases (${m2Data.lagDays}d lag).`
-                : 'Bitcoin currently moving independently of M2 trends.'
-              }
-              {m2Data.m2Trend === 'expanding' && m2Data.correlation > 30
-                ? ' M2 expansion supports Bitcoin growth.' 
-                : m2Data.m2Trend === 'contracting' && m2Data.correlation > 30
-                ? ' M2 contraction may pressure prices.'
-                : ' Monitor for trend changes.'
-              }
-            </p>
-
-            {/* Compact Stats */}
-            <div className="grid grid-cols-2 gap-2 mt-3 text-xs bg-white bg-opacity-60 p-2 rounded">
-              <div><strong>M2 Supply:</strong> {m2Data.currentM2.toFixed(1)}T</div>
-              <div><strong>Trend:</strong> {m2Data.liquidityTrend}</div>
-            </div>
-          </div>
-
-          {error && (
-            <div className="mt-2 text-xs text-amber-700 bg-amber-100 p-2 rounded">
-              Note: Using fallback data ({error})
-            </div>
-          )}
-        </div>
-      </details>
     </div>
   )
 } 

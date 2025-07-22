@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { AlertTriangle, Shield, TrendingUp } from 'lucide-react'
 
 interface CryptoData {
   id: string
@@ -215,33 +216,30 @@ export default function GlobalPeakAlertCard({ cryptoData = [], className = '' }:
     switch (analysis.risk_level) {
       case 'danger':
         return {
-          icon: '🚨',
+          icon: AlertTriangle,
+          iconColor: 'text-red-600',
           badge: 'Peak Alert',
-          bgColor: 'bg-red-50',
-          borderColor: 'border-red-200',
-          badgeColor: 'bg-red-100 text-red-800',
-          confidenceColor: 'text-red-600',
-          titleColor: 'text-red-800'
+          badgeColor: 'bg-red-100 text-red-700 border-red-200',
+          progressColor: 'bg-red-500',
+          borderColor: 'border-red-200'
         }
       case 'warning':
         return {
-          icon: '⚠️',
+          icon: AlertTriangle,
+          iconColor: 'text-amber-600',
           badge: 'Peak Signals',
-          bgColor: 'bg-yellow-50',
-          borderColor: 'border-yellow-200',
-          badgeColor: 'bg-yellow-100 text-yellow-800',
-          confidenceColor: 'text-yellow-600',
-          titleColor: 'text-yellow-800'
+          badgeColor: 'bg-amber-100 text-amber-700 border-amber-200',
+          progressColor: 'bg-amber-500',
+          borderColor: 'border-amber-200'
         }
       default:
         return {
-          icon: '🟢',
-          badge: 'Market-Wide',
-          bgColor: 'bg-green-50',
-          borderColor: 'border-green-200',
-          badgeColor: 'bg-green-100 text-green-800',
-          confidenceColor: 'text-green-600',
-          titleColor: 'text-green-800'
+          icon: Shield,
+          iconColor: 'text-green-600',
+          badge: 'Safe Conditions',
+          badgeColor: 'bg-green-100 text-green-700 border-green-200',
+          progressColor: 'bg-green-500',
+          borderColor: 'border-green-200'
         }
     }
   }
@@ -249,178 +247,136 @@ export default function GlobalPeakAlertCard({ cryptoData = [], className = '' }:
   const config = getStatusConfig()
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border ${config.borderColor} overflow-hidden ${className}`}>
-      {/* Mobile-Optimized Header */}
-      <div className={`${config.bgColor} px-4 md:px-6 py-3 md:py-4 border-b ${config.borderColor}`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="text-xl md:text-2xl">{config.icon}</div>
+    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
+      {/* Clean Header */}
+      <div className="p-4 md:p-6 border-b border-gray-100">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3">
+            <div className={`p-2 rounded-lg bg-gray-50 ${config.iconColor}`}>
+              <config.icon className="h-5 w-5" />
+            </div>
             <div>
-              <h3 className="text-base md:text-lg font-semibold text-gray-900">Peak Detector: Is a Crypto Top Forming?</h3>
-              <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${config.badgeColor}`}>
-                {config.badge}
-              </span>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                Peak Detection Analysis
+              </h3>
+              <div className="flex items-center gap-2 mb-2">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${config.badgeColor}`}>
+                  {config.badge}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {analysis.confidence}% confidence
+                </span>
+              </div>
             </div>
           </div>
+          
+          {/* Clean status indicator */}
           <div className="text-right">
-            <div className={`text-xl md:text-2xl font-bold ${config.confidenceColor}`}>
-              {analysis.confidence}%
+            <div className="text-2xl font-bold text-gray-900">
+              {analysis.indicators_hit}/{analysis.total_indicators}
             </div>
-            <div className="text-xs md:text-sm text-gray-500">Confidence</div>
+            <div className="text-xs text-gray-500">signals active</div>
           </div>
         </div>
       </div>
 
-      {/* Simplified Main Content for Mobile */}
+      {/* Main Content */}
       <div className="p-4 md:p-6">
-        {/* Status Badge - Mobile First */}
-        <div className={`p-4 rounded-lg border-2 mb-4 ${
-          analysis.risk_level === 'safe' ? 'bg-green-50 border-green-200' :
-          analysis.risk_level === 'warning' ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'
-        }`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 rounded-full ${
-                analysis.risk_level === 'safe' ? 'bg-green-500' :
-                analysis.risk_level === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
-              }`}></div>
-              <div>
-                <div className={`text-lg md:text-xl font-bold ${
-                  analysis.risk_level === 'safe' ? 'text-green-700' : 
-                  analysis.risk_level === 'warning' ? 'text-yellow-700' : 'text-red-700'
-                }`}>
-                  {analysis.risk_level === 'safe' ? '🟢 SAFE CONDITIONS' : 
-                   analysis.risk_level === 'warning' ? '⚠️ PEAK SIGNALS' : 
-                   '🚨 HIGH RISK'}
-                </div>
-                <div className="text-sm text-gray-600 mt-1">
-                  {analysis.confidence}% Confidence
-                </div>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-gray-900">
-                {analysis.indicators_hit}/{analysis.total_indicators}
-              </div>
-              <div className="text-xs text-gray-500">Indicators</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Simplified Message */}
+        {/* Status Summary */}
         <div className="mb-4">
-          <div className="text-sm md:text-base text-gray-700 mb-3">
-            {analysis.risk_level === 'safe' 
-              ? "Market conditions appear healthy. No major peak indicators detected."
-              : analysis.risk_level === 'warning'
-              ? "Some peak indicators are active. Monitor market carefully."  
-              : "Multiple peak warnings detected. Exercise caution with new positions."
-            }
+          <div className="flex items-center gap-2 mb-2">
+            <div className={`w-2 h-2 rounded-full ${
+              analysis.risk_level === 'safe' ? 'bg-green-500' :
+              analysis.risk_level === 'warning' ? 'bg-amber-500' : 'bg-red-500'
+            }`}></div>
+            <span className="text-sm font-medium text-gray-700">
+              {analysis.risk_level === 'safe' ? 'Market conditions appear healthy' : 
+               analysis.risk_level === 'warning' ? 'Some peak indicators detected' : 
+               'Multiple peak warnings active'}
+            </span>
+          </div>
+          
+          {/* Progress bar for overall risk */}
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+            <div 
+              className={`h-2 rounded-full transition-all duration-500 ${config.progressColor}`}
+              style={{ width: `${(analysis.indicators_hit / analysis.total_indicators) * 100}%` }}
+            ></div>
           </div>
         </div>
 
-        {/* Progressive Disclosure - Expandable Details */}
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="text-center p-3 bg-gray-50 rounded-lg">
+            <div className="text-lg font-bold text-gray-900">
+              {analysis.indicators_hit}
+            </div>
+            <div className="text-xs text-gray-500">Active Signals</div>
+          </div>
+          <div className="text-center p-3 bg-gray-50 rounded-lg">
+            <div className="text-lg font-bold text-gray-900">
+              {analysis.confidence}%
+            </div>
+            <div className="text-xs text-gray-500">Confidence</div>
+          </div>
+        </div>
+
+        {/* Progressive Disclosure */}
         <details className="group">
-          <summary className="flex items-center justify-between cursor-pointer text-sm text-blue-600 hover:text-blue-800 mb-2 select-none">
-            <span className="font-medium">🤔 What does this mean?</span>
+          <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-800 py-2 select-none">
+            <span>View detailed analysis</span>
             <span className="group-open:rotate-180 transition-transform">▼</span>
           </summary>
           
-          <div className="mt-3 p-4 bg-gray-50 rounded-lg text-sm text-gray-700 space-y-3">
-            <p>
-              Peak Alert is a <strong>comprehensive bubble detector</strong> that combines 10+ professional 
-              indicators used by institutional traders - the same tools that hedge funds and crypto 
-              exchanges rely on.
-            </p>
-            
-            <p>
-              Instead of guessing, you get a <strong>data-driven assessment</strong> of market conditions. 
-              It is like having a team of professional analysts working 24/7 to keep you informed of 
-              critical market changes.
-            </p>
-
-            {/* Condensed Indicator Categories */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-              <div>
-                <div className="font-medium text-gray-800 mb-1">🔍 What we monitor:</div>
-                <div className="text-xs space-y-1">
-                  <div><strong>Technical Oscillators</strong><br/>RSI, Stochastic, Williams %R</div>
-                  <div><strong>Moving Averages</strong><br/>50, 100, 200-day trends</div>
-                  <div><strong>Volume Indicators</strong><br/>OBV, Accumulation/Distribution</div>
-                </div>
-              </div>
-              <div>
-                <div className="font-medium text-gray-800 mb-1">⚡ Advanced Analysis:</div>
-                <div className="text-xs space-y-1">
-                  <div><strong>Market Cycles</strong><br/>Bull/bear phases</div>
-                  <div><strong>Volatility Models</strong><br/>Risk assessment</div>
-                  <div><strong>Sentiment Metrics</strong><br/>Fear & Greed, Social metrics</div>
-                </div>
-              </div>
+          <div className="mt-4 space-y-3">
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h4 className="font-medium text-blue-900 mb-2">How it works</h4>
+              <p className="text-sm text-blue-800">
+                This analysis monitors 10 professional peak detection indicators used by institutional 
+                traders, including MVRV ratios, Pi Cycle indicators, and market cycle analysis.
+              </p>
             </div>
+
+            {/* Expandable Indicators List */}
+            {showDetails && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-gray-900">Top Indicators by Progress</h4>
+                {analysis.top_indicators.slice(0, 5).map((indicator, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">{indicator.name}</div>
+                      <div className="text-xs text-gray-500">
+                        {indicator.current} / {indicator.threshold}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-16 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            indicator.isHit ? 'bg-red-500' :
+                            indicator.progress > 75 ? 'bg-orange-400' :
+                            indicator.progress > 50 ? 'bg-yellow-400' : 'bg-green-400'
+                          }`}
+                          style={{ width: `${Math.min(100, indicator.progress)}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-xs font-medium w-8 text-right">
+                        {indicator.progress.toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <button
+              onClick={() => setShowDetails(!showDetails)}
+              className="w-full text-sm text-blue-600 hover:text-blue-800 font-medium py-2"
+            >
+              {showDetails ? 'Show less' : 'Show all indicators'}
+            </button>
           </div>
         </details>
-
-        {/* Action Button */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1"
-          >
-            Professional indicators • Click to learn more
-            <span className="text-xs">{showDetails ? '▼' : '▶'}</span>
-          </button>
-          
-          {analysis.risk_level === 'danger' && (
-            <div className="flex gap-2">
-              <button className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">
-                Take Profits Now
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Expandable Details */}
-        {showDetails && (
-          <div className="mt-6 pt-6 border-t border-gray-100">
-            <h4 className="font-medium text-gray-900 mb-4">All 10 Bull Market Peak Indicators (Sorted by Distance to Peak)</h4>
-            <div className="space-y-3">
-              {analysis.top_indicators.map((indicator, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">{indicator.name}</div>
-                    <div className="text-xs text-gray-500">
-                      Current: {indicator.current} | Threshold: {indicator.threshold}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-16 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full ${
-                          indicator.isHit ? 'bg-red-500' :
-                          indicator.progress > 75 ? 'bg-orange-400' :
-                          indicator.progress > 50 ? 'bg-yellow-400' : 'bg-green-400'
-                        }`}
-                        style={{ width: `${Math.min(100, indicator.progress)}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-xs font-medium w-8 text-right">
-                      {indicator.progress.toFixed(0)}%
-                    </span>
-                    {indicator.isHit && <span className="text-red-500 text-xs">🚨</span>}
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-              <div className="text-sm text-blue-800">
-                <strong>Professional Analysis:</strong> Based on 10 key bull market peak indicators including MVRV Ratio, 
-                Pi Cycle Top, Puell Multiple, NUPL, and Rainbow Chart. <strong>Thresholds aligned with Coinglass standards</strong> - MVRV Z-Score: 6.0, Mayer Multiple: 2.4, NUPL: 75%.
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )
