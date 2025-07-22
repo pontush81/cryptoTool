@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
-import { TrendingUp, TrendingDown, BarChart2, Globe, Activity, Zap, X, Menu, RefreshCw, DollarSign, Home } from 'lucide-react'
+import { TrendingUp, TrendingDown, BarChart2, Globe, Activity, Zap, X, RefreshCw, DollarSign } from 'lucide-react'
 import TechnicalAnalysisCard from '../../components/TechnicalAnalysisCard'
 import AdvancedAnalysisCard from '../../components/AdvancedAnalysisCard'
 import DominanceCard from '../../components/DominanceCard'
@@ -70,16 +69,6 @@ export default function Dashboard() {
   const [currentView, setCurrentView] = useState<ViewMode>('overview')
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('technical')
   const [selectedCrypto, setSelectedCrypto] = useState<string>('bitcoin')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  // Helper function to close sidebar after navigation
-  const handleNavigation = (action: () => void) => {
-    action()
-    // Close sidebar on mobile after navigation
-    if (window.innerWidth < 768) {
-      setSidebarOpen(false)
-    }
-  }
 
   const fetchCryptoData = async () => {
     try {
@@ -140,188 +129,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile Menu Overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" 
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-      
-      {/* Mobile Sidebar - Only on mobile/tablet */}
-      <div className={`${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } fixed left-0 top-0 w-64 h-full z-50 lg:hidden transition-transform duration-300 bg-white shadow-lg border-r border-gray-200 flex flex-col`}>
-        {/* Mobile Header */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <TrendingUp className="h-8 w-8 text-blue-600" />
-              <span className="ml-3 text-xl font-bold text-gray-900">CryptoTool</span>
-            </div>
-            <button 
-              onClick={() => setSidebarOpen(false)}
-              className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <X className="h-5 w-5 text-gray-600" />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation */}
-        <nav className="flex-1 p-4">
-          <div className="space-y-2">
-            <Link
-              href="/"
-              onClick={() => handleNavigation(() => {})}
-              className="w-full flex items-center p-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50"
-            >
-              <Home className="h-5 w-5" />
-              <span className="ml-3 font-medium">Home</span>
-            </Link>
-            
-            <div className="border-t border-gray-200 my-3"></div>
-            
-            {navigationItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleNavigation(() => setCurrentView(item.id))}
-                className={`w-full flex items-center p-3 rounded-lg transition-colors text-left ${
-                  item.active 
-                    ? 'bg-blue-50 text-blue-700' 
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="ml-3 font-medium">{item.label}</span>
-              </button>
-            ))}
-
-            {/* Analysis Sub-navigation on mobile */}
-            {currentView === 'analysis' && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="space-y-1">
-                  <button
-                    onClick={() => handleNavigation(() => setAnalysisMode('technical'))}
-                    className={`w-full flex items-start p-2 rounded-lg text-sm transition-colors ${
-                      analysisMode === 'technical'
-                        ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-500'
-                        : 'text-gray-600 hover:bg-gray-50'
-                    }`}>
-                    <Activity className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-                    <div className="text-left">
-                      <p className="font-medium">Technical Analysis</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => handleNavigation(() => setAnalysisMode('advanced'))}
-                    className={`w-full flex items-start p-2 rounded-lg text-sm transition-colors ${
-                      analysisMode === 'advanced'
-                        ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-500'
-                        : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    <BarChart2 className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
-                    <div className="text-left">
-                      <p className="font-medium">Advanced Analysis</p>
-                      <p className="text-xs text-gray-500 mt-0.5">Professional signals</p>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </nav>
-
-        {/* Mobile Footer */}
-        {lastUpdated && (
-          <div className="p-4 border-t border-gray-200">
-            <div className="text-xs text-gray-500 text-center">
-              Last updated: {new Date(lastUpdated).toLocaleTimeString()}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Main Layout */}
-      <div className="flex flex-col min-h-screen">
-        {/* Top Navigation - Desktop */}
-        <header className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              {/* Left: Logo and Mobile Menu Button */}
-              <div className="flex items-center">
-                {/* Mobile menu button */}
-                <button
-                  onClick={() => setSidebarOpen(true)}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
-                >
-                  <Menu className="h-6 w-6 text-gray-600" />
-                </button>
-                
-                {/* Logo */}
-                <Link href="/" className="flex items-center ml-2 lg:ml-0">
-                  <TrendingUp className="h-8 w-8 text-blue-600" />
-                  <span className="ml-3 text-xl font-bold text-gray-900">CryptoTool</span>
-                </Link>
-              </div>
-
-              {/* Center: Desktop Navigation - Only show on desktop */}
-              <nav className="hidden lg:flex space-x-8">
-                {navigationItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => setCurrentView(item.id)}
-                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
-                      item.active
-                        ? 'text-blue-600 border-b-2 border-blue-600'
-                        : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
-                    }`}
-                  >
-                    <item.icon className="h-4 w-4 mr-2" />
-                    {item.label}
-                  </button>
-                ))}
-                
-                {/* Analysis sub-navigation on desktop */}
-                {currentView === 'analysis' && (
-                  <div className="flex space-x-4 ml-4 pl-4 border-l border-gray-200">
-                    <button
-                      onClick={() => setAnalysisMode('technical')}
-                      className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
-                        analysisMode === 'technical'
-                          ? 'text-blue-600 border-b-2 border-blue-600'
-                          : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
-                      }`}
-                    >
-                      <Activity className="h-4 w-4 mr-2" />
-                      Technical
-                    </button>
-                    <button
-                      onClick={() => setAnalysisMode('advanced')}
-                      className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
-                        analysisMode === 'advanced'
-                          ? 'text-purple-600 border-b-2 border-purple-600'
-                          : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
-                      }`}
-                    >
-                      <BarChart2 className="h-4 w-4 mr-2" />
-                      Advanced
-                    </button>
-                  </div>
-                )}
-              </nav>
-
-              {/* Right: Last Updated */}
-              <div className="text-sm text-gray-500 hidden sm:block">
-                {lastUpdated && `Updated ${new Date(lastUpdated).toLocaleTimeString()}`}
-              </div>
-            </div>
-          </div>
-        </header>
-
-                 {/* Content Area */}
-         <main className="flex-1">
+      {/* Content Area */}
+      <main className="flex-1">
            {/* Page Header */}
            <div className="bg-white shadow-sm border-b border-gray-200">
              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -350,6 +159,56 @@ export default function Dashboard() {
                    <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
                    {refreshing ? 'Refreshing...' : 'Refresh'}
                  </button>
+               </div>
+             </div>
+           </div>
+
+           {/* Dashboard Navigation */}
+           <div className="bg-white border-b border-gray-200">
+             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+               <div className="flex space-x-8">
+                 {navigationItems.map((item) => (
+                   <button
+                     key={item.id}
+                     onClick={() => setCurrentView(item.id)}
+                     className={`inline-flex items-center px-1 py-4 text-sm font-medium transition-colors ${
+                       item.active
+                         ? 'text-blue-600 border-b-2 border-blue-600'
+                         : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
+                     }`}
+                   >
+                     <item.icon className="h-4 w-4 mr-2" />
+                     {item.label}
+                   </button>
+                 ))}
+                 
+                 {/* Analysis sub-navigation */}
+                 {currentView === 'analysis' && (
+                   <div className="flex space-x-4 ml-4 pl-4 border-l border-gray-200">
+                     <button
+                       onClick={() => setAnalysisMode('technical')}
+                       className={`inline-flex items-center px-1 py-4 text-sm font-medium transition-colors ${
+                         analysisMode === 'technical'
+                           ? 'text-blue-600 border-b-2 border-blue-600'
+                           : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
+                       }`}
+                     >
+                       <Activity className="h-4 w-4 mr-2" />
+                       Technical
+                     </button>
+                     <button
+                       onClick={() => setAnalysisMode('advanced')}
+                       className={`inline-flex items-center px-1 py-4 text-sm font-medium transition-colors ${
+                         analysisMode === 'advanced'
+                           ? 'text-purple-600 border-b-2 border-purple-600'
+                           : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
+                       }`}
+                     >
+                       <BarChart2 className="h-4 w-4 mr-2" />
+                       Advanced
+                     </button>
+                   </div>
+                 )}
                </div>
              </div>
            </div>
@@ -449,9 +308,7 @@ export default function Dashboard() {
                               ? 'text-green-900' 
                               : 'text-red-900'
                           }`}>
-                            {globalData && (
-                              `${globalData.total_market_cap_change_24h >= 0 ? '+' : ''}${globalData.total_market_cap_change_24h.toFixed(2)}%`
-                            )}
+                            {globalData && `${globalData.total_market_cap_change_24h.toFixed(2)}%`}
                           </p>
                         </div>
                         <div className={`p-2 rounded-lg ${
@@ -471,170 +328,78 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Main Content Grid */}
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                {/* Main Content - 2 columns */}
-                <div className="xl:col-span-2 space-y-6">
-                  {/* Analysis Cards */}
-                  <GlobalPeakAlertCard cryptoData={cryptoData} />
-
-                  {/* Crypto Market Table */}
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="px-4 md:px-6 py-4 border-b border-gray-100">
-                      <h3 className="text-lg font-semibold text-gray-900">Top Cryptocurrencies</h3>
-                      <p className="text-sm text-gray-600 mt-1">Live prices and 24h performance</p>
+              {/* Top Cryptos Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Crypto List */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Top Cryptocurrencies</h2>
+                  {loading ? (
+                    <div className="animate-pulse space-y-3">
+                      {[...Array(5)].map((_, i) => (
+                        <div key={i} className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+                          <div className="flex-1">
+                            <div className="h-4 bg-gray-300 rounded w-1/3 mb-2"></div>
+                            <div className="h-3 bg-gray-300 rounded w-1/4"></div>
+                          </div>
+                          <div className="h-4 bg-gray-300 rounded w-20"></div>
+                        </div>
+                      ))}
                     </div>
-                    {loading ? (
-                      <div className="flex items-center justify-center py-12">
-                        <RefreshCw className="h-8 w-8 animate-spin text-blue-500" />
-                        <span className="ml-3 text-gray-600">Loading market data...</span>
-                      </div>
-                    ) : cryptoData.length > 0 ? (
-                      <div className="divide-y divide-gray-100">
-                        {cryptoData.slice(0, 8).map((crypto, index) => (
-                          <div key={crypto.id} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
-                            <div className="flex items-center space-x-3 flex-1 min-w-0">
-                              <span className="text-sm text-gray-500 font-medium w-8 flex-shrink-0">#{index + 1}</span>
-                              <Image 
-                                src={crypto.image} 
-                                alt={crypto.name}
-                                width={32}
-                                height={32}
-                                className="rounded-full flex-shrink-0"
-                              />
-                              <div className="min-w-0">
-                                <h4 className="font-medium text-gray-900 text-base truncate">{crypto.name}</h4>
-                                <p className="text-sm text-gray-500">{crypto.symbol.toUpperCase()}</p>
-                              </div>
-                            </div>
-                            <div className="flex flex-col md:flex-row md:items-center gap-4 flex-shrink-0">
-                              <div className="text-right">
-                                <div className="font-semibold text-gray-900 text-base">
-                                  ${crypto.current_price.toLocaleString(undefined, {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: crypto.current_price < 1 ? 4 : 2
-                                  })}
-                                </div>
-                                <div className={`text-sm font-medium ${crypto.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                  {crypto.price_change_percentage_24h >= 0 ? '+' : ''}
-                                  {crypto.price_change_percentage_24h.toFixed(2)}%
-                                </div>
-                              </div>
-                              <div className="text-right text-sm text-gray-500 hidden lg:block">
-                                <p className="font-medium">${(crypto.market_cap / 1e9).toFixed(1)}B</p>
-                                <p className="text-xs">Market Cap</p>
-                              </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {cryptoData.slice(0, 5).map((crypto) => (
+                        <div key={crypto.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                          <div className="flex items-center space-x-3">
+                            <Image
+                              src={crypto.image}
+                              alt={crypto.name}
+                              width={32}
+                              height={32}
+                              className="rounded-full"
+                            />
+                            <div>
+                              <h3 className="font-medium text-gray-900">{crypto.name}</h3>
+                              <p className="text-sm text-gray-500 uppercase">{crypto.symbol}</p>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-12 text-gray-500">
-                        <p>No market data available</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Sidebar - 1 column */}
-                <div className="space-y-6">
-                  {/* Market Dominance */}
-                  <DominanceCard />
-                  
-                  {/* Market Movers - Improved Design */}
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div className="px-4 py-4 border-b border-gray-100">
-                      <h3 className="text-lg font-semibold text-gray-900">24h Market Movers</h3>
-                      <p className="text-sm text-gray-600 mt-1">Top gainers and losers</p>
-                    </div>
-                    <div className="p-4">
-                      {cryptoData.length > 0 && (
-                        <div className="space-y-4">
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                              <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
-                              Top Gainers
-                            </h4>
-                            <div className="space-y-2">
-                              {cryptoData
-                                .filter(crypto => crypto.price_change_percentage_24h > 0)
-                                .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
-                                .slice(0, 3)
-                                .map(crypto => (
-                                  <div key={crypto.id} className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
-                                    <div className="flex items-center space-x-2">
-                                      <Image 
-                                        src={crypto.image} 
-                                        alt={crypto.name}
-                                        width={20}
-                                        height={20}
-                                        className="rounded-full"
-                                      />
-                                      <span className="text-sm font-medium text-gray-900">{crypto.symbol.toUpperCase()}</span>
-                                    </div>
-                                    <span className="text-sm text-green-600 font-semibold">
-                                      +{crypto.price_change_percentage_24h.toFixed(2)}%
-                                    </span>
-                                  </div>
-                                ))}
+                          <div className="text-right">
+                            <div className="font-semibold text-gray-900">
+                              ${crypto.current_price.toLocaleString()}
                             </div>
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                              <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
-                              Top Losers
-                            </h4>
-                            <div className="space-y-2">
-                              {cryptoData
-                                .filter(crypto => crypto.price_change_percentage_24h < 0)
-                                .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h)
-                                .slice(0, 3)
-                                .map(crypto => (
-                                  <div key={crypto.id} className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
-                                    <div className="flex items-center space-x-2">
-                                      <Image 
-                                        src={crypto.image} 
-                                        alt={crypto.name}
-                                        width={20}
-                                        height={20}
-                                        className="rounded-full"
-                                      />
-                                      <span className="text-sm font-medium text-gray-900">{crypto.symbol.toUpperCase()}</span>
-                                    </div>
-                                    <span className="text-sm text-red-600 font-semibold">
-                                      {crypto.price_change_percentage_24h.toFixed(2)}%
-                                    </span>
-                                  </div>
-                                ))}
+                            <div className={`text-sm font-medium ${
+                              crypto.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {crypto.price_change_percentage_24h >= 0 ? '+' : ''}
+                              {crypto.price_change_percentage_24h.toFixed(2)}%
                             </div>
                           </div>
                         </div>
-                      )}
+                      ))}
                     </div>
-                  </div>
+                  )}
                 </div>
+
+                {/* Global Peak Alert */}
+                <GlobalPeakAlertCard />
               </div>
+
+              {/* Market Dominance */}
+              <DominanceCard />
             </div>
           )}
 
           {currentView === 'analysis' && (
-            <div className="space-y-4 md:space-y-6">
+            <div className="space-y-6">
               {/* Crypto Selector */}
-              {cryptoData.length > 0 && (
-                <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm border">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Select Cryptocurrency</h3>
-                    <div className="text-sm text-gray-500">
-                      {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'} Analysis
-                    </div>
-                  </div>
-                  <CryptoSelector
-                    cryptoData={cryptoData}
-                    selectedCrypto={selectedCrypto}
-                    onCryptoChange={handleCryptoChange}
-                  />
-                </div>
-              )}
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Cryptocurrency</h3>
+                <CryptoSelector 
+                  selectedCrypto={selectedCrypto}
+                  onCryptoChange={handleCryptoChange}
+                  cryptoData={cryptoData}
+                />
+              </div>
 
               {analysisMode === 'technical' && (
                 <div className="space-y-4 md:space-y-6">
@@ -685,9 +450,8 @@ export default function Dashboard() {
               )}
             </div>
           )}
-          </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   )
 } 

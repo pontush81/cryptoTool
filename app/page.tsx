@@ -4,19 +4,7 @@ import { TrendingUp, BarChart3, Zap, ArrowRight, Activity, Target } from 'lucide
 export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <TrendingUp className="h-8 w-8 text-blue-600" />
-              <span className="ml-3 text-xl font-bold text-gray-900">Crypto Analysis Tool</span>
-            </div>
-            <div className="flex items-center">
-            </div>
-          </div>
-        </div>
-      </nav>
+
 
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16">
