@@ -1,55 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Activity, TrendingUp, TrendingDown, ShoppingCart, Clock } from 'lucide-react'
-
-// Timeframe options for multi-timeframe analysis
-type Timeframe = '1h' | '4h' | '1d' | '1w'
-
-interface TimeframeOption {
-  value: Timeframe
-  label: string
-  description: string
-}
-
-const TIMEFRAME_OPTIONS: TimeframeOption[] = [
-  { value: '1h', label: '1H', description: 'Hourly - Fast signals, good for day trading' },
-  { value: '4h', label: '4H', description: '4-Hour - Balanced view, less noise' },
-  { value: '1d', label: '1D', description: 'Daily - Strong trends, institutional grade' },
-  { value: '1w', label: '1W', description: 'Weekly - Long-term trends, minimal noise' }
-]
-
-// TimeframeSelector Component
-interface TimeframeSelectorProps {
-  selectedTimeframe: Timeframe
-  onTimeframeChange: (timeframe: Timeframe) => void
-  className?: string
-}
-
-function TimeframeSelector({ selectedTimeframe, onTimeframeChange, className = '' }: TimeframeSelectorProps) {
-  return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <Clock className="h-4 w-4 text-gray-500" />
-      <span className="text-sm font-medium text-gray-700">Timeframe:</span>
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-        {TIMEFRAME_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            onClick={() => onTimeframeChange(option.value)}
-            title={option.description}
-            className={`px-3 py-1 text-xs font-medium rounded transition-all duration-200 ${
-              selectedTimeframe === option.value
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
+import { Activity, TrendingUp, TrendingDown, ShoppingCart } from 'lucide-react'
 
 interface TechnicalAnalysisData {
   symbol: string
@@ -126,7 +78,6 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
   const [currentSymbol, setCurrentSymbol] = useState(symbol)
   const [mounted, setMounted] = useState(false)
   const [showPeakModal, setShowPeakModal] = useState(false)
-  const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>('1d')
 
   // Prevent hydration mismatch
   useEffect(() => {
@@ -136,7 +87,7 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
   const fetchTechnicalAnalysis = async (targetSymbol: string = currentSymbol) => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/technical-analysis?symbol=${targetSymbol}&timeframe=${selectedTimeframe}`)
+      const response = await fetch(`/api/technical-analysis?symbol=${targetSymbol}`)
       const result = await response.json()
       
       setTAData(result.data)
@@ -173,9 +124,8 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
       window.removeEventListener('manualRefresh', handleManualRefresh)
       window.removeEventListener('cryptoChanged', handleCryptoChanged as EventListener)
     }
-  }, [symbol, selectedTimeframe]) // Re-fetch when symbol OR timeframe changes
+  }, [symbol])
 
-  // Add helper functions
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -298,6 +248,88 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
     }
   }
 
+  // Kombinera alla signaler för overall sentiment
+  const getOverallSentiment = (rsi: number, macdCrossover: string, ctoSignal: string, ctoCrossover: string, peakRiskLevel: string) => {
+    const rsiSignal = rsi <= 30 ? 'bullish' : rsi >= 70 ? 'bearish' : 'neutral'
+    const macdSignal = macdCrossover === 'bullish' ? 'bullish' : macdCrossover === 'bearish' ? 'bearish' : 'neutral'
+    const ctoTrendSignal = ctoCrossover === 'bullish' ? 'bullish' : ctoCrossover === 'bearish' ? 'bearish' : ctoSignal === 'bullish' ? 'bullish' : ctoSignal === 'bearish' ? 'bearish' : 'neutral'
+    
+    // Peak detection override - if HIGH RISK, always be cautious
+    const peakWarning = peakRiskLevel === 'danger'
+    const peakCaution = peakRiskLevel === 'warning'
+
+    const signals = [rsiSignal, macdSignal, ctoTrendSignal]
+    const bullishCount = signals.filter(s => s === 'bullish').length
+    const bearishCount = signals.filter(s => s === 'bearish').length
+
+    // Peak detection overrides normal sentiment
+    if (peakWarning) {
+      return {
+        sentiment: 'Cautiously Bearish',
+        emoji: '🚨',
+        color: 'text-red-600',
+        bgColor: 'bg-red-50 border-red-200',
+        message: 'PEAK RISK DETECTED! Consider taking profits or waiting for better entry.',
+        strength: 'High Risk'
+      }
+    }
+    
+    if (peakCaution && bullishCount >= 2) {
+      return {
+        sentiment: 'Cautiously Bullish',
+        emoji: '⚠️',
+        color: 'text-yellow-600',
+        bgColor: 'bg-yellow-50 border-yellow-200',
+        message: 'Mixed signals with peak concerns. Proceed with caution.',
+        strength: 'Moderate Caution'
+      }
+    }
+
+    if (bullishCount >= 2 && bearishCount === 0) {
+      return {
+        sentiment: 'Bullish',
+        emoji: '🚀',
+        color: 'text-green-600',
+        bgColor: 'bg-green-50 border-green-200',
+        message: 'Multiple indicators suggest upward momentum. Consider buying opportunities.',
+        strength: bullishCount === 3 ? 'Strong' : 'Moderate'
+      }
+    }
+    
+    if (bearishCount >= 2 && bullishCount === 0) {
+      return {
+        sentiment: 'Bearish',
+        emoji: '📉',
+        color: 'text-red-600',
+        bgColor: 'bg-red-50 border-red-200',
+        message: 'Multiple indicators suggest downward pressure. Consider holding or selling.',
+        strength: bearishCount === 3 ? 'Strong' : 'Moderate'
+      }
+    }
+    
+    if (bullishCount >= 1 && bearishCount >= 1) {
+      return {
+        sentiment: 'Mixed Signals',
+        emoji: '🤔',
+        color: 'text-gray-600',
+        bgColor: 'bg-gray-50 border-gray-200',
+        message: 'Conflicting indicators detected. Wait for clearer signals before making decisions.',
+        strength: 'Uncertain'
+      }
+    }
+
+    return {
+      sentiment: 'Neutral',
+      emoji: '😐',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50 border-blue-200',
+      message: 'Market showing neutral conditions. Monitor for developing trends.',
+      strength: 'Moderate'
+    }
+  }
+
+
+
   if (!mounted) {
     return (
       <div className={`card ${className}`}>
@@ -346,8 +378,6 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
   
   const safeMACD = {
     current: {
-      macd: taData.macd?.current?.macd || 0,
-      signal: taData.macd?.current?.signal || 0,
       histogram: taData.macd?.current?.histogram || 0
     },
     crossover: taData.macd?.crossover || 'none'
@@ -379,148 +409,219 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
         </span>
       </div>
 
-      {/* Timeframe Selector */}
-      <div className="mb-6 flex items-center justify-between">
-        <TimeframeSelector 
-          selectedTimeframe={selectedTimeframe}
-          onTimeframeChange={setSelectedTimeframe}
-        />
-        <div className="text-xs text-gray-500 bg-blue-50 px-3 py-1 rounded-full">
-          <span className="font-medium">
-            {TIMEFRAME_OPTIONS.find(opt => opt.value === selectedTimeframe)?.description}
-          </span>
-        </div>
-      </div>
-
-      {/* Current Price */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
-        <div className="text-center">
-          <p className="text-sm text-gray-600 mb-1">Current Price</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {formatPrice(taData.current_price)}
-          </p>
-        </div>
-      </div>
-
-      {/* Technical Indicators */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">Technical Analysis</h3>
-          <div className="text-sm text-gray-500">
-            {TIMEFRAME_OPTIONS.find(opt => opt.value === selectedTimeframe)?.description}
+            <div className="space-y-6">
+        {/* Current Price */}
+        <div className="p-4 bg-blue-50 rounded-lg">
+          <div className="text-center">
+            <p className="text-sm text-blue-600">Current Price</p>
+            <p className="text-2xl font-bold text-blue-900">
+              {formatPrice(taData.current_price)}
+            </p>
           </div>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-          {/* RSI Card */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-3">
-              <h5 className="font-medium text-gray-900">RSI</h5>
-              <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                safeRSI.current <= 30 ? 'bg-green-100 text-green-800' :
-                safeRSI.current >= 70 ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
-              }`}>
-                {safeRSI.current <= 30 ? 'Buy Zone' :
-                 safeRSI.current >= 70 ? 'Sell Zone' : 'Neutral'}
-              </span>
-            </div>
+        {/* Trading Dashboard - Unified Overview */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          {(() => {
+            const sentiment = getOverallSentiment(safeRSI.current, safeMACD.crossover, safeCTO.current.signal, safeCTO.crossover, safePeak.risk_level)
             
-            <div className={`text-center py-3 px-3 rounded-lg text-xl font-bold mb-3 ${
-              safeRSI.current <= 30 ? 'bg-green-100 text-green-700' :
-              safeRSI.current >= 70 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-            }`}>
-              {safeRSI.current.toFixed(1)}
-            </div>
+            const config = {
+              bgColor: sentiment.sentiment === 'Bullish' ? 'bg-green-50' : 
+                      sentiment.sentiment === 'Bearish' ? 'bg-red-50' :
+                      sentiment.sentiment.includes('Cautiously') ? 'bg-yellow-50' : 'bg-blue-50',
+              borderColor: sentiment.sentiment === 'Bullish' ? 'border-green-200' : 
+                          sentiment.sentiment === 'Bearish' ? 'border-red-200' :
+                          sentiment.sentiment.includes('Cautiously') ? 'border-yellow-200' : 'border-blue-200',
+              titleColor: sentiment.sentiment === 'Bullish' ? 'text-green-700' : 
+                         sentiment.sentiment === 'Bearish' ? 'text-red-700' :
+                         sentiment.sentiment.includes('Cautiously') ? 'text-yellow-700' : 'text-blue-700'
+            }
             
-            <div className="text-xs text-gray-600 text-center">
-              <div>{safeRSI.current <= 30 ? 'Oversold' : safeRSI.current >= 70 ? 'Overbought' : 'Neutral'}</div>
-            </div>
-          </div>
+            return (
+              <>
+                {/* Mobile-Optimized Header */}
+                <div className={`${config.bgColor} px-4 md:px-6 py-3 md:py-4 border-b ${config.borderColor}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <div className="text-xl md:text-2xl">{sentiment.emoji}</div>
+                      <div>
+                        <h3 className="text-base md:text-lg font-semibold text-gray-900">Trading Dashboard</h3>
+                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${config.titleColor} bg-white bg-opacity-70`}>
+                          {sentiment.strength} Signal
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`text-xl md:text-2xl font-bold ${config.titleColor}`}>
+                        {sentiment.sentiment}
+                      </div>
+                      <div className="text-xs md:text-sm text-gray-500">Overall Signal</div>
+                    </div>
+                  </div>
+                </div>
 
-          {/* MACD Card */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-3">
-              <h5 className="font-medium text-gray-900">MACD</h5>
-              <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                safeMACD.crossover === 'bullish' ? 'bg-green-100 text-green-800' :
-                safeMACD.crossover === 'bearish' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
-              }`}>
-                {safeMACD.crossover === 'bullish' ? 'Bullish' :
-                 safeMACD.crossover === 'bearish' ? 'Bearish' : 'Neutral'}
-              </span>
-            </div>
-            
-            <div className={`text-center py-3 px-3 rounded-lg text-xl font-bold mb-3 ${
-              safeMACD.crossover === 'bullish' ? 'bg-green-100 text-green-700' :
-              safeMACD.crossover === 'bearish' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-            }`}>
-              {safeMACD.current.macd.toFixed(3)}
-            </div>
-            
-            <div className="text-xs text-gray-600 text-center">
-              <div>Signal: {safeMACD.current.signal.toFixed(3)}</div>
-            </div>
-          </div>
+                {/* Enhanced Main Content with Integrated Technical Indicators */}
+                <div className="p-4 md:p-6">
+                  {/* Status Badge */}
+                  <div className={`p-4 rounded-lg border-2 mb-6 ${config.bgColor} ${config.borderColor}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          sentiment.sentiment === 'Bullish' ? 'bg-green-500' :
+                          sentiment.sentiment === 'Bearish' ? 'bg-red-500' :
+                          sentiment.sentiment.includes('Cautiously') ? 'bg-yellow-500' : 'bg-blue-500'
+                        }`}></div>
+                        <div>
+                          <div className={`text-lg md:text-xl font-bold ${config.titleColor}`}>
+                            {sentiment.sentiment === 'Bullish' ? '🚀 BULLISH CONDITIONS' :
+                             sentiment.sentiment === 'Bearish' ? '📉 BEARISH CONDITIONS' :
+                             sentiment.sentiment.includes('Cautiously') ? '⚠️ MIXED SIGNALS' : '😐 NEUTRAL CONDITIONS'}
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            {sentiment.message.split('.')[0]}.
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl md:text-3xl font-bold text-gray-900">
+                          {(() => {
+                            const signals = [
+                              safeRSI.current <= 30 || safeRSI.current >= 70 ? 1 : 0,
+                              safeMACD.crossover !== 'none' ? 1 : 0,
+                              safeCTO.current.signal !== 'neutral' ? 1 : 0,
+                              safePeak.risk_level !== 'safe' ? 1 : 0
+                            ]
+                            return signals.reduce((a, b) => a + b, 0)
+                          })()} /4
+                        </div>
+                        <div className="text-xs text-gray-500">Buy/Sell Signals</div>
+                        <div className="text-xs text-gray-400 mt-1">Indicators showing action</div>
+                      </div>
+                    </div>
+                  </div>
 
-          {/* Trend Direction Card */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-3">
-              <h5 className="font-medium text-gray-900">Trend Direction</h5>
-              <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                safeCTO.current.signal === 'bullish' ? 'bg-green-100 text-green-800' :
-                safeCTO.current.signal === 'bearish' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
-              }`}>
-                {safeCTO.current.signal === 'bullish' ? 'Bullish' :
-                 safeCTO.current.signal === 'bearish' ? 'Bearish' : 'Neutral'}
-              </span>
-            </div>
-            
-            <div className={`text-center py-3 px-3 rounded-lg text-xl font-bold mb-3 ${
-              safeCTO.current.signal === 'bullish' ? 'bg-green-100 text-green-700' :
-              safeCTO.current.signal === 'bearish' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-            }`}>
-              {safeCTO.current.signal === 'bullish' ? 'Strong Uptrend' :
-               safeCTO.current.signal === 'bearish' ? 'Strong Downtrend' : 'Sideways Movement'}
-            </div>
-            
-            <div className="text-xs text-gray-600 text-center">
-              <div>Crossover: {safeCTO.crossover || 'none'}</div>
-            </div>
-          </div>
+                  {/* Technical Indicators Cards Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
 
-          {/* Peak Risk Card */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center justify-between mb-3">
-              <h5 className="font-medium text-gray-900">Peak Risk</h5>
-              <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                safePeak.risk_level === 'danger' ? 'bg-red-100 text-red-800' :
-                safePeak.risk_level === 'warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
-              }`}>
-                {safePeak.risk_level === 'danger' ? 'High Risk' :
-                 safePeak.risk_level === 'warning' ? 'Medium Risk' : 'Low Risk'}
-              </span>
-            </div>
-            
-            <div className={`text-center py-3 px-3 rounded-lg text-xl font-bold mb-3 ${
-              safePeak.risk_level === 'danger' ? 'bg-red-100 text-red-700' :
-              safePeak.risk_level === 'warning' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
-            }`}>
-              {safePeak.confidence}%
-            </div>
-            
-            <div className="text-xs text-gray-600 text-center">
-              <button 
-                onClick={() => setShowPeakModal(true)}
-                className="text-blue-600 hover:text-blue-700 underline"
-              >
-                Learn more
-              </button>
-            </div>
-          </div>
+                    {/* RSI Card */}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <h5 className="font-medium text-gray-900">RSI (Relative Strength)</h5>
+                        <span className={`px-2 py-1 text-xs font-bold rounded-full ${
+                          safeRSI.current <= 30 ? 'bg-green-100 text-green-800' :
+                          safeRSI.current >= 70 ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {safeRSI.current.toFixed(1)}
+                        </span>
+                      </div>
+                      
+                      <div className={`text-center py-2 px-3 rounded-lg text-sm font-medium mb-3 ${
+                        safeRSI.current <= 30 ? 'bg-green-100 text-green-700' :
+                        safeRSI.current >= 70 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {safeRSI.current <= 30 ? '🛒 BUY SIGNAL' :
+                         safeRSI.current >= 70 ? '💰 SELL SIGNAL' : '⏸️ HOLD'}
+                      </div>
+                      
+                      <div className="h-2 bg-gray-200 rounded-full">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            safeRSI.current <= 30 ? 'bg-green-500' :
+                            safeRSI.current >= 70 ? 'bg-red-500' : 'bg-blue-500'
+                          }`}
+                          style={{ width: `${Math.min(100, Math.max(0, safeRSI.current))}%` }}
+                        ></div>
+                      </div>
+                    </div>
 
+                    {/* MACD Card */}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <h5 className="font-medium text-gray-900">MACD (Momentum)</h5>
+                        <span className={`px-2 py-1 text-xs font-bold rounded-full ${
+                          safeMACD.crossover === 'bullish' ? 'bg-green-100 text-green-800' :
+                          safeMACD.crossover === 'bearish' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {getMomentumStrength(safeMACD.current.histogram)}
+                        </span>
+                      </div>
+                      
+                      <div className={`text-center py-2 px-3 rounded-lg text-sm font-medium mb-3 ${
+                        safeMACD.crossover === 'bullish' ? 'bg-green-100 text-green-700' :
+                        safeMACD.crossover === 'bearish' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {safeMACD.crossover === 'bullish' ? '📈 BULLISH TREND' :
+                         safeMACD.crossover === 'bearish' ? '📉 BEARISH TREND' : '➡️ NO CLEAR TREND'}
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className={`text-xs font-medium ${getMomentumDirection(safeMACD.current.histogram).color}`}>
+                          Momentum: {getMomentumDirection(safeMACD.current.histogram).text}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Trend Signal Card */}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <h5 className="font-medium text-gray-900">Price Trend</h5>
+                        <span className={`px-2 py-1 text-xs font-bold rounded-full ${
+                          safeCTO.current.signal === 'bullish' ? 'bg-green-100 text-green-800' :
+                          safeCTO.current.signal === 'bearish' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {safeCTO.current.signal === 'bullish' ? 'Bullish' :
+                           safeCTO.current.signal === 'bearish' ? 'Bearish' : 'Neutral'}
+                        </span>
+                      </div>
+                      
+                      <div className={`text-center py-2 px-3 rounded-lg text-sm font-medium mb-3 ${
+                        safeCTO.current.signal === 'bullish' ? 'bg-green-100 text-green-700' :
+                        safeCTO.current.signal === 'bearish' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {safeCTO.current.signal === 'bullish' ? '🚀 TREND CONTINUATION' :
+                         safeCTO.current.signal === 'bearish' ? '📉 TREND CONTINUATION' : '🔄 TREND NEUTRAL'}
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="text-xs text-gray-600">
+                          Value: {safeCTO.current.value.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Peak Alert Card */}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <h5 className="font-medium text-gray-900">Peak Risk Level</h5>
+                        <span className={`px-2 py-1 text-xs font-bold rounded-full ${
+                          safePeak.risk_level === 'danger' ? 'bg-red-100 text-red-800' :
+                          safePeak.risk_level === 'warning' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                        }`}>
+                          {safePeak.confidence}%
+                        </span>
+                      </div>
+                      
+                      <div className={`text-center py-2 px-3 rounded-lg text-sm font-medium mb-3 ${
+                        safePeak.risk_level === 'danger' ? 'bg-red-100 text-red-700' :
+                        safePeak.risk_level === 'warning' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                      }`}>
+                        {safePeak.risk_level === 'danger' ? '🔴 HIGH RISK' :
+                         safePeak.risk_level === 'warning' ? '🟡 CAUTION' : '🟢 SAFE CONDITIONS'}
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="text-xs text-gray-600">
+                          {safePeak.risk_level === 'danger' ? 'Consider taking profits' :
+                           safePeak.risk_level === 'warning' ? 'Monitor closely' : 'Good conditions to invest'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )
+          })()}
         </div>
-      </div>
 
       {/* Educational Peak Alert Modal */}
       {showPeakModal && (
@@ -528,7 +629,7 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900">📊 Peak Detector: Is a Crypto Top Forming?</h3>
+                <h3 className="text-xl font-bold text-gray-900">📊 Peak Alert: 10+ Pro Indicators</h3>
                 <button 
                   onClick={() => setShowPeakModal(false)}
                   className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
@@ -561,7 +662,7 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
                     institutional traders - the same tools that hedge funds and crypto exchanges rely on.
                   </p>
                   <p className="text-gray-700">
-                    Instead of guessing, you get a <strong>data-driven assessment</strong> of market conditions. It is like having
+                    Instead of guessing, you get a <strong>data-driven assessment</strong> of market conditions. It's like having
                     a team of professional analysts working 24/7 to keep you informed of critical market changes.
                   </p>
 
@@ -642,9 +743,9 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
                     <div className="text-red-700 space-y-1">
                       <p className="font-medium mb-2">⚠️ High Risk - Consider Defensive Strategies:</p>
                       <ul className="text-sm space-y-1 pl-4">
-                        <li>• Consider taking some profits if you are up significantly</li>
+                        <li>• Consider taking some profits if you're up significantly</li>
                         <li>• Reduce position sizes or exposure</li>
-                        <li>• Wait for better entry points if you are planning to buy</li>
+                        <li>• Wait for better entry points if you're planning to buy</li>
                       </ul>
                     </div>
                   )}
@@ -654,7 +755,7 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
                 <div>
                   <h4 className="font-semibold mb-3">📚 Why is this important?</h4>
                   <p className="text-gray-700 mb-3">
-                    Professional traders do not rely on just one indicator - they use <strong>multiple signals</strong> for higher accuracy. 
+                    Professional traders don't rely on just one indicator - they use <strong>multiple signals</strong> for higher accuracy. 
                     Our Peak Alert combines 10+ proven indicators that have successfully predicted major market tops.
                   </p>
                   <div className="bg-gray-50 p-4 rounded-lg text-sm space-y-3">

@@ -74,6 +74,10 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const symbol = searchParams.get('symbol') || 'bitcoin'
+    const timeframe = searchParams.get('timeframe') || '1d' // Default to daily
+    
+    // Log timeframe for debugging
+    console.log(`🕒 Fetching ${symbol} technical analysis for ${timeframe} timeframe`)
     
     // Fetch current prices from crypto API
     const cryptoResponse = await fetch(`${request.url.replace('/api/technical-analysis', '/api/crypto')}`)
@@ -137,35 +141,94 @@ export async function GET(request: Request) {
       console.log('Advanced analysis unavailable, using default peak detection')
     }
     
-    // Generate mock historical data for indicators
+    // Generate mock historical data for indicators with timeframe-specific characteristics
     const historicalPrices: number[] = []
     let price = currentPrice * 0.9 // Start 10% lower
     
-    // Use a deterministic seed based on symbol to prevent hydration mismatch
-    const seedValue = symbol.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    // Use a deterministic seed based on symbol AND timeframe to get different patterns
+    const seedValue = symbol.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + timeframe.charCodeAt(0) * 1000
     const mockRandom = (index: number) => {
       const seed = (seedValue * 9301 + 49297) % 233280 + index * 1000
       return (seed / 233280) % 1
     }
+    
+    // Timeframe-specific volatility and noise levels
+    const getTimeframeVolatility = (tf: string) => {
+      switch (tf) {
+        case '1h': return { volatility: 0.12, noise: 0.04 } // High volatility for hourly
+        case '4h': return { volatility: 0.08, noise: 0.02 } // Medium volatility  
+        case '1w': return { volatility: 0.04, noise: 0.005 } // Low volatility for weekly
+        case '1d':
+        default: return { volatility: 0.06, noise: 0.015 } // Standard for daily
+      }
+    }
+    
+    const { volatility, noise } = getTimeframeVolatility(timeframe)
     
     for (let i = 0; i < 100; i++) {
       const random1 = mockRandom(i * 3)
       const random2 = mockRandom(i * 3 + 1)
       const random3 = mockRandom(i * 3 + 2)
       
-      // Simulate market cycles with more realistic patterns
+      // Simulate market cycles with timeframe-specific patterns
       const cyclePosition = (i / 100) * Math.PI * 4 // 2 full cycles
       const trendComponent = Math.sin(cyclePosition) * 0.3 + 0.2 // Base upward trend with cycles
-      const volatility = (random1 - 0.5) * 0.08 // ±4% volatility
-      const noiseComponent = (random2 - 0.5) * 0.02 // ±1% noise
+      const volatilityComponent = (random1 - 0.5) * volatility // Timeframe-specific volatility
+      const noiseComponent = (random2 - 0.5) * noise // Timeframe-specific noise
       
-      price = price * (1 + trendComponent/50 + volatility + noiseComponent)
+      price = price * (1 + trendComponent/50 + volatilityComponent + noiseComponent)
       historicalPrices.push(Math.max(price, 0.01)) // Ensure positive prices
     }
     
-    // Calculate technical indicators
-    const rsiData = calculateRSI(historicalPrices, 14)
-    const macdData = calculateMACD(historicalPrices)
+    // Timeframe-specific parameters for indicators
+    const getTimeframeParams = (timeframe: string) => {
+      switch (timeframe) {
+        case '1h':
+          return {
+            rsiPeriod: 14,
+            macdFast: 12,
+            macdSlow: 26,
+            macdSignal: 9,
+            multiplier: 1.2, // More sensitive for shorter timeframes
+            description: 'Hourly analysis - Fast signals'
+          }
+        case '4h':
+          return {
+            rsiPeriod: 14,
+            macdFast: 12, 
+            macdSlow: 26,
+            macdSignal: 9,
+            multiplier: 1.0, // Balanced
+            description: '4-Hour analysis - Balanced view'
+          }
+        case '1w':
+          return {
+            rsiPeriod: 14,
+            macdFast: 12,
+            macdSlow: 26,
+            macdSignal: 9,
+            multiplier: 0.6, // Less sensitive for weekly analysis
+            description: 'Weekly analysis - Long-term trends'
+          }
+        case '1d':
+        default:
+          return {
+            rsiPeriod: 14,
+            macdFast: 12,
+            macdSlow: 26, 
+            macdSignal: 9,
+            multiplier: 0.8, // Less sensitive for longer timeframes
+            description: 'Daily analysis - Strong trends'
+          }
+      }
+    }
+    
+    const timeframeParams = getTimeframeParams(timeframe)
+    console.log(`📊 Using ${timeframeParams.description}`)
+    
+    // Calculate technical indicators with timeframe-specific parameters
+    const rsiData = calculateRSI(historicalPrices, timeframeParams.rsiPeriod)
+    const macdData = calculateMACD(historicalPrices, timeframeParams.macdFast, timeframeParams.macdSlow, timeframeParams.macdSignal)
     const ctoData = calculateCTO(historicalPrices)
     
     // Get latest values
@@ -177,12 +240,16 @@ export async function GET(request: Request) {
       throw new Error('Unable to calculate technical indicators')
     }
     
-    // Determine RSI signal
-    let rsiSignal: 'oversold' | 'overbought' | 'neutral' = 'neutral'
-    if (latestRSI <= 30) rsiSignal = 'oversold'
-    else if (latestRSI >= 70) rsiSignal = 'overbought'
+    // Apply timeframe-specific signal thresholds using multiplier
+    const oversoldThreshold = 30 / timeframeParams.multiplier  // More sensitive for shorter timeframes
+    const overboughtThreshold = 70 * timeframeParams.multiplier // Less sensitive for shorter timeframes
     
-    // Determine MACD crossover
+    // Determine RSI signal with timeframe-adjusted thresholds
+    let rsiSignal: 'oversold' | 'overbought' | 'neutral' = 'neutral'
+    if (latestRSI <= oversoldThreshold) rsiSignal = 'oversold'
+    else if (latestRSI >= overboughtThreshold) rsiSignal = 'overbought'
+    
+    // Determine MACD crossover with timeframe-adjusted sensitivity
     const previousMACD = macdData[macdData.length - 2]
     let macdCrossover: 'bullish' | 'bearish' | 'none' = 'none'
     
@@ -190,23 +257,33 @@ export async function GET(request: Request) {
       const currentCross = latestMACD.macd > latestMACD.signal
       const previousCross = previousMACD.macd > previousMACD.signal
       
-      if (currentCross && !previousCross) macdCrossover = 'bullish'
-      else if (!currentCross && previousCross) macdCrossover = 'bearish'
+      // Apply timeframe multiplier to crossover sensitivity
+      const crossoverStrength = Math.abs(latestMACD.macd - latestMACD.signal) * timeframeParams.multiplier
+      const minimumCrossoverThreshold = 0.1 // Base threshold for considering a significant crossover
+      
+      if (currentCross && !previousCross && crossoverStrength > minimumCrossoverThreshold) {
+        macdCrossover = 'bullish'
+      } else if (!currentCross && previousCross && crossoverStrength > minimumCrossoverThreshold) {
+        macdCrossover = 'bearish'
+      }
     }
     
-    // Generate mock trading signals with deterministic values
+    // Generate mock trading signals with timeframe-adjusted confidence
+    const baseConfidence = 70
+    const timeframeConfidenceBonus = (2 - timeframeParams.multiplier) * 10 // Longer timeframes = higher confidence
+    
     const mockSignals: TradingSignal[] = [
       {
         type: rsiSignal === 'oversold' ? 'buy' : rsiSignal === 'overbought' ? 'sell' : 'hold',
         price: currentPrice * (0.95 + mockRandom(200) * 0.1),
         timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-        confidence: 70 + mockRandom(201) * 25
+        confidence: baseConfidence + timeframeConfidenceBonus + mockRandom(201) * 15
       },
       {
         type: macdCrossover === 'bullish' ? 'buy' : macdCrossover === 'bearish' ? 'sell' : 'hold',
         price: currentPrice * (0.98 + mockRandom(202) * 0.04),
         timestamp: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-        confidence: 65 + mockRandom(203) * 30
+        confidence: baseConfidence + timeframeConfidenceBonus + mockRandom(203) * 15
       }
     ]
     
@@ -250,7 +327,11 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       success: true,
-      data: technicalData,
+      data: {
+        ...technicalData,
+        timeframe: timeframe,
+        timeframe_description: timeframeParams.description
+      },
       timestamp: new Date().toISOString()
     })
     

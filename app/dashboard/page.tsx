@@ -206,18 +206,6 @@ export default function Dashboard() {
           {/* Analysis Sub-navigation */}
           {sidebarOpen && currentView === 'analysis' && (
             <div className="mt-4 pt-4 border-t border-gray-200">
-              {/* Crypto Selector - Only show in Analysis mode */}
-              {cryptoData.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Select Cryptocurrency</h4>
-                  <CryptoSelector
-                    cryptoData={cryptoData}
-                    selectedCrypto={selectedCrypto}
-                    onCryptoChange={handleCryptoChange}
-                  />
-                </div>
-              )}
-              
               <div className="space-y-1">
                 <button
                   onClick={() => setAnalysisMode('technical')}
@@ -225,8 +213,7 @@ export default function Dashboard() {
                     analysisMode === 'technical'
                       ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-500'
                       : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
+                  }`}>
                   <Activity className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
                   <div className="text-left">
                     <p className="font-medium">Technical Analysis</p>
@@ -286,7 +273,7 @@ export default function Dashboard() {
               </h1>
               <p className="text-xs md:text-sm text-gray-600 mt-1 hidden sm:block">
                 {currentView === 'overview' && 'Real-time crypto market dashboard with key metrics and trends'}
-                {currentView === 'analysis' && analysisMode === 'technical' && 'RSI and MACD technical indicators with trading signals'}
+                {currentView === 'analysis' && analysisMode === 'technical' && 'Multi-timeframe technical analysis with professional trading signals'}
                 {currentView === 'analysis' && analysisMode === 'advanced' && 'Professional analysis with Phase 3 indicators and market context'}
               </p>
             </div>
@@ -523,6 +510,23 @@ export default function Dashboard() {
 
           {currentView === 'analysis' && (
             <div className="space-y-4 md:space-y-6">
+              {/* Crypto Selector */}
+              {cryptoData.length > 0 && (
+                <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm border">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Select Cryptocurrency</h3>
+                    <div className="text-sm text-gray-500">
+                      {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'} Analysis
+                    </div>
+                  </div>
+                  <CryptoSelector
+                    cryptoData={cryptoData}
+                    selectedCrypto={selectedCrypto}
+                    onCryptoChange={handleCryptoChange}
+                  />
+                </div>
+              )}
+
               {analysisMode === 'technical' && (
                 <div className="space-y-4 md:space-y-6">
                   {/* Main Technical Analysis - Centralized RSI + MACD */}

@@ -256,7 +256,7 @@ export default function GlobalPeakAlertCard({ cryptoData = [], className = '' }:
           <div className="flex items-center gap-2 md:gap-3">
             <div className="text-xl md:text-2xl">{config.icon}</div>
             <div>
-              <h3 className="text-base md:text-lg font-semibold text-gray-900">Peak Alert: 10+ Pro Indicators</h3>
+              <h3 className="text-base md:text-lg font-semibold text-gray-900">Peak Detector: Is a Crypto Top Forming?</h3>
               <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${config.badgeColor}`}>
                 {config.badge}
               </span>
@@ -335,7 +335,7 @@ export default function GlobalPeakAlertCard({ cryptoData = [], className = '' }:
             
             <p>
               Instead of guessing, you get a <strong>data-driven assessment</strong> of market conditions. 
-              It's like having a team of professional analysts working 24/7 to keep you informed of 
+              It is like having a team of professional analysts working 24/7 to keep you informed of 
               critical market changes.
             </p>
 
