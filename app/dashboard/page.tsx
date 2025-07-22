@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { TrendingUp, BarChart3, Activity, RefreshCw, X, Menu, DollarSign, TrendingDown } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import Image from 'next/image'
+import { TrendingUp, TrendingDown, BarChart2, Globe, Activity, Zap, X, Menu, RefreshCw, DollarSign } from 'lucide-react'
 import TechnicalAnalysisCard from '../../components/TechnicalAnalysisCard'
 import AdvancedAnalysisCard from '../../components/AdvancedAnalysisCard'
 import DominanceCard from '../../components/DominanceCard'
@@ -124,7 +125,7 @@ export default function Dashboard() {
   }
 
   const navigationItems = [
-    { id: 'overview' as ViewMode, label: 'Market Overview', icon: BarChart3, active: currentView === 'overview' },
+    { id: 'overview' as ViewMode, label: 'Market Overview', icon: BarChart2, active: currentView === 'overview' },
     { id: 'analysis' as ViewMode, label: 'Analysis', icon: Activity, active: currentView === 'analysis' }
   ]
 
@@ -181,11 +182,6 @@ export default function Dashboard() {
                     <span className="ml-3 font-medium">{item.label}</span>
                   )}
                 </div>
-                {sidebarOpen && item.badge && (
-                  <span className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full">
-                    {item.badge}
-                  </span>
-                )}
               </button>
             ))}
           </div>
@@ -215,7 +211,7 @@ export default function Dashboard() {
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  <BarChart3 className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+                  <BarChart2 className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
                   <div className="text-left">
                     <p className="font-medium">Advanced Analysis</p>
                     <p className="text-xs text-gray-500 mt-0.5">Professional signals</p>
@@ -409,14 +405,12 @@ export default function Dashboard() {
                           <div key={crypto.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
                             <div className="flex items-center space-x-3">
                               <span className="text-sm text-gray-500 font-medium w-8">#{index + 1}</span>
-                              <img 
+                              <Image 
                                 src={crypto.image} 
                                 alt={crypto.name}
-                                className="w-8 h-8 rounded-full"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none'
-                                  e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                                }}
+                                width={32}
+                                height={32}
+                                className="rounded-full"
                               />
                               <div className="hidden p-2 bg-orange-100 rounded-full w-8 h-8 flex items-center justify-center">
                                 <Activity className="h-4 w-4 text-orange-600" />

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { calculateRSI, calculateMACD, calculateCTO, type RSIResult, type MACDResult, type CTOResult } from '../../../lib/indicators'
+import type { CryptoData } from '../crypto/route'
 
 interface TradingSignal {
   type: 'buy' | 'sell' | 'hold'
@@ -82,7 +83,7 @@ export async function GET(request: Request) {
     }
     
     const cryptoData = await cryptoResponse.json()
-    const coin = cryptoData.data.find((c: any) => 
+    const coin = cryptoData.data.find((c: CryptoData) => 
       c.id === symbol || c.symbol.toLowerCase() === symbol.toLowerCase()
     )
     
@@ -94,7 +95,7 @@ export async function GET(request: Request) {
     
     // Try to fetch advanced analysis data for peak detection
     let peakDetection = {
-      risk_level: 'safe' as const,
+      risk_level: 'safe' as 'safe' | 'warning' | 'danger',
       message: 'Market conditions appear stable',
       confidence: 70,
       is_peak_warning: false
@@ -178,8 +179,8 @@ export async function GET(request: Request) {
     
     // Determine RSI signal
     let rsiSignal: 'oversold' | 'overbought' | 'neutral' = 'neutral'
-    if (latestRSI.value <= 30) rsiSignal = 'oversold'
-    else if (latestRSI.value >= 70) rsiSignal = 'overbought'
+    if (latestRSI <= 30) rsiSignal = 'oversold'
+    else if (latestRSI >= 70) rsiSignal = 'overbought'
     
     // Determine MACD crossover
     const previousMACD = macdData[macdData.length - 2]
@@ -213,9 +214,9 @@ export async function GET(request: Request) {
       symbol: coin.symbol.toUpperCase(),
       current_price: currentPrice,
       rsi: {
-        current: latestRSI.value,
+        current: latestRSI,
         signal: rsiSignal,
-        values: rsiData.slice(-20).map(r => r.value)
+        values: rsiData.slice(-20)
       },
       macd: {
         current: {

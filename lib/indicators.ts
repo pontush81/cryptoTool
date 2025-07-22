@@ -327,7 +327,6 @@ export function calculateMACD(
   
   // Create MACD results with crossover detection
   const results: MACDResult[] = []
-  const baseIndex = slowPeriod - 1
   
   for (let i = signalPeriod - 1; i < macdLine.length; i++) {
     const macdValue = macdLine[i]

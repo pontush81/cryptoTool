@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
 
@@ -20,30 +20,50 @@ export default function CryptoChart({
   height = 400 
 }: CryptoChartProps) {
   const chartRef = useRef<HighchartsReact.RefObject>(null)
+  const [chartData, setChartData] = useState<number[]>([])
+  const [chartTimestamps, setChartTimestamps] = useState<string[]>([])
+  const [mounted, setMounted] = useState(false)
 
-  // Generera mock data om ingen riktig data finns
-  const generateMockData = () => {
-    const basePrice = Math.random() * 50000 + 20000
-    const mockData = []
-    const mockTimestamps = []
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true)
     
-    for (let i = 23; i >= 0; i--) {
-      const timestamp = new Date()
-      timestamp.setHours(timestamp.getHours() - i)
-      mockTimestamps.push(timestamp.toISOString())
+    // Generera mock data om ingen riktig data finns - endast på klienten
+    if (data.length === 0 || timestamps.length === 0) {
+      const basePrice = Math.random() * 50000 + 20000
+      const mockData = []
+      const mockTimestamps = []
       
-      // Simulera prisfluktuationer
-      const variation = (Math.random() - 0.5) * 0.1
-      const price = basePrice * (1 + variation)
-      mockData.push(Number(price.toFixed(2)))
+      for (let i = 23; i >= 0; i--) {
+        const timestamp = new Date()
+        timestamp.setHours(timestamp.getHours() - i)
+        mockTimestamps.push(timestamp.toISOString())
+        
+        // Simulera prisfluktuationer
+        const variation = (Math.random() - 0.5) * 0.1
+        const price = basePrice * (1 + variation)
+        mockData.push(Number(price.toFixed(2)))
+      }
+      
+      setChartData(mockData)
+      setChartTimestamps(mockTimestamps)
+    } else {
+      setChartData(data)
+      setChartTimestamps(timestamps)
     }
-    
-    return { mockData, mockTimestamps }
-  }
+  }, [data, timestamps])
 
-  const { mockData, mockTimestamps } = generateMockData()
-  const chartData = data.length > 0 ? data : mockData
-  const chartTimestamps = timestamps.length > 0 ? timestamps : mockTimestamps
+  // Don't render during SSR to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="w-full bg-white rounded-lg border border-gray-200 p-4">
+        <div className="animate-pulse">
+          <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="h-80 bg-gray-100 rounded"></div>
+        </div>
+      </div>
+    )
+  }
 
   // Konvertera data till Highcharts format
   const seriesData = chartTimestamps.map((timestamp, index) => [

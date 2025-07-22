@@ -139,10 +139,7 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
           return
         }
 
-        console.log('📐 Chart container dimensions:', `${chartContainerRef.current.offsetWidth}px width`)
-
-        // Clear any existing content
-        chartContainerRef.current.innerHTML = ''
+        console.log(`📐 Chart container dimensions: ${chartContainerRef.current.offsetWidth}px width`)
 
         // Create chart with proper configuration for v5.x
         const chart = createChart(chartContainerRef.current, {
@@ -161,7 +158,7 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
             borderColor: '#cccccc',
             timeVisible: true,
             secondsVisible: false,
-            tickMarkFormatter: (time) => {
+            tickMarkFormatter: (time: number) => {
               const date = new Date(time * 1000)
               const month = date.toLocaleDateString('en-US', { month: 'short' })
               const year = date.getFullYear()
@@ -169,44 +166,37 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
             },
           },
           rightPriceScale: {
+            visible: true,
             borderColor: '#cccccc',
-            scaleMargins: {
-              top: 0.1,
-              bottom: 0.2,
-            },
-            mode: 0, // Normal price scale mode
+            mode: 0, // normal price scale mode
           },
           leftPriceScale: {
             visible: true,
             borderColor: '#cccccc',
-            scaleMargins: {
-              top: 0.1,
-              bottom: 0.2,
-            },
-            mode: 0, // Normal price scale mode
+            mode: 0, // normal price scale mode
+          },
+          crosshair: {
+            mode: 0, // normal crosshair
           },
         })
 
-        console.log('✅ TradingView chart created successfully')
-
-        // Add Bitcoin price series (using v5.x API with addSeries)
+        // Create two series: one for Bitcoin, one for M2 Supply
         const bitcoinSeries = chart.addSeries(AreaSeries, {
-          topColor: 'rgba(255, 193, 7, 0.4)',
-          bottomColor: 'rgba(255, 193, 7, 0.0)',
-          lineColor: '#ffc107',
+          topColor: 'rgba(255, 165, 0, 0.4)',
+          bottomColor: 'rgba(255, 165, 0, 0.0)',
+          lineColor: '#FFA500',
           lineWidth: 2,
           priceScaleId: 'right',
           title: 'Bitcoin Price (USD)',
         })
 
-        // Add M2 supply series (using v5.x API with addSeries)
         const m2Series = chart.addSeries(AreaSeries, {
-          topColor: 'rgba(233, 30, 99, 0.4)',
-          bottomColor: 'rgba(233, 30, 99, 0.0)', 
-          lineColor: '#e91e63',
+          topColor: 'rgba(199, 21, 133, 0.4)',
+          bottomColor: 'rgba(199, 21, 133, 0.0)',
+          lineColor: '#C71585',
           lineWidth: 2,
           priceScaleId: 'left',
-          title: 'M2 Global Liquidity (T USD)',
+          title: 'M2 Global Liquidity (Trillions USD)',
         })
 
         // Prepare data for chart with 90-day forward lag for Bitcoin
@@ -233,35 +223,42 @@ export default function M2LiquidityCard({ cryptoData = [], className = '' }: M2L
 
         console.log('📊 Chart data prepared:', `${chartData.length} data points (weekly sampling)`)
 
-        // Set data for both series
-        bitcoinSeries.setData(
-          chartData.map(point => ({
-            time: point.time,
-            value: point.btcValue,
-          }))
-        )
+        // Process data with weekly intervals for smoother visualization
+        const weeklyData = chartData.filter((_, index) => index % 7 === 0) // Show every 7th day
+        const sortedData = weeklyData.sort((a, b) => a.time - b.time)
 
-        m2Series.setData(
-          chartData.map(point => ({
-            time: point.time,
-            value: point.m2Value,
-          }))
-        )
-
-        // Auto-fit content
-        chart.timeScale().fitContent()
-
-        console.log('✅ TradingView chart initialized with dual-axis display')
-
-        // Store chart reference for cleanup
-        chartRef.current = chart
+        // Set data for both series using timestamp conversion
+        try {
+          bitcoinSeries.setData(
+            sortedData.map(point => ({
+              time: (point.time / 1000) as never, // Force cast to work around strict typing
+              value: point.btcValue,
+            }))
+          )
+          
+          m2Series.setData(
+            sortedData.map(point => ({
+              time: (point.time / 1000) as never, // Force cast to work around strict typing
+              value: point.m2Value,
+            }))
+          )
+          
+          // Auto-fit content
+          chart.timeScale().fitContent()
+          
+          chartRef.current = chart
+          console.log('✅ Chart successfully initialized with data')
+        } catch (error) {
+          console.error('❌ Failed to set chart data:', error)
+          setUseSimpleChart(true)
+        }
 
       } catch (error) {
         console.error('❌ Chart initialization failed:', error)
         console.log('Error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
+          name: (error as Error).name,
+          message: (error as Error).message,
+          stack: (error as Error).stack,
           [Symbol.for('next.console.error.digest')]: 'NEXT_CONSOLE_ERROR'
         })
         console.log('📉 Falling back to simple chart due to error')

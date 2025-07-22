@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { ShoppingCart, TrendingUp, TrendingDown, Activity, AlertTriangle } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Activity, TrendingUp, TrendingDown, ShoppingCart } from 'lucide-react'
 
 interface TechnicalAnalysisData {
   symbol: string
@@ -33,8 +33,18 @@ interface TechnicalAnalysisData {
     is_peak_warning: boolean
   }
   trading_signals: {
-    latest: any
-    recent: any[]
+    latest: {
+      type: 'buy' | 'sell' | 'hold'
+      price: number
+      timestamp: string
+      confidence: number
+    } | null
+    recent: Array<{
+      type: 'buy' | 'sell' | 'hold'
+      price: number
+      timestamp: string
+      confidence: number
+    }>
     stats: {
       total: number
       buy: number
@@ -44,6 +54,17 @@ interface TechnicalAnalysisData {
     }
   }
   timestamp: string
+}
+
+interface CryptoData {
+  id: string
+  name: string
+  symbol: string
+  current_price: number
+  price_change_24h: number
+  price_change_percentage_24h: number
+  market_cap: number
+  total_volume: number
 }
 
 interface TechnicalAnalysisCardProps {
@@ -643,67 +664,62 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
                     institutional traders - the same tools that hedge funds and crypto exchanges rely on.
                   </p>
                   <p className="text-gray-700">
-                    Instead of guessing, you get a <strong>data-driven assessment</strong> of market conditions. It's like having 
-                    a team of professional analysts working 24/7 to warn you before major market crashes.
+                    Instead of guessing, you get a <strong>data-driven assessment</strong> of market conditions. It&apos;s like having
+                    a team of professional analysts working 24/7 to keep you informed of critical market changes.
                   </p>
-                </div>
 
-                {/* How it Works */}
-                <div>
-                  <h4 className="font-semibold mb-3">⚡ How does it work?</h4>
-                  <p className="text-gray-700 mb-4">
-                    Our Peak Alert uses <strong>10 professional indicators</strong> that institutional traders rely on:
-                  </p>
-                  
-                  <div className="space-y-4">
-                    {/* Technical Indicators */}
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                      <h5 className="font-medium text-blue-800 mb-3">📊 Technical Analysis (4 indicators)</h5>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-3">
+                      <h5 className="font-semibold text-orange-800">🔍 What we monitor:</h5>
+                      <div className="space-y-2">
                         <div>
-                          <div className="font-medium text-blue-700">Pi Cycle Top</div>
-                          <p className="text-blue-600">Moving average crossover</p>
+                          <div className="font-medium text-orange-700">Technical Oscillators</div>
+                          <p className="text-orange-600">RSI, Stochastic, Williams %R</p>
                         </div>
                         <div>
-                          <div className="font-medium text-blue-700">Puell Multiple</div>
-                          <p className="text-blue-600">Mining profitability</p>
+                          <div className="font-medium text-orange-700">Moving Averages</div>
+                          <p className="text-orange-600">50, 100, 200-day trends</p>
                         </div>
                         <div>
-                          <div className="font-medium text-blue-700">MVRV Z-Score</div>
-                          <p className="text-blue-600">Market vs realized value</p>
+                          <div className="font-medium text-orange-700">Volume Indicators</div>
+                          <p className="text-orange-600">OBV, Accumulation/Distribution</p>
                         </div>
                         <div>
-                          <div className="font-medium text-blue-700">NVT Golden Cross</div>
-                          <p className="text-blue-600">Network transaction value</p>
+                          <div className="font-medium text-orange-700">Sentiment Metrics</div>
+                          <p className="text-orange-600">Fear & Greed, Social metrics</p>
+                        </div>
+                        <div>
+                          <div className="font-medium text-orange-700">Market Structure</div>
+                          <p className="text-orange-600">Support/Resistance levels</p>
                         </div>
                       </div>
                     </div>
 
-                    {/* On-Chain Indicators */}
-                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                      <h5 className="font-medium text-purple-800 mb-3">⛓️ On-Chain Analysis (3 indicators)</h5>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="space-y-3">
+                      <h5 className="font-semibold text-orange-800">⚡ Advanced Analysis:</h5>
+                      <div className="space-y-2">
                         <div>
-                          <div className="font-medium text-purple-700">Reserve Risk</div>
-                          <p className="text-purple-600">Long-term holder confidence</p>
+                          <div className="font-medium text-orange-700">Market Cycles</div>
+                          <p className="text-orange-600">Bull/bear phases</p>
                         </div>
                         <div>
-                          <div className="font-medium text-purple-700">Whale Activity</div>
-                          <p className="text-purple-600">Large holder movements</p>
+                          <div className="font-medium text-orange-700">Volatility Models</div>
+                          <p className="text-orange-600">Risk assessment</p>
                         </div>
                         <div>
-                          <div className="font-medium text-purple-700">Network Growth</div>
-                          <p className="text-purple-600">New user adoption</p>
+                          <div className="font-medium text-orange-700">Correlation Analysis</div>
+                          <p className="text-orange-600">Cross-asset relationships</p>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Market Structure */}
-                    <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                      <h5 className="font-medium text-orange-800 mb-3">🏗️ Market Structure (3 indicators)</h5>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
-                          <div className="font-medium text-orange-700">Stock-to-Flow</div>
+                          <div className="font-medium text-orange-700">Macro Indicators</div>
+                          <p className="text-orange-600">Economic conditions</p>
+                        </div>
+                        <div>
+                          <div className="font-medium text-orange-700">On-Chain Metrics</div>
+                          <p className="text-orange-600">Network activity</p>
+                        </div>
+                        <div>
+                          <div className="font-medium text-orange-700">Supply & Demand</div>
                           <p className="text-orange-600">Supply scarcity model</p>
                         </div>
                         <div>
@@ -712,44 +728,26 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
                         </div>
                         <div>
                           <div className="font-medium text-orange-700">Liquidity Ratio</div>
-                          <p className="text-orange-600">Market depth conditions</p>
+                          <p className="text-orange-600">Market depth analysis</p>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* What to Do */}
-                <div>
-                  <h4 className="font-semibold mb-3">🎯 What should you do?</h4>
-                  {safePeak.risk_level === 'danger' ? (
-                    <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                      <div className="font-medium text-red-800 mb-2">🚨 HIGH RISK Action Plan:</div>
-                      <ul className="text-red-700 space-y-1 text-sm">
-                        <li>• Consider taking some profits if you're up significantly</li>
-                        <li>• Avoid making large new investments right now</li>
-                        <li>• Review your portfolio and risk management</li>
-                        <li>• Wait for better entry points if you're planning to buy</li>
-                      </ul>
-                    </div>
-                  ) : safePeak.risk_level === 'warning' ? (
-                    <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                      <div className="font-medium text-yellow-800 mb-2">⚠️ CAUTION Action Plan:</div>
-                      <ul className="text-yellow-700 space-y-1 text-sm">
-                        <li>• Monitor the market closely for changes</li>
-                        <li>• Be more selective with new investments</li>
-                        <li>• Consider smaller position sizes</li>
-                        <li>• Keep some cash ready for opportunities</li>
-                      </ul>
-                    </div>
-                  ) : (
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <div className="font-medium text-green-800 mb-2">🟢 SAFE CONDITIONS Action Plan:</div>
-                      <ul className="text-green-700 space-y-1 text-sm">
-                        <li>• Good environment for gradual investing</li>
-                        <li>• Consider dollar-cost averaging strategies</li>
-                        <li>• Look for quality projects at reasonable prices</li>
-                        <li>• Build positions steadily over time</li>
+                {/* Recommended Actions */}
+                <div className={`p-4 rounded-lg border-l-4 ${
+                  safePeak.risk_level === 'danger' ? 'bg-red-50 border-red-400' :
+                  safePeak.risk_level === 'warning' ? 'bg-yellow-50 border-yellow-400' : 'bg-green-50 border-green-400'
+                }`}>
+                  <h4 className="font-semibold mb-2">💡 Recommended Actions</h4>
+                  {safePeak.risk_level === 'danger' && (
+                    <div className="text-red-700 space-y-1">
+                      <p className="font-medium mb-2">⚠️ High Risk - Consider Defensive Strategies:</p>
+                      <ul className="text-sm space-y-1 pl-4">
+                        <li>• Consider taking some profits if you&apos;re up significantly</li>
+                        <li>• Reduce position sizes or exposure</li>
+                        <li>• Wait for better entry points if you&apos;re planning to buy</li>
                       </ul>
                     </div>
                   )}
@@ -759,7 +757,7 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
                 <div>
                   <h4 className="font-semibold mb-3">📚 Why is this important?</h4>
                   <p className="text-gray-700 mb-3">
-                    Professional traders don't rely on just one indicator - they use <strong>multiple signals</strong> for higher accuracy. 
+                    Professional traders don&apos;t rely on just one indicator - they use <strong>multiple signals</strong> for higher accuracy. 
                     Our Peak Alert combines 10+ proven indicators that have successfully predicted major market tops.
                   </p>
                   <div className="bg-gray-50 p-4 rounded-lg text-sm space-y-3">
