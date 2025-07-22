@@ -9,7 +9,6 @@ import AdvancedAnalysisCard from '../../components/AdvancedAnalysisCard'
 import DominanceCard from '../../components/DominanceCard'
 import CryptoSelector from '../../components/CryptoSelector'
 import GlobalPeakAlertCard from '../../components/GlobalPeakAlertCard'
-import M2LiquidityCard from '../../components/M2LiquidityCard'
 
 interface CryptoData {
   id: string
@@ -71,7 +70,16 @@ export default function Dashboard() {
   const [currentView, setCurrentView] = useState<ViewMode>('overview')
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('technical')
   const [selectedCrypto, setSelectedCrypto] = useState<string>('bitcoin')
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Helper function to close sidebar after navigation
+  const handleNavigation = (action: () => void) => {
+    action()
+    // Close sidebar on mobile after navigation
+    if (window.innerWidth < 768) {
+      setSidebarOpen(false)
+    }
+  }
 
   const fetchCryptoData = async () => {
     try {
@@ -170,6 +178,7 @@ export default function Dashboard() {
             {/* Home Link */}
             <Link
               href="/"
+              onClick={() => handleNavigation(() => {})}
               className="w-full flex items-center justify-between p-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50 group"
             >
               <div className="flex items-center">
@@ -186,7 +195,7 @@ export default function Dashboard() {
             {navigationItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => setCurrentView(item.id)}
+                onClick={() => handleNavigation(() => setCurrentView(item.id))}
                 className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
                   item.active 
                     ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
@@ -208,7 +217,7 @@ export default function Dashboard() {
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="space-y-1">
                 <button
-                  onClick={() => setAnalysisMode('technical')}
+                  onClick={() => handleNavigation(() => setAnalysisMode('technical'))}
                   className={`w-full flex items-start p-2 rounded-lg text-sm transition-colors ${
                     analysisMode === 'technical'
                       ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-500'
@@ -220,7 +229,7 @@ export default function Dashboard() {
                   </div>
                 </button>
                 <button
-                  onClick={() => setAnalysisMode('advanced')}
+                  onClick={() => handleNavigation(() => setAnalysisMode('advanced'))}
                   className={`w-full flex items-start p-2 rounded-lg text-sm transition-colors ${
                     analysisMode === 'advanced'
                       ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-500'
@@ -411,7 +420,6 @@ export default function Dashboard() {
                 <div className="xl:col-span-2 space-y-6">
                   {/* Analysis Cards */}
                   <GlobalPeakAlertCard cryptoData={cryptoData} />
-                  <M2LiquidityCard cryptoData={cryptoData} />
 
                   {/* Crypto Market Table */}
                   <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
