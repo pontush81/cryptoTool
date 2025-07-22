@@ -1,208 +1,201 @@
-# 🚀 Crypto Analysis Tool
+# 🚀 Advanced Crypto Analysis Tool
 
-En modern, professionell kryptovaluta-analys applikation byggd med Next.js 15, TypeScript och Tailwind CSS.
+A professional cryptocurrency analysis platform built with Next.js 15, featuring advanced technical indicators, real-time market data, and automated trading signals.
 
-![Crypto Analysis Tool](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
-![Next.js](https://img.shields.io/badge/Next.js-15.4.2-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38bdf8)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://typescript.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 
-## ✨ Funktioner
+## ✨ Features
 
-- **📊 Realtidsdata**: Live kryptovaluta-priser från CoinGecko API
-- **📈 Interaktiva Diagram**: Professionella prisdiagram med Highcharts
-- **📱 Responsiv Design**: Modern UI som fungerar på alla enheter
-- **⚡ Snabb Prestanda**: Byggd med Next.js 15 och Turbopack
-- **🔒 Typsäkerhet**: Fullständigt skriven i TypeScript
-- **🎨 Modern UI**: Vacker design med Tailwind CSS och Lucide ikoner
-- **♻️ Auto-uppdatering**: Data uppdateras automatiskt var 30:e sekund
-- **📊 Marknadsöversikt**: Detaljerade marknadsstatistiker och trender
+### 📊 Technical Analysis
+- **RSI (Relative Strength Index)** with customizable periods
+- **MACD (8,21,5)** with custom settings optimized for crypto markets
+- **Trading Signals** with automated buy/sell/hold recommendations
+- **Signal Strength Scoring** (0-100%) for decision confidence
 
-## 🛠️ Teknisk Stack
+### 🌍 Market Intelligence
+- **Real-time Price Data** from CoinGecko API
+- **Market Dominance Tracking** (Bitcoin, Ethereum, Altcoins)
+- **Global Market Cap** monitoring
+- **Volume Analysis** across top cryptocurrencies
 
-- **Frontend**: Next.js 15 med App Router
-- **Språk**: TypeScript
-- **Styling**: Tailwind CSS 4
-- **Diagram**: Highcharts + Lightweight Charts
-- **Ikoner**: Lucide React
-- **API**: CoinGecko (gratis tier)
-- **Deployment**: Vercel-ready
+### 🎯 Advanced Features
+- **Live Dashboard** with auto-refresh every 30 seconds
+- **Professional Charts** powered by Highcharts
+- **Mobile Responsive** design for all devices
+- **Error Handling** with graceful fallbacks
+- **Type Safety** with full TypeScript implementation
 
-## 🚀 Snabbstart
+## 🚀 Quick Start
 
-### Förutsättningar
-
+### Prerequisites
 - Node.js 18+ 
-- npm eller yarn
+- npm or yarn
 
 ### Installation
 
-1. **Klona projektet**
-   ```bash
-   git clone <your-repo-url>
-   cd crypto-analysis-tool-source-code
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/pontush81/cryptoTool.git
+cd cryptoTool
 
-2. **Installera dependencies**
-   ```bash
-   npm install
-   ```
+# Install dependencies
+npm install
 
-3. **Konfigurera miljövariabler** (valfritt)
-   ```bash
-   cp .env.example .env.local
-   ```
+# Start development server
+npm run dev
+```
 
-4. **Starta utvecklingsservern**
-   ```bash
-   npm run dev
-   ```
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-5. **Öppna applikationen**
-   - Navigera till [http://localhost:3000](http://localhost:3000)
-
-## 📱 Användning
-
-### Startsida
-- Professionell landningssida med funktionsöversikt
-- Direktnavigering till dashboard
+## 📱 Usage
 
 ### Dashboard
-- **Realtidsdata**: Top 10 kryptovalutor med live-priser
-- **Marknadsstatistik**: Totalt marknadsvärde, genomsnittlig förändring
-- **Interaktiva diagram**: 24-timmars prishistorik
-- **Automatiska uppdateringar**: Data refreshas var 30:e sekund
+- Navigate to `/dashboard` for the main analysis interface
+- View real-time crypto prices and market data
+- Monitor technical indicators (RSI, MACD)
+- Receive automated trading signals
 
-## 🏗️ Projektstruktur
+### Technical Analysis
+- RSI values: 
+  - **≤ 30**: Oversold (potential buy opportunity)
+  - **≥ 70**: Overbought (potential sell opportunity)
+  - **30-70**: Neutral zone
+- MACD crossovers generate buy/sell signals
+- Combined RSI+MACD logic for enhanced accuracy
+
+## 🏗️ Project Structure
 
 ```
-crypto-analysis-tool-source-code/
 ├── app/
-│   ├── api/crypto/          # API routes för crypto-data
-│   ├── dashboard/           # Dashboard sida
-│   ├── globals.css          # Global CSS med Tailwind
-│   ├── layout.tsx           # Root layout
-│   └── page.tsx             # Startsida
+│   ├── api/
+│   │   ├── crypto/          # CoinGecko API integration
+│   │   ├── dominance/       # Market dominance data
+│   │   └── technical-analysis/ # RSI + MACD calculations
+│   ├── dashboard/           # Main dashboard page
+│   └── page.tsx            # Landing page
 ├── components/
-│   └── CryptoChart.tsx      # Återanvändbar chart-komponent
-├── public/                  # Statiska filer
-└── [config files]          # Next.js, TypeScript, Tailwind config
+│   ├── CryptoChart.tsx     # Highcharts integration
+│   ├── DominanceCard.tsx   # Market dominance display
+│   └── TechnicalAnalysisCard.tsx # RSI + MACD indicators
+├── lib/
+│   └── indicators.ts       # Technical analysis algorithms
+└── public/                 # Static assets
 ```
 
-## 🔧 API Endpoints
+## 🔌 API Endpoints
 
-### GET /api/crypto
-Hämtar top 10 kryptovalutor med live-data från CoinGecko.
+### `/api/crypto`
+Returns real-time cryptocurrency data for top 10 coins by market cap.
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "bitcoin",
-      "name": "Bitcoin", 
-      "symbol": "btc",
-      "current_price": 43250.00,
-      "price_change_percentage_24h": 2.98,
-      "market_cap": 847000000000,
-      "total_volume": 23400000000,
-      "image": "https://assets.coingecko.com/coins/images/1/small/bitcoin.png"
-    }
-  ],
-  "timestamp": "2024-01-15T10:30:00.000Z"
-}
-```
+### `/api/dominance`
+Provides Bitcoin and Ethereum market dominance percentages.
 
-## 🎨 Komponenter
+### `/api/technical-analysis?symbol=bitcoin`
+Calculates RSI, MACD, and trading signals for specified cryptocurrency.
+
+## 🧮 Technical Indicators
+
+### RSI (Relative Strength Index)
+- Period: 14 (configurable)
+- Wilders smoothing method
+- Oversold: ≤ 30
+- Overbought: ≥ 70
+
+### MACD (Moving Average Convergence Divergence)
+- Fast EMA: 8 periods
+- Slow EMA: 21 periods  
+- Signal Line: 5 periods
+- Detects bullish/bearish crossovers
+
+### Trading Signals
+- **Buy**: MACD bullish crossover + RSI recovery from oversold
+- **Sell**: MACD bearish crossover
+- **Hold**: All other conditions
+
+## 🎨 Components
 
 ### CryptoChart
-Återanvändbar chart-komponent för prisvisning.
+Interactive price charts with Highcharts integration, supporting zoom, pan, and export functionality.
 
-```tsx
-<CryptoChart
-  symbol="btc"
-  name="Bitcoin"
-  height={300}
-/>
-```
+### TechnicalAnalysisCard
+Real-time RSI and MACD indicators with visual signal displays and trading recommendations.
 
-## ⚡ Prestanda
+### DominanceCard
+Market dominance tracking for Bitcoin, Ethereum, and altcoins with percentage breakdowns.
 
-- **Lighthouse Score**: 95+ på alla kategorier
-- **First Contentful Paint**: <1.5s
-- **Largest Contentful Paint**: <2.5s
-- **Cumulative Layout Shift**: <0.1
-- **Time to Interactive**: <3s
+## ⚡ Performance
 
-## 🔒 Säkerhet
+- **Auto-refresh**: 30-second intervals for live data
+- **Caching**: API responses cached for 60 seconds
+- **Error Handling**: Graceful degradation with mock data fallbacks
+- **Type Safety**: Full TypeScript coverage
+- **Mobile Optimized**: Responsive design for all screen sizes
 
-- **API Rate Limiting**: Automatisk caching i 60 sekunder
-- **Error Handling**: Graceful fallbacks till mock data
-- **Input Validation**: TypeScript och runtime-validering
-- **XSS Protection**: Automatisk genom Next.js
+## 🔒 Security
+
+- **No Authentication Required**: Read-only market analysis
+- **No Personal Data**: Privacy-focused design
+- **API Rate Limiting**: Respects CoinGecko API limits
+- **HTTPS Only**: Secure data transmission
 
 ## 🚀 Deployment
 
-### Vercel (Rekommenderat)
+### Vercel (Recommended)
 ```bash
 npm run build
-vercel --prod
+vercel deploy
 ```
 
 ### Docker
-```dockerfile
-# Dockerfile inkluderad i projektet
+```bash
 docker build -t crypto-analysis-tool .
 docker run -p 3000:3000 crypto-analysis-tool
 ```
 
-### Miljövariabler för Production
-Se `.env.example` för alla tillgängliga konfigurationer.
+## 🗺️ Roadmap
 
-## 📊 Funktionslista
+### Phase 3 - Advanced Indicators (In Progress)
+- [ ] CTO Line indicator implementation
+- [ ] Bull Market Peak detection
+- [ ] M2 Global Liquidity correlation
 
-- ✅ Modern Next.js 15 setup
-- ✅ TypeScript integration
-- ✅ Tailwind CSS 4 styling  
-- ✅ Highcharts integration
-- ✅ CoinGecko API integration
-- ✅ Responsive design
-- ✅ Error handling & fallbacks
-- ✅ Auto-refresh functionality
-- ✅ Professional UI/UX
-- ✅ Performance optimized
+### Phase 4 - Enhanced Features (Planned)
+- [ ] Portfolio tracking
+- [ ] Custom alerts and notifications
+- [ ] Historical backtesting
+- [ ] Advanced charting tools
 
-## 🚧 Roadmap
+### Phase 5 - Enterprise Features (Future)
+- [ ] User accounts and preferences
+- [ ] Custom indicator builder
+- [ ] API integration marketplace
+- [ ] White-label solutions
 
-- 🔲 Clerk autentisering
-- 🔲 Portfolio tracking
-- 🔲 Pris-alarmer
-- 🔲 Teknisk analys-indikatorer
-- 🔲 Export funktionalitet
-- 🔲 Mobil app
+## 🤝 Contributing
 
-## 👥 Bidrag
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-1. Forka projektet
-2. Skapa en feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit dina ändringar (`git commit -m 'Add some AmazingFeature'`)
-4. Push till branchen (`git push origin feature/AmazingFeature`)
-5. Öppna en Pull Request
+## 📄 License
 
-## 📝 Licens
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Detta projekt är licensierat under MIT License - se [LICENSE](LICENSE) filen för detaljer.
+## 🙏 Acknowledgments
 
-## 🙏 Erkännanden
-
-- **CoinGecko** för gratis crypto API
-- **Highcharts** för fantastiska diagram-bibliotek
-- **Vercel** för deployment platform
-- **Tailwind CSS** för utility-first CSS
+- **CoinGecko** for providing reliable cryptocurrency API
+- **Highcharts** for professional charting capabilities
+- **Next.js Team** for the incredible React framework
+- **Tailwind CSS** for utility-first styling
+- **Vercel** for seamless deployment platform
 
 ---
 
-**Skapad med ❤️ för crypto-communityn**
+Built with ❤️ for serious crypto traders and investors.
 
-*Professionell kvalitet • Production Ready • SEO Optimerad*
+**Live Demo**: [https://cryptotool.vercel.app](https://cryptotool.vercel.app)
+**Repository**: [https://github.com/pontush81/cryptoTool](https://github.com/pontush81/cryptoTool)
