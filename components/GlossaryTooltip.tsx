@@ -5,7 +5,7 @@ import { HelpCircle } from 'lucide-react'
 
 interface GlossaryTooltipProps {
   term: string
-  definition: string
+  definition?: string  // Make this optional since we can look it up in glossaryTerms
   children: React.ReactNode
 }
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, CheckCircle, Users, Calendar, User, Zap, TrendingUp, BarChart3, Coins, ArrowRight } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Users, Calendar, User, ArrowRight } from 'lucide-react'
 
 interface Section {
   id: string
