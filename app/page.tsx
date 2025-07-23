@@ -218,10 +218,10 @@ export default function Home() {
 
             <div className="text-center">
               <div className="p-4 rounded-full bg-purple-600 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <Shield className="h-8 w-8 text-white" />
+                <BookOpen className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Risk-Free Learning</h3>
-              <p className="text-gray-300 text-sm">Practice with demo tools. Learn without risking your money.</p>
+              <h3 className="text-xl font-semibold text-white mb-2">Learn Crypto</h3>
+              <p className="text-gray-300 text-sm">Educate yourself about cryptocurrencies and technical analysis with our tools and guides.</p>
             </div>
 
             <div className="text-center">
