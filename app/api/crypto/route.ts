@@ -12,12 +12,60 @@ export interface CryptoData {
   image: string
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url)
+    const search = searchParams.get('search')
+    const symbol = searchParams.get('symbol')
+    const timeframe = searchParams.get('timeframe')
+    
+    // If we have a search query, search for cryptos
+    if (search) {
+      const searchResponse = await fetch(
+        `https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(search)}`,
+        { next: { revalidate: 300 } } // Cache search results for 5 minutes
+      )
+      
+      if (!searchResponse.ok) {
+        throw new Error(`CoinGecko Search API error: ${searchResponse.status}`)
+      }
+      
+      const searchData = await searchResponse.json()
+      
+      // Get detailed info for found coins (limit to 20 results)
+      const coinIds = searchData.coins.slice(0, 20).map((coin: any) => coin.id).join(',')
+      
+      if (coinIds) {
+        const detailsResponse = await fetch(
+          `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinIds}&order=market_cap_desc&sparkline=false&locale=en`,
+          { next: { revalidate: 300 } }
+        )
+        
+        if (detailsResponse.ok) {
+          const detailsData: CryptoData[] = await detailsResponse.json()
+          return NextResponse.json({
+            success: true,
+            data: detailsData,
+            search: true,
+            timestamp: new Date().toISOString()
+          })
+        }
+      }
+      
+      return NextResponse.json({
+        success: true,
+        data: [],
+        search: true,
+        timestamp: new Date().toISOString()
+      })
+    }
+
+    // Original logic for regular data fetching
     // Hämta både individual coins OCH global market cap data
     const [coinsResponse, globalResponse] = await Promise.all([
       fetch(
-        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false&locale=en',
+        // Increase from 10 to 100 for initial load
+        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&locale=en',
         { next: { revalidate: 60 } }
       ),
       fetch(

@@ -259,7 +259,7 @@ export default function Dashboard() {
                 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* Total Market Cap */}
-                  <Tooltip tooltip="Det totala värdet av alla kryptovalutor kombinerat. Beräknas genom att multiplicera varje coins pris med dess cirkulerande tillgång och summera allt.">
+                  <Tooltip tooltip="The total value of all cryptocurrencies combined. Calculated by multiplying each coin's price by its circulating supply and summing everything together.">
                     <div className="p-4 rounded-lg bg-blue-50 border border-blue-100 cursor-help">
                       <div className="flex items-center justify-between">
                         <div>
@@ -278,7 +278,7 @@ export default function Dashboard() {
                   </Tooltip>
 
                   {/* 24h Volume */}
-                  <Tooltip tooltip="Total handelsvolym för alla kryptovalutor under senaste 24 timmarna. Visar hur mycket som handlas aktivt på marknaden - högre volym indikerar mer likviditet och aktivitet.">
+                  <Tooltip tooltip="Total trading volume for all cryptocurrencies in the last 24 hours. Shows how much is actively being traded in the market - higher volume indicates more liquidity and activity.">
                     <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 cursor-help">
                       <div className="flex items-center justify-between">
                         <div>
@@ -297,7 +297,7 @@ export default function Dashboard() {
                   </Tooltip>
 
                   {/* Market Trend */}
-                  <Tooltip tooltip="Procentuell förändring av den totala kryptomarknadens värde under senaste 24 timmarna. Använder samma beräkningsmetod som TradingView och CoinMarketCap - baserat på total market cap förändring, inte genomsnitt av individuella coins.">
+                  <Tooltip tooltip="Percentage change in total crypto market value over the last 24 hours. Uses the same calculation method as TradingView and CoinMarketCap - based on total market cap change, not average of individual coins.">
                     <div className={`p-4 rounded-lg border cursor-help ${
                       globalData && globalData.total_market_cap_change_24h >= 0 
                         ? 'bg-green-50 border-green-100' 

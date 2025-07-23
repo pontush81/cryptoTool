@@ -337,11 +337,41 @@ export default function GlobalPeakAlertCard({ cryptoData = [], className = '' }:
               </p>
             </div>
 
-            {/* Expandable Indicators List */}
+            {/* Top 5 Indicators Preview */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-gray-900">Top Indicators by Progress</h4>
+              {analysis.top_indicators.slice(0, 5).map((indicator, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{indicator.name}</div>
+                    <div className="text-xs text-gray-500">
+                      {indicator.current} / {indicator.threshold}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-16 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${
+                          indicator.isHit ? 'bg-red-500' :
+                          indicator.progress > 75 ? 'bg-orange-400' :
+                          indicator.progress > 50 ? 'bg-yellow-400' : 'bg-green-400'
+                        }`}
+                        style={{ width: `${Math.min(100, indicator.progress)}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-xs font-medium w-8 text-right">
+                      {indicator.progress.toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* All Indicators - Expandable */}
             {showDetails && (
               <div className="space-y-2">
-                <h4 className="font-medium text-gray-900">Top Indicators by Progress</h4>
-                {analysis.top_indicators.slice(0, 5).map((indicator, idx) => (
+                <h4 className="font-medium text-gray-900">Additional Indicators (6-10)</h4>
+                {analysis.top_indicators.slice(5).map((indicator, idx) => (
                   <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex-1">
                       <div className="font-medium text-sm">{indicator.name}</div>
@@ -373,7 +403,7 @@ export default function GlobalPeakAlertCard({ cryptoData = [], className = '' }:
               onClick={() => setShowDetails(!showDetails)}
               className="w-full text-sm text-blue-600 hover:text-blue-800 font-medium py-2"
             >
-              {showDetails ? 'Show less' : 'Show all indicators'}
+              {showDetails ? 'Show less' : 'Show remaining 5 indicators'}
             </button>
           </div>
         </details>
