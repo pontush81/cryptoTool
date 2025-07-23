@@ -259,13 +259,7 @@ export function calculateCTO(prices: number[]): CTOResult[] {
       signal = 'bearish'   // navy = bearish (p3)
     }
     
-    // Debug logging for the latest value
-    if (i === minLength - 1) {
-      console.log(`🔍 CTO Debug - Latest values:`)
-      console.log(`  v1=${v1Val.toFixed(2)}, m1=${m1Val.toFixed(2)}, m2=${m2Val.toFixed(2)}, v2=${v2Val.toFixed(2)}`)
-      console.log(`  cond1=${cond1}, cond2=${cond2}, p2=${p2}, p3=${p3}, p1=${p1}`)
-      console.log(`  Final signal: ${signal}`)
-    }
+
     
     // Calculate a representative value (difference between v1 and v2)
     const value = v1Val - v2Val
@@ -285,17 +279,7 @@ export function calculateCTO(prices: number[]): CTOResult[] {
       value,
       signal,
       crossover,
-      timestamp: new Date(Date.now() - (results.length * 1000 * 60 * 60)).toISOString(),
-      // Debug info for latest value only
-      ...(i === minLength - 1 ? {
-        debug: {
-          v1: v1Val,
-          m1: m1Val,
-          v2: v2Val,
-          m2: m2Val,
-          conditions: { cond1, cond2, p1, p2, p3 }
-        }
-      } : {})
+      timestamp: new Date(Date.now() - (results.length * 1000 * 60 * 60)).toISOString()
     })
   }
   

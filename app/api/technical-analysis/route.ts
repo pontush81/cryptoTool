@@ -171,11 +171,11 @@ export async function GET(request: Request) {
       const random2 = mockRandom(i * 3 + 1)
       const random3 = mockRandom(i * 3 + 2)
       
-      // Simulate bullish market conditions matching TradingView trends
-      const cyclePosition = (i / 100) * Math.PI * 2 // One full cycle with recovery
-      const basicTrend = 0.4 // Strong base upward trend
-      const cyclicalComponent = Math.sin(cyclePosition + Math.PI/4) * 0.15 // Phase-shifted for recovery pattern
-      const trendComponent = basicTrend + cyclicalComponent
+      // Create strong bullish trend that makes v1 > v2 for CTO bullish signal  
+      const progressRatio = i / 100 // 0 to 1 over time
+      const acceleratingTrend = 0.3 + (progressRatio * 0.4) // 0.3% to 0.7% growing trend
+      const recoveryPhase = Math.max(0, Math.sin((progressRatio - 0.2) * Math.PI * 1.5)) * 0.2 // Recovery boost
+      const trendComponent = acceleratingTrend + recoveryPhase
       const volatilityComponent = (random1 - 0.5) * volatility // Timeframe-specific volatility
       const noiseComponent = (random2 - 0.5) * noise // Timeframe-specific noise
       
