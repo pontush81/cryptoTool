@@ -241,53 +241,7 @@ export default function EducationPage() {
             </div>
           </div>
 
-          {/* Why Learn Crypto Stats */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Why Learn About Crypto?</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 rounded-lg bg-blue-50 border border-blue-100">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-blue-700 mb-1">Global Interest</p>
-                    <p className="text-xl font-bold text-blue-900">1.8B+</p>
-                    <p className="text-xs text-blue-600">People worldwide interested in crypto</p>
-                  </div>
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Users className="h-5 w-5 text-blue-600" />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="p-4 rounded-lg bg-green-50 border border-green-100">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-green-700 mb-1">Market Cap</p>
-                    <p className="text-xl font-bold text-green-900">$2.3T</p>
-                    <p className="text-xs text-green-600">Total cryptocurrency market cap</p>
-                  </div>
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <TrendingUp className="h-5 w-5 text-green-600" />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="p-4 rounded-lg bg-purple-50 border border-purple-100">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-purple-700 mb-1">Innovation</p>
-                    <p className="text-xl font-bold text-purple-900">15+</p>
-                    <p className="text-xs text-purple-600">Years of Bitcoin innovation</p>
-                  </div>
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Zap className="h-5 w-5 text-purple-600" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+
 
         </div>
       </div>

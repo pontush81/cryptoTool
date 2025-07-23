@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { TrendingUp, TrendingDown, BarChart2, Activity, X, RefreshCw, DollarSign } from 'lucide-react'
+import { TrendingUp, TrendingDown, BarChart2, Activity, X, RefreshCw, DollarSign, Globe, Zap, Target } from 'lucide-react'
 import TechnicalAnalysisCard from '../../components/TechnicalAnalysisCard'
 import AdvancedAnalysisCard from '../../components/AdvancedAnalysisCard'
 import DominanceCard from '../../components/DominanceCard'
 import CryptoSelector from '../../components/CryptoSelector'
 import GlobalPeakAlertCard from '../../components/GlobalPeakAlertCard'
+import ProfessionalCryptoChart from '../../components/ProfessionalCryptoChart'
 
 interface CryptoData {
   id: string
@@ -33,8 +34,8 @@ interface ApiResponse {
   timestamp: string
 }
 
-type ViewMode = 'overview' | 'analysis'
-type AnalysisMode = 'technical' | 'advanced'
+// New simplified navigation structure
+type DashboardView = 'market' | 'charts' | 'signals' | 'insights'
 
 // Tooltip komponent
 interface TooltipProps {
@@ -66,8 +67,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<string>('')
-  const [currentView, setCurrentView] = useState<ViewMode>('overview')
-  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('technical')
+  const [currentView, setCurrentView] = useState<DashboardView>('market')
   const [selectedCrypto, setSelectedCrypto] = useState<string>('bitcoin')
 
   const fetchCryptoData = async () => {
@@ -122,10 +122,48 @@ export default function Dashboard() {
     }, 100)
   }
 
+  // New flat navigation structure - no nested tabs!
   const navigationItems = [
-    { id: 'overview' as ViewMode, label: 'Market Overview', icon: BarChart2, active: currentView === 'overview' },
-    { id: 'analysis' as ViewMode, label: 'Analysis', icon: Activity, active: currentView === 'analysis' }
+    { 
+      id: 'market' as DashboardView, 
+      label: 'Market Overview', 
+      icon: Globe, 
+      description: 'Global market data and trends',
+      active: currentView === 'market' 
+    },
+    { 
+      id: 'charts' as DashboardView, 
+      label: 'Price Charts', 
+      icon: BarChart2, 
+      description: 'Technical analysis and indicators',
+      active: currentView === 'charts' 
+    },
+    { 
+      id: 'signals' as DashboardView, 
+      label: 'Trading Signals', 
+      icon: Zap, 
+      description: 'Buy/sell signals and momentum',
+      active: currentView === 'signals' 
+    },
+    { 
+      id: 'insights' as DashboardView, 
+      label: 'Advanced Insights', 
+      icon: Target, 
+      description: 'Professional analysis and forecasts',
+      active: currentView === 'insights' 
+    }
   ]
+
+  // Get current page info for header
+  const getCurrentPageInfo = () => {
+    const current = navigationItems.find(item => item.id === currentView)
+    return {
+      title: current?.label || 'Dashboard',
+      description: current?.description || 'Crypto analysis dashboard'
+    }
+  }
+
+  const pageInfo = getCurrentPageInfo()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -137,18 +175,15 @@ export default function Dashboard() {
                <div className="flex items-center justify-between">
                  <div>
                    <h1 className="text-2xl font-bold text-gray-900">
-                     {currentView === 'overview' && 'Market Overview'}
-                     {currentView === 'analysis' && 'Analysis'}
-                     {currentView === 'analysis' && cryptoData.length > 0 && (
+                     {pageInfo.title}
+                     {(currentView === 'charts' || currentView === 'signals' || currentView === 'insights') && cryptoData.length > 0 && (
                        <span className="ml-3 text-lg text-blue-600 hidden sm:inline">
                          - {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'} ({cryptoData.find(c => c.id === selectedCrypto)?.symbol.toUpperCase() || 'BTC'})
                        </span>
                      )}
                    </h1>
                    <p className="text-sm text-gray-600 mt-1">
-                     {currentView === 'overview' && 'Real-time crypto market dashboard with key metrics and trends'}
-                     {currentView === 'analysis' && analysisMode === 'technical' && 'Multi-timeframe technical analysis with professional trading signals'}
-                     {currentView === 'analysis' && analysisMode === 'advanced' && 'Professional analysis with Phase 3 indicators and market context'}
+                     {pageInfo.description}
                    </p>
                  </div>
                  <button 
@@ -163,15 +198,15 @@ export default function Dashboard() {
              </div>
            </div>
 
-           {/* Dashboard Navigation */}
+           {/* New Flat Dashboard Navigation */}
            <div className="bg-white border-b border-gray-200">
              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-               <div className="flex space-x-8">
+               <div className="flex space-x-8 overflow-x-auto">
                  {navigationItems.map((item) => (
                    <button
                      key={item.id}
                      onClick={() => setCurrentView(item.id)}
-                     className={`inline-flex items-center px-1 py-4 text-sm font-medium transition-colors ${
+                     className={`inline-flex items-center px-1 py-4 text-sm font-medium transition-colors whitespace-nowrap ${
                        item.active
                          ? 'text-blue-600 border-b-2 border-blue-600'
                          : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
@@ -181,34 +216,6 @@ export default function Dashboard() {
                      {item.label}
                    </button>
                  ))}
-                 
-                 {/* Analysis sub-navigation */}
-                 {currentView === 'analysis' && (
-                   <div className="flex space-x-4 ml-4 pl-4 border-l border-gray-200">
-                     <button
-                       onClick={() => setAnalysisMode('technical')}
-                       className={`inline-flex items-center px-1 py-4 text-sm font-medium transition-colors ${
-                         analysisMode === 'technical'
-                           ? 'text-blue-600 border-b-2 border-blue-600'
-                           : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
-                       }`}
-                     >
-                       <Activity className="h-4 w-4 mr-2" />
-                       Technical
-                     </button>
-                     <button
-                       onClick={() => setAnalysisMode('advanced')}
-                       className={`inline-flex items-center px-1 py-4 text-sm font-medium transition-colors ${
-                         analysisMode === 'advanced'
-                           ? 'text-purple-600 border-b-2 border-purple-600'
-                           : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
-                       }`}
-                     >
-                       <BarChart2 className="h-4 w-4 mr-2" />
-                       Advanced
-                     </button>
-                   </div>
-                 )}
                </div>
              </div>
            </div>
@@ -239,12 +246,12 @@ export default function Dashboard() {
             </div>
           )}
 
-          {currentView === 'overview' && (
+          {currentView === 'market' && (
             <div className="space-y-6">
               {/* Global Market Stats - Improved Design */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Market Overview</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Global Market Data</h2>
                   <div className="text-sm text-gray-500">
                     {lastUpdated && `Updated ${new Date(lastUpdated).toLocaleTimeString()}`}
                   </div>
@@ -389,7 +396,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          {currentView === 'analysis' && (
+          {currentView === 'charts' && (
             <div className="space-y-6">
               {/* Crypto Selector */}
               <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
@@ -401,53 +408,64 @@ export default function Dashboard() {
                 />
               </div>
 
-              {analysisMode === 'technical' && (
-                <div className="space-y-4 md:space-y-6">
-                  {/* Main Technical Analysis - Centralized RSI + MACD */}
+              {/* Professional Price Charts */}
+              <div className="bg-white rounded-lg shadow-sm">
+                <ProfessionalCryptoChart 
+                  symbol={selectedCrypto}
+                  timeframe="1d"
+                  height={500}
+                />
+              </div>
+            </div>
+          )}
+
+          {currentView === 'signals' && (
+            <div className="space-y-6">
+              {/* Crypto Selector */}
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Cryptocurrency</h3>
+                <CryptoSelector 
+                  selectedCrypto={selectedCrypto}
+                  onCryptoChange={handleCryptoChange}
+                  cryptoData={cryptoData}
+                />
+              </div>
+
+              {/* Trading Signals */}
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Trading Signals</h3>
+                <p className="text-sm text-gray-700">
+                  Get immediate buy/sell signals and trading recommendations for {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'}.
+                </p>
+                <div className="mt-6">
                   <TechnicalAnalysisCard symbol={selectedCrypto} className="w-full" />
-                  
-
                 </div>
-              )}
+              </div>
+            </div>
+          )}
 
-              {analysisMode === 'advanced' && (
-                <div className="space-y-4 md:space-y-6">
-                  {/* Advanced Analysis Card */}
+          {currentView === 'insights' && (
+            <div className="space-y-6">
+              {/* Crypto Selector */}
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Cryptocurrency</h3>
+                <CryptoSelector 
+                  selectedCrypto={selectedCrypto}
+                  onCryptoChange={handleCryptoChange}
+                  cryptoData={cryptoData}
+                />
+              </div>
+
+              {/* Advanced Insights */}
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Advanced Insights</h3>
+                <p className="text-sm text-gray-700">
+                  Deep market analysis, risk assessment, and market phase evaluation for {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'}.
+                </p>
+                <div className="mt-6">
                   <AdvancedAnalysisCard symbol={selectedCrypto} className="w-full" />
-                  
-                  {/* Market Context */}
-                  <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Market Context</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                      <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                        <h4 className="font-medium text-purple-900 mb-2">Volume Analysis</h4>
-                        <p className="text-sm text-purple-700 mb-3">
-                          Current 24h volume indicates {cryptoData.length > 0 && 
-                            cryptoData.find(c => c.id === selectedCrypto)?.total_volume && 
-                            cryptoData.find(c => c.id === selectedCrypto)!.total_volume > 1e9 ? 'high' : 'moderate'
-                          } trading activity.
-                        </p>
-                        <div className="text-xs text-purple-600">
-                          Volume: {cryptoData.length > 0 && cryptoData.find(c => c.id === selectedCrypto) && 
-                            `$${(cryptoData.find(c => c.id === selectedCrypto)!.total_volume / 1e9).toFixed(2)}B`
-                          }
-                        </div>
-                      </div>
-                      <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                        <h4 className="font-medium text-orange-900 mb-2">Market Cap Rank</h4>
-                        <p className="text-sm text-orange-700 mb-3">
-                          {selectedCrypto === 'bitcoin' ? 'Leading cryptocurrency by market dominance' :
-                           selectedCrypto === 'ethereum' ? 'Second-largest crypto by market cap' :
-                           'Alternative cryptocurrency with growth potential'}
-                        </p>
-                        <div className="text-xs text-orange-600">
-                          Rank: #{cryptoData.findIndex(c => c.id === selectedCrypto) + 1 || 'N/A'}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
-              )}
+              </div>
             </div>
           )}
         </div>

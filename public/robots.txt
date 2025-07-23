@@ -1,0 +1,34 @@
+User-agent: *
+Allow: /
+
+# Allow all search engines to crawl educational content
+Allow: /education/
+Allow: /dashboard/
+
+# Allow API endpoints to be discoverable
+Allow: /api/
+
+# Block any potential admin or test directories if they exist
+Disallow: /admin/
+Disallow: /test/
+Disallow: /_next/
+Disallow: /node_modules/
+
+# Sitemap location
+Sitemap: https://crypto-tool-eight.vercel.app/sitemap.xml
+
+# Crawl delay (be respectful)
+Crawl-delay: 1
+
+# Specific rules for major search engines
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1 

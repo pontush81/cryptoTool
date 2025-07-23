@@ -35,15 +35,7 @@ test.describe('Education Section', () => {
     await expect(page.locator('.bg-white.rounded-lg.shadow-sm').filter({ hasText: 'How Blockchain Works' })).not.toBeVisible()
   })
 
-  test('should display why learn crypto stats', async ({ page }) => {
-    await page.goto('/education')
-    
-    // Check stats section
-    await expect(page.getByText('Why Learn About Crypto?')).toBeVisible()
-    await expect(page.getByText('1.8B+')).toBeVisible()
-    await expect(page.getByText('$2.3T')).toBeVisible()
-    await expect(page.getByText('15+')).toBeVisible()
-  })
+
 
   test('should navigate to Bitcoin Basics', async ({ page }) => {
     await page.goto('/education')
