@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { TrendingUp, TrendingDown, BarChart2, Activity, X, RefreshCw, DollarSign, Globe, Zap, Target } from 'lucide-react'
+import { TrendingUp, TrendingDown, BarChart2, Activity, X, RefreshCw, DollarSign, Globe, Zap, Target, Brain } from 'lucide-react'
 import TechnicalAnalysisCard from '../../components/TechnicalAnalysisCard'
 import AdvancedAnalysisCard from '../../components/AdvancedAnalysisCard'
 import DominanceCard from '../../components/DominanceCard'
 import CryptoSelector from '../../components/CryptoSelector'
 import GlobalPeakAlertCard from '../../components/GlobalPeakAlertCard'
 import ProfessionalCryptoChart from '../../components/ProfessionalCryptoChart'
+import ReplicateAICard from '../../components/ReplicateAICard'
 
 interface CryptoData {
   id: string
@@ -35,7 +36,7 @@ interface ApiResponse {
 }
 
 // New simplified navigation structure
-type DashboardView = 'market' | 'charts' | 'signals' | 'insights'
+type DashboardView = 'market' | 'charts' | 'signals' | 'insights' | 'ai'
 
 // Tooltip komponent
 interface TooltipProps {
@@ -167,6 +168,13 @@ export default function Dashboard() {
       icon: Target, 
       description: 'Professional analysis and forecasts',
       active: currentView === 'insights' 
+    },
+    { 
+      id: 'ai' as DashboardView, 
+      label: 'AI Assistant', 
+      icon: Brain, 
+      description: 'AI-powered analysis and insights',
+      active: currentView === 'ai' 
     }
   ]
 
@@ -192,7 +200,7 @@ export default function Dashboard() {
                  <div>
                    <h1 className="text-2xl font-bold text-gray-900">
                      {pageInfo.title}
-                     {(currentView === 'charts' || currentView === 'signals' || currentView === 'insights') && cryptoData.length > 0 && (
+                     {(currentView === 'charts' || currentView === 'signals' || currentView === 'insights' || currentView === 'ai') && cryptoData.length > 0 && (
                        <span className="ml-3 text-lg text-blue-600 hidden sm:inline">
                          - {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'} ({cryptoData.find(c => c.id === selectedCrypto)?.symbol.toUpperCase() || 'BTC'})
                        </span>
@@ -480,6 +488,34 @@ export default function Dashboard() {
                 </p>
                 <div className="mt-6">
                   <AdvancedAnalysisCard symbol={selectedCrypto} className="w-full" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentView === 'ai' && (
+            <div className="space-y-6">
+              {/* AI Assistant */}
+              <ReplicateAICard 
+                cryptoData={cryptoData.find(c => c.id === selectedCrypto) || cryptoData[0]} 
+              />
+              
+              {/* Quick Access to Other Analysis */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Technical Analysis</h3>
+                  <p className="text-sm text-gray-700 mb-4">
+                    Get quick technical signals for {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'}.
+                  </p>
+                  <TechnicalAnalysisCard symbol={selectedCrypto} className="w-full" />
+                </div>
+                
+                <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Market Dominance</h3>
+                  <p className="text-sm text-gray-700 mb-4">
+                    Understand overall market dynamics and trends.
+                  </p>
+                  <DominanceCard />
                 </div>
               </div>
             </div>
