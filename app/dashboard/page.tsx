@@ -104,6 +104,22 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchCryptoData()
+    
+    // Scroll to top when dashboard loads - with slight delay to ensure page is rendered
+    const scrollToTop = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+      // Fallback for older browsers
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+    }
+    
+    // Immediate scroll
+    scrollToTop()
+    
+    // Also scroll after a short delay to handle any async rendering
+    const timeoutId = setTimeout(scrollToTop, 100)
+    
+    return () => clearTimeout(timeoutId)
   }, [])
 
   const handleManualRefresh = () => {
