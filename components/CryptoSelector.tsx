@@ -278,10 +278,10 @@ export default function CryptoSelector({
 }
 
 // Debounce utility function
-function debounce<T extends (...args: any[]) => void>(func: T, delay: number): T {
+function debounce<T extends (...args: Parameters<T>) => void>(func: T, delay: number): T {
   let timeoutId: ReturnType<typeof setTimeout>
-  return ((...args: any[]) => {
+  return ((...args: Parameters<T>) => {
     clearTimeout(timeoutId)
-    timeoutId = setTimeout(() => func.apply(null, args), delay)
+    timeoutId = setTimeout(() => func(...args), delay)
   }) as T
 } 

@@ -12,6 +12,12 @@ export interface CryptoData {
   image: string
 }
 
+interface SearchCoin {
+  id: string
+  name: string
+  symbol: string
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -33,7 +39,7 @@ export async function GET(request: Request) {
       const searchData = await searchResponse.json()
       
       // Get detailed info for found coins (limit to 20 results)
-      const coinIds = searchData.coins.slice(0, 20).map((coin: any) => coin.id).join(',')
+      const coinIds = searchData.coins.slice(0, 20).map((coin: SearchCoin) => coin.id).join(',')
       
       if (coinIds) {
         const detailsResponse = await fetch(

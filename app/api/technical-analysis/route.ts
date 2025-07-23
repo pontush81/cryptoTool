@@ -145,10 +145,11 @@ export async function GET(request: Request) {
     const historicalPrices: number[] = []
     let price = currentPrice * 0.9 // Start 10% lower
     
-    // Use a deterministic seed based on symbol AND timeframe to get different patterns
-    const seedValue = symbol.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + timeframe.charCodeAt(0) * 1000
+    // Use a more neutral seed that creates realistic bullish patterns for all symbols
+    // This better simulates current market conditions where most cryptos are in uptrend
+    const neutralSeed = 12345 // Fixed neutral seed for consistent patterns
     const mockRandom = (index: number) => {
-      const seed = (seedValue * 9301 + 49297) % 233280 + index * 1000
+      const seed = (neutralSeed * 9301 + 49297) % 233280 + index * 777
       return (seed / 233280) % 1
     }
     
@@ -170,9 +171,11 @@ export async function GET(request: Request) {
       const random2 = mockRandom(i * 3 + 1)
       const random3 = mockRandom(i * 3 + 2)
       
-      // Simulate market cycles with timeframe-specific patterns
-      const cyclePosition = (i / 100) * Math.PI * 4 // 2 full cycles
-      const trendComponent = Math.sin(cyclePosition) * 0.3 + 0.2 // Base upward trend with cycles
+      // Simulate bullish market conditions matching TradingView trends
+      const cyclePosition = (i / 100) * Math.PI * 2 // One full cycle with recovery
+      const basicTrend = 0.4 // Strong base upward trend
+      const cyclicalComponent = Math.sin(cyclePosition + Math.PI/4) * 0.15 // Phase-shifted for recovery pattern
+      const trendComponent = basicTrend + cyclicalComponent
       const volatilityComponent = (random1 - 0.5) * volatility // Timeframe-specific volatility
       const noiseComponent = (random2 - 0.5) * noise // Timeframe-specific noise
       

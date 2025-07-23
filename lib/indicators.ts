@@ -209,30 +209,24 @@ function calculateSMMA(values: number[], period: number): number[] {
 }
 
 /**
- * Calculates CTO Line (Custom Trend Oscillator) - Your original Pine Script logic
- * @param prices Array of price data
+ * Calculates CTO Line (Custom Trend Oscillator) - Your exact Pine Script logic
+ * Pine Script: indicator(title='CTO Line', shorttitle='CTO', overlay=true, timeframe='')
+ * @param prices Array of closing price data
  * @returns CTO results with signals
  */
 export function calculateCTO(prices: number[]): CTOResult[] {
   if (prices.length < 29) return [] // Need at least 29 periods for longest SMMA
   
-  // Calculate HL2 (high + low) / 2 for each price
-  const hl2Values: number[] = []
-  for (let i = 0; i < prices.length; i++) {
-    // For simple prices array, assume high = low = price (crypto API typically gives closes)
-    const price = prices[i]
-    // Generate mock high/low based on price (±1% variation)
-    const variation = price * 0.01 * (Math.sin(i * 0.1) * 0.5 + 0.5)
-    const high = price + variation
-    const low = price - variation
-    hl2Values.push((high + low) / 2)
-  }
+  // Use closing prices directly as HL2 since we don't have OHLC data
+  // In Pine Script: hl2 = (high + low) / 2
+  // For closing prices only: hl2 ≈ close price
+  const hl2Values: number[] = prices.slice() // Use prices directly as HL2
   
-  // Calculate SMMA values with different periods
-  const v1 = calculateSMMA(hl2Values, 15) // smma(hl2, 15)
-  const m1 = calculateSMMA(hl2Values, 19) // smma(hl2, 19)  
-  const m2 = calculateSMMA(hl2Values, 25) // smma(hl2, 25)
-  const v2 = calculateSMMA(hl2Values, 29) // smma(hl2, 29)
+  // Calculate SMMA values with different periods (exact Pine Script periods)
+  const v1 = calculateSMMA(hl2Values, 15) // smma(hl2, 15) - Main line
+  const m1 = calculateSMMA(hl2Values, 19) // smma(hl2, 19) - Fast reference
+  const m2 = calculateSMMA(hl2Values, 25) // smma(hl2, 25) - Slow reference  
+  const v2 = calculateSMMA(hl2Values, 29) // smma(hl2, 29) - Confirmation line
   
   const results: CTOResult[] = []
   const minLength = Math.min(v1.length, m1.length, m2.length, v2.length)
@@ -243,27 +237,34 @@ export function calculateCTO(prices: number[]): CTOResult[] {
     const m2Val = m2[m2.length - minLength + i]
     const v2Val = v2[v2.length - minLength + i]
     
-    // Your exact Pine Script logic:
+    // Exact Pine Script logic translation:
     // p2 = v1 < m1 != v1 < v2 or m2 < v2 != v1 < v2
-    const cond1 = (v1Val < m1Val) !== (v1Val < v2Val)
-    const cond2 = (m2Val < v2Val) !== (v1Val < v2Val)
-    const p2 = cond1 || cond2
+    const cond1 = (v1Val < m1Val) !== (v1Val < v2Val)  // XOR condition 1
+    const cond2 = (m2Val < v2Val) !== (v1Val < v2Val)  // XOR condition 2
+    const p2 = cond1 || cond2  // Neutral/sideways condition
     
     // p3 = not p2 and v1 < v2
-    const p3 = !p2 && (v1Val < v2Val)
+    const p3 = !p2 && (v1Val < v2Val)  // Bearish condition
     
-    // p1 = not p2 and not p3
-    const p1 = !p2 && !p3
+    // p1 = not p2 and not p3  
+    const p1 = !p2 && !p3  // Bullish condition
     
-    // Determine signal based on your color logic:
-    // c = p1 ? color.orange : p2 ? color.silver : color.navy
+    // Pine Script color logic: c = p1 ? color.orange : p2 ? color.silver : color.navy
     let signal: 'bullish' | 'bearish' | 'neutral'
     if (p1) {
-      signal = 'bullish' // orange
+      signal = 'bullish'   // orange = bullish
     } else if (p2) {
-      signal = 'neutral' // silver  
+      signal = 'neutral'   // silver = neutral/sideways
     } else {
-      signal = 'bearish' // navy (p3)
+      signal = 'bearish'   // navy = bearish (p3)
+    }
+    
+    // Debug logging for the latest value
+    if (i === minLength - 1) {
+      console.log(`🔍 CTO Debug - Latest values:`)
+      console.log(`  v1=${v1Val.toFixed(2)}, m1=${m1Val.toFixed(2)}, m2=${m2Val.toFixed(2)}, v2=${v2Val.toFixed(2)}`)
+      console.log(`  cond1=${cond1}, cond2=${cond2}, p2=${p2}, p3=${p3}, p1=${p1}`)
+      console.log(`  Final signal: ${signal}`)
     }
     
     // Calculate a representative value (difference between v1 and v2)
@@ -284,7 +285,17 @@ export function calculateCTO(prices: number[]): CTOResult[] {
       value,
       signal,
       crossover,
-      timestamp: new Date(Date.now() - (results.length * 1000 * 60 * 60)).toISOString()
+      timestamp: new Date(Date.now() - (results.length * 1000 * 60 * 60)).toISOString(),
+      // Debug info for latest value only
+      ...(i === minLength - 1 ? {
+        debug: {
+          v1: v1Val,
+          m1: m1Val,
+          v2: v2Val,
+          m2: m2Val,
+          conditions: { cond1, cond2, p1, p2, p3 }
+        }
+      } : {})
     })
   }
   

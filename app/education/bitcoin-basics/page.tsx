@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, CheckCircle, BookOpen, Calendar, User, TrendingUp, ArrowRight } from 'lucide-react'
+import QuizComponent from '../../../components/QuizComponent'
+import GlossaryTooltip from '../../../components/GlossaryTooltip'
 
 interface Section {
   id: string
@@ -13,6 +15,8 @@ interface Section {
 
 export default function BitcoinBasicsPage() {
   const [completedSections, setCompletedSections] = useState<Set<string>>(new Set())
+  const [showQuiz, setShowQuiz] = useState(false)
+  const [quizCompleted, setQuizCompleted] = useState(false)
   
   const toggleSection = (sectionId: string) => {
     const newCompleted = new Set(completedSections)
@@ -24,6 +28,81 @@ export default function BitcoinBasicsPage() {
     setCompletedSections(newCompleted)
   }
 
+  const handleQuizComplete = (score: number, passed: boolean) => {
+    setQuizCompleted(passed)
+    if (passed) {
+      // Save completion to localStorage
+      const completedModules = JSON.parse(localStorage.getItem('completedEducationModules') || '[]')
+      if (!completedModules.includes('bitcoin-basics')) {
+        completedModules.push('bitcoin-basics')
+        localStorage.setItem('completedEducationModules', JSON.stringify(completedModules))
+      }
+    }
+  }
+
+  const quizQuestions = [
+    {
+      id: 'q1',
+      question: 'What makes Bitcoin different from traditional money?',
+      options: [
+        'It is controlled by banks',
+        'It has no central authority and works peer-to-peer',
+        'It can only be used online',
+        'It is backed by gold'
+      ],
+      correctAnswer: 1,
+      explanation: 'Bitcoin operates without a central authority like banks or governments. Transactions happen directly between users (peer-to-peer) on a decentralized network.'
+    },
+    {
+      id: 'q2', 
+      question: 'What is the maximum supply of Bitcoin that will ever exist?',
+      options: [
+        '100 million coins',
+        '50 million coins', 
+        '21 million coins',
+        'Unlimited supply'
+      ],
+      correctAnswer: 2,
+      explanation: 'Bitcoin has a fixed supply cap of 21 million coins, making it deflationary by design. This scarcity is built into the protocol and cannot be changed.'
+    },
+    {
+      id: 'q3',
+      question: 'Who created Bitcoin?',
+      options: [
+        'Elon Musk',
+        'Satoshi Nakamoto',
+        'Vitalik Buterin',
+        'Mark Zuckerberg'
+      ],
+      correctAnswer: 1,
+      explanation: 'Bitcoin was created by the pseudonymous person or group known as Satoshi Nakamoto, who published the Bitcoin whitepaper in 2008 and launched the network in 2009.'
+    },
+    {
+      id: 'q4',
+      question: 'What significant event happened on May 22, 2010?',
+      options: [
+        'Bitcoin reached $1 for the first time',
+        'The first Bitcoin was mined',
+        'Someone bought pizza with Bitcoin',
+        'Bitcoin exchanges were launched'
+      ],
+      correctAnswer: 2,
+      explanation: 'On May 22, 2010, Laszlo Hanyecz bought two pizzas for 10,000 Bitcoin. This is now celebrated as "Bitcoin Pizza Day" as it was one of the first real-world purchases with Bitcoin.'
+    },
+    {
+      id: 'q5',
+      question: 'What does "decentralization" mean in the context of Bitcoin?',
+      options: [
+        'Bitcoin is stored in one central location',
+        'Banks control all Bitcoin transactions',
+        'The network is maintained by thousands of computers worldwide',
+        'Only governments can validate transactions'
+      ],
+      correctAnswer: 2,
+      explanation: 'Decentralization means that Bitcoin\'s network is maintained by thousands of independent computers (nodes) around the world, with no single point of control or failure.'
+    }
+  ]
+
   const sections: Section[] = [
     {
       id: 'what-is-bitcoin',
@@ -33,7 +112,9 @@ export default function BitcoinBasicsPage() {
         <div className="space-y-6">
           <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
             <p className="text-lg leading-relaxed text-gray-700">
-              <strong>Bitcoin</strong> is the world&apos;s first successful digital currency that works without a central authority like a bank or government. 
+              <GlossaryTooltip term="bitcoin">
+                <strong>Bitcoin</strong>
+              </GlossaryTooltip> is the world&apos;s first successful digital currency that works without a central authority like a bank or government. 
               It&apos;s completely digital money that you can send anywhere in the world, instantly, with very low fees.
             </p>
           </div>
@@ -53,7 +134,7 @@ export default function BitcoinBasicsPage() {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h4 className="text-lg font-semibold text-blue-600 mb-3">Bitcoin</h4>
               <ul className="space-y-2 text-gray-600">
-                <li>• No central authority (decentralized)</li>
+                <li>• No central authority (<GlossaryTooltip term="decentralization">decentralized</GlossaryTooltip>)</li>
                 <li>• Fixed supply of 21 million coins</li>
                 <li>• Direct peer-to-peer transfers</li>
                 <li>• Deflationary by design</li>
@@ -95,7 +176,7 @@ export default function BitcoinBasicsPage() {
                 <div>
                   <h4 className="font-semibold text-gray-900">January 3, 2009 - Genesis Block</h4>
                   <p className="text-gray-600">
-                    The first Bitcoin block was mined, officially launching the Bitcoin network. 
+                    The first Bitcoin block was <GlossaryTooltip term="mining">mined</GlossaryTooltip>, officially launching the Bitcoin network. 
                     Satoshi embedded the message: &quot;The Times 03/Jan/2009 Chancellor on brink of second bailout for banks&quot;
                   </p>
                 </div>
@@ -140,8 +221,8 @@ export default function BitcoinBasicsPage() {
       content: (
         <div className="space-y-6">
           <p className="text-lg text-gray-700">
-            Decentralization means that no single entity controls Bitcoin. Instead, it&apos;s maintained by thousands 
-            of computers (called &quot;nodes&quot;) around the world working together.
+            <GlossaryTooltip term="decentralization">Decentralization</GlossaryTooltip> means that no single entity controls Bitcoin. Instead, it&apos;s maintained by thousands 
+            of computers (called &quot;<GlossaryTooltip term="node">nodes</GlossaryTooltip>&quot;) around the world working together.
           </p>
           
           <div className="grid md:grid-cols-3 gap-4">
@@ -211,7 +292,7 @@ export default function BitcoinBasicsPage() {
                 <tr>
                   <td className="px-4 py-4 whitespace-nowrap font-medium text-gray-900">Storage</td>
                   <td className="px-4 py-4 text-gray-600">Wallet, safe, bank</td>
-                  <td className="px-4 py-4 text-gray-600">Digital wallet, hardware device</td>
+                  <td className="px-4 py-4 text-gray-600">Digital <GlossaryTooltip term="wallet">wallet</GlossaryTooltip>, hardware device</td>
                 </tr>
                 <tr className="bg-gray-50">
                   <td className="px-4 py-4 whitespace-nowrap font-medium text-gray-900">Transfer</td>
@@ -336,19 +417,52 @@ export default function BitcoinBasicsPage() {
             </div>
           ))}
 
-          {/* Next Steps */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-sm p-6 text-white">
-            <h3 className="text-xl font-semibold mb-3">Ready for the Next Step?</h3>
-            <p className="mb-4 opacity-90">
-              Now that you understand Bitcoin basics, learn how the underlying blockchain technology actually works.
-            </p>
-            <Link href="/education/how-it-works">
-              <button className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-flex items-center">
-                Learn How Blockchain Works
+          {/* Quiz Section */}
+          {completedSections.size === sections.length && !showQuiz && !quizCompleted && (
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-sm p-6 text-white">
+              <h3 className="text-xl font-semibold mb-3">Ready to Test Your Knowledge?</h3>
+              <p className="mb-4 opacity-90">
+                You&apos;ve completed all sections! Take the quiz to test your understanding and earn your completion certificate.
+              </p>
+              <button
+                onClick={() => setShowQuiz(true)}
+                className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-flex items-center"
+              >
+                Start Quiz
                 <ArrowRight className="w-4 h-4 ml-2" />
               </button>
-            </Link>
-          </div>
+            </div>
+          )}
+
+          {/* Quiz Component */}
+          {showQuiz && (
+            <QuizComponent
+              title="Bitcoin Basics Quiz"
+              questions={quizQuestions}
+              onComplete={handleQuizComplete}
+            />
+          )}
+
+          {/* Next Steps */}
+          {(quizCompleted || completedSections.size === sections.length) && (
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-sm p-6 text-white">
+              <h3 className="text-xl font-semibold mb-3">
+                {quizCompleted ? '🎉 Congratulations!' : 'Ready for the Next Step?'}
+              </h3>
+              <p className="mb-4 opacity-90">
+                {quizCompleted 
+                  ? 'You\'ve successfully completed Bitcoin Basics! You now understand the fundamentals of Bitcoin and cryptocurrency.'
+                  : 'Now that you understand Bitcoin basics, learn how the underlying blockchain technology actually works.'
+                }
+              </p>
+              <Link href="/education/how-it-works">
+                <button className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-flex items-center">
+                  Learn How Blockchain Works
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </button>
+              </Link>
+            </div>
+          )}
 
         </div>
       </div>
