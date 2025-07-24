@@ -322,7 +322,7 @@ export default function DeFiFundamentalsPage() {
                   <h5 className="font-semibold text-pink-800 mb-2">Uniswap V3</h5>
                   <div className="space-y-2 text-xs">
                     <p className="text-gray-700"><strong>Innovation:</strong> Concentrated liquidity - LPs can focus on specific price ranges</p>
-                    <p className="text-gray-700"><strong>Volume:</Strong> $1+ trillion in total trading volume</p>
+                    <p className="text-gray-700"><strong>Volume:</strong> $1+ trillion in total trading volume</p>
                     <p className="text-gray-700"><strong>Tokens:</strong> 4,000+ listed automatically by anyone</p>
                     <p className="text-gray-700"><strong>Chains:</strong> Ethereum, Polygon, Arbitrum, Optimism</p>
                   </div>

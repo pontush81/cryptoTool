@@ -597,13 +597,16 @@ export default function EducationDashboard() {
                 </div>
               </Link>
               
-              <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg opacity-60">
+              <Link
+                href="/education/simulators"
+                className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+              >
                 <PlayCircle className="w-5 h-5 text-purple-600" />
                 <div>
                   <div className="font-medium text-purple-900">Interactive Simulators</div>
-                  <div className="text-sm text-purple-600">Coming soon - hands-on practice</div>
+                  <div className="text-sm text-purple-600">Practice skills in safe environment</div>
                 </div>
-              </div>
+              </Link>
             </div>
           </div>
         </div>

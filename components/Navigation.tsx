@@ -61,6 +61,11 @@ export default function Navigation({ className = '' }: NavigationProps) {
           name: 'Market Categories',
           href: '/education/market-categories',
           description: 'Learn by crypto market sectors'
+        },
+        {
+          name: 'Interactive Simulators',
+          href: '/education/simulators',
+          description: 'Practice skills in safe environment'
         }
       ]
     }

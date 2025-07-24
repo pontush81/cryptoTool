@@ -202,7 +202,7 @@ export default function RealWorldAssetsPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-blue-800 mb-1">After Tokenization:</p>
-                      <p className="text-blue-600">Selling tokens: Minutes, <1% fees, click of a button</p>
+                      <p className="text-blue-600">Selling tokens: Minutes, &lt;1% fees, click of a button</p>
                     </div>
                   </div>
                 </div>
