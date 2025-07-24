@@ -570,10 +570,10 @@ export default function EducationDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
+        {/* Learning Tracks */}
         <div className="mt-8">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Learning Tracks</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Link
                 href="/education/modules"
@@ -581,11 +581,38 @@ export default function EducationDashboard() {
               >
                 <BookOpen className="w-5 h-5 text-blue-600" />
                 <div>
-                  <div className="font-medium text-blue-900">Browse All Modules</div>
-                  <div className="text-sm text-blue-600">Explore the complete curriculum</div>
+                  <div className="font-medium text-blue-900">Foundation Track</div>
+                  <div className="text-sm text-blue-600">Core crypto concepts and fundamentals</div>
                 </div>
               </Link>
               
+              <Link
+                href="/education/market-categories"
+                className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+              >
+                <BarChart3 className="w-5 h-5 text-green-600" />
+                <div>
+                  <div className="font-medium text-green-900">Market Categories</div>
+                  <div className="text-sm text-green-600">Learn by crypto market sectors</div>
+                </div>
+              </Link>
+              
+              <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg opacity-60">
+                <PlayCircle className="w-5 h-5 text-purple-600" />
+                <div>
+                  <div className="font-medium text-purple-900">Interactive Simulators</div>
+                  <div className="text-sm text-purple-600">Coming soon - hands-on practice</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mt-8">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
                 <Search className="w-5 h-5 text-purple-600" />
                 <div>
@@ -596,7 +623,7 @@ export default function EducationDashboard() {
               
               <Link
                 href="/dashboard"
-                className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+                className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <BarChart3 className="w-5 h-5 text-green-600" />
                 <div>
