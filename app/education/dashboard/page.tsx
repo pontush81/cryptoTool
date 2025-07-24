@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { BookOpen, TrendingUp, Shield, Zap, Clock, Users, ArrowRight, Search, Trophy, Target, CheckCircle2, Banknote, Coins, Building, Landmark, Network, Bot, Wrench, BarChart3, Award, Calendar, User, Eye, PlayCircle, Star, ChevronRight, Progress } from 'lucide-react'
+import { BookOpen, TrendingUp, Shield, Zap, Clock, Users, ArrowRight, Search, Trophy, Target, CheckCircle2, Banknote, Coins, Building, Landmark, Network, Bot, Wrench, BarChart3, Award, Calendar, User, Eye, PlayCircle, Star, ChevronRight } from 'lucide-react'
 
 interface LearningModule {
   id: string
@@ -45,6 +45,15 @@ export default function EducationDashboard() {
     setTotalTimeSpent(timeSpent)
   }, [])
 
+  // Helper function to get valid mastery level
+  const getMasteryLevel = (moduleId: string): 'none' | 'basic' | 'good' | 'excellent' => {
+    const level = masteryLevels[moduleId] || 'none'
+    if (['none', 'basic', 'good', 'excellent'].includes(level)) {
+      return level as 'none' | 'basic' | 'good' | 'excellent'
+    }
+    return 'none'
+  }
+
   const modules: LearningModule[] = [
     // Foundation Track
     {
@@ -58,7 +67,7 @@ export default function EducationDashboard() {
       topics: ['Fiat Money', 'Central Banking', 'Inflation', 'Financial History'],
       completed: completedModules.includes('money-systems'),
       prerequisites: [],
-      masteryLevel: masteryLevels['money-systems'] || 'none',
+      masteryLevel: getMasteryLevel('money-systems'),
       track: 'foundation'
     },
     {
@@ -72,7 +81,7 @@ export default function EducationDashboard() {
       topics: ['Digital Gold', 'Blockchain', 'Mining', 'Decentralization'],
       completed: completedModules.includes('bitcoin-basics'),
       prerequisites: [],
-      masteryLevel: masteryLevels['bitcoin-basics'] || 'none',
+      masteryLevel: getMasteryLevel('bitcoin-basics'),
       track: 'foundation'
     },
     {
@@ -86,7 +95,7 @@ export default function EducationDashboard() {
       topics: ['Cryptography', 'Consensus', 'Nodes', 'Immutability'],
       completed: completedModules.includes('how-it-works'),
       prerequisites: ['bitcoin-basics'],
-      masteryLevel: masteryLevels['how-it-works'] || 'none',
+      masteryLevel: getMasteryLevel('how-it-works'),
       track: 'foundation'
     },
     {
@@ -100,7 +109,7 @@ export default function EducationDashboard() {
       topics: ['Exchanges', 'Wallets', 'Private Keys', 'First Purchase'],
       completed: completedModules.includes('getting-started'),
       prerequisites: ['money-systems', 'bitcoin-basics'],
-      masteryLevel: masteryLevels['getting-started'] || 'none',
+      masteryLevel: getMasteryLevel('getting-started'),
       track: 'foundation'
     },
     {
@@ -114,7 +123,7 @@ export default function EducationDashboard() {
       topics: ['Portfolio Tracking', 'TradingView', 'Multi-Chain Wallets', 'Security Tools'],
       completed: completedModules.includes('defi-tools'),
       prerequisites: ['getting-started'],
-      masteryLevel: masteryLevels['defi-tools'] || 'none',
+      masteryLevel: getMasteryLevel('defi-tools'),
       track: 'foundation'
     },
     
@@ -130,7 +139,7 @@ export default function EducationDashboard() {
       topics: ['Price Stability', 'USDC', 'USDT', 'Algorithmic Stablecoins'],
       completed: completedModules.includes('stablecoins'),
       prerequisites: ['defi-tools'],
-      masteryLevel: masteryLevels['stablecoins'] || 'none',
+      masteryLevel: getMasteryLevel('stablecoins'),
       track: 'applications'
     },
     {
@@ -144,7 +153,7 @@ export default function EducationDashboard() {
       topics: ['Lending', 'DEXs', 'Yield Farming', 'Smart Contracts'],
       completed: completedModules.includes('defi-fundamentals'),
       prerequisites: ['stablecoins'],
-      masteryLevel: masteryLevels['defi-fundamentals'] || 'none',
+      masteryLevel: getMasteryLevel('defi-fundamentals'),
       track: 'applications'
     },
     {
@@ -158,7 +167,7 @@ export default function EducationDashboard() {
       topics: ['Asset Tokenization', 'BlackRock BUIDL', 'Real Estate', 'Compliance'],
       completed: completedModules.includes('real-world-assets'),
       prerequisites: ['defi-fundamentals'],
-      masteryLevel: masteryLevels['real-world-assets'] || 'none',
+      masteryLevel: getMasteryLevel('real-world-assets'),
       track: 'applications'
     },
     {
@@ -172,7 +181,7 @@ export default function EducationDashboard() {
       topics: ['Custody Solutions', 'Compliance', 'Coinbase Custody', 'Anchorage'],
       completed: completedModules.includes('institutional-crypto'),
       prerequisites: ['real-world-assets'],
-      masteryLevel: masteryLevels['institutional-crypto'] || 'none',
+      masteryLevel: getMasteryLevel('institutional-crypto'),
       track: 'applications'
     },
     
@@ -188,7 +197,7 @@ export default function EducationDashboard() {
       topics: ['Digital Yuan', 'Digital Euro', 'Monetary Policy', 'Privacy vs Control'],
       completed: completedModules.includes('cbdcs'),
       prerequisites: ['institutional-crypto'],
-      masteryLevel: masteryLevels['cbdcs'] || 'none',
+      masteryLevel: getMasteryLevel('cbdcs'),
       track: 'advanced'
     },
     {
@@ -202,7 +211,7 @@ export default function EducationDashboard() {
       topics: ['Bridges', 'Interoperability', 'Multi-Chain', 'Layer 2s'],
       completed: completedModules.includes('cross-chain-finance'),
       prerequisites: ['cbdcs'],
-      masteryLevel: masteryLevels['cross-chain-finance'] || 'none',
+      masteryLevel: getMasteryLevel('cross-chain-finance'),
       track: 'advanced'
     },
     {
@@ -216,7 +225,7 @@ export default function EducationDashboard() {
       topics: ['AI Trading', 'Automated Strategies', 'Machine Learning', 'Predictive Analytics'],
       completed: completedModules.includes('defai'),
       prerequisites: ['cross-chain-finance'],
-      masteryLevel: masteryLevels['defai'] || 'none',
+      masteryLevel: getMasteryLevel('defai'),
       track: 'advanced'
     },
     {
@@ -230,7 +239,7 @@ export default function EducationDashboard() {
       topics: ['Cold Storage', 'Multi-sig', 'Risk Assessment', 'Insurance'],
       completed: completedModules.includes('security'),
       prerequisites: ['defai'],
-      masteryLevel: masteryLevels['security'] || 'none',
+      masteryLevel: getMasteryLevel('security'),
       track: 'advanced'
     }
   ]

@@ -916,7 +916,7 @@ export default function WalletSimulatorPage() {
                   <div className="text-center space-x-4">
                     <button
                       onClick={() => {
-                        const isCorrect = !currentScenario.correctAnswer
+                        const isCorrect = currentScenario.correctAnswer === false
                         setSecurityAnswers(prev => ({ ...prev, [currentScenario.id]: isCorrect }))
                         if (isCorrect) setUserScore(prev => prev + 20)
                         
@@ -934,7 +934,7 @@ export default function WalletSimulatorPage() {
                     </button>
                     <button
                       onClick={() => {
-                        const isCorrect = currentScenario.correctAnswer
+                        const isCorrect = currentScenario.correctAnswer === true
                         setSecurityAnswers(prev => ({ ...prev, [currentScenario.id]: isCorrect }))
                         if (isCorrect) setUserScore(prev => prev + 20)
                         

@@ -698,6 +698,7 @@ export default function BitcoinDigitalGoldPage() {
 
   const quizQuestions = [
     {
+      id: 'btc-supply',
       question: "What is the maximum number of bitcoins that will ever exist?",
       options: [
         "18 million",
@@ -709,6 +710,7 @@ export default function BitcoinDigitalGoldPage() {
       explanation: "Bitcoin is hard-capped at 21 million coins, making it absolutely scarce. This limit is enforced by the protocol and cannot be changed without consensus from the entire network."
     },
     {
+      id: 'btc-halving',
       question: "How often does the Bitcoin block reward halve?",
       options: [
         "Every 2 years",
@@ -720,6 +722,7 @@ export default function BitcoinDigitalGoldPage() {
       explanation: "The Bitcoin halving occurs approximately every 4 years (210,000 blocks), reducing the mining reward by half. This creates a predictable, decreasing inflation schedule."
     },
     {
+      id: 'btc-treasury',
       question: "Which company was the first major corporation to add Bitcoin to its treasury?",
       options: [
         "Tesla",
@@ -731,6 +734,7 @@ export default function BitcoinDigitalGoldPage() {
       explanation: "MicroStrategy, led by Michael Saylor, was the first major public company to adopt Bitcoin as its primary treasury reserve asset, starting in August 2020."
     },
     {
+      id: 'btc-mining-cost',
       question: "What is the primary cost for Bitcoin miners?",
       options: [
         "Equipment purchase",
@@ -742,6 +746,7 @@ export default function BitcoinDigitalGoldPage() {
       explanation: "Electricity typically represents 70-80% of mining costs. This is why miners seek cheap, often renewable energy sources and why mining operations tend to relocate based on energy prices."
     },
     {
+      id: 'btc-vs-gold',
       question: "Compared to gold, Bitcoin's main advantage is:",
       options: [
         "Lower volatility",
@@ -890,6 +895,7 @@ export default function BitcoinDigitalGoldPage() {
 
               {showQuiz && (
                 <QuizComponent
+                  title="Bitcoin Digital Gold Quiz"
                   questions={quizQuestions}
                   onComplete={handleQuizComplete}
                 />

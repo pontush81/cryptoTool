@@ -55,6 +55,15 @@ export default function EducationModulesPage() {
     localStorage.setItem('educationPreferences', JSON.stringify(newPrefs))
   }
 
+  // Helper function to get valid mastery level
+  const getMasteryLevel = (moduleId: string): 'none' | 'basic' | 'good' | 'excellent' => {
+    const level = masteryLevels[moduleId] || 'none'
+    if (['none', 'basic', 'good', 'excellent'].includes(level)) {
+      return level as 'none' | 'basic' | 'good' | 'excellent'
+    }
+    return 'none'
+  }
+
   const modules: LearningModule[] = [
     {
       id: 'money-systems',
@@ -67,7 +76,7 @@ export default function EducationModulesPage() {
       topics: ['Fiat Money', 'Central Banking', 'Inflation', 'Financial History'],
       completed: completedModules.includes('money-systems'),
       prerequisites: [],
-      masteryLevel: masteryLevels['money-systems'] || 'none'
+      masteryLevel: getMasteryLevel('money-systems')
     },
     {
       id: 'bitcoin-basics',
@@ -80,7 +89,7 @@ export default function EducationModulesPage() {
       topics: ['Digital Gold', 'Blockchain', 'Mining', 'Decentralization'],
       completed: completedModules.includes('bitcoin-basics'),
       prerequisites: [],
-      masteryLevel: masteryLevels['bitcoin-basics'] || 'none'
+      masteryLevel: getMasteryLevel('bitcoin-basics')
     },
     {
       id: 'how-it-works',
@@ -93,7 +102,7 @@ export default function EducationModulesPage() {
       topics: ['Cryptography', 'Consensus', 'Nodes', 'Immutability'],
       completed: completedModules.includes('how-it-works'),
       prerequisites: ['bitcoin-basics'],
-      masteryLevel: masteryLevels['how-it-works'] || 'none'
+      masteryLevel: getMasteryLevel('how-it-works')
     },
     {
       id: 'getting-started',
@@ -106,7 +115,7 @@ export default function EducationModulesPage() {
       topics: ['Exchanges', 'Wallets', 'Private Keys', 'First Purchase'],
       completed: completedModules.includes('getting-started'),
       prerequisites: ['money-systems', 'bitcoin-basics'],
-      masteryLevel: masteryLevels['getting-started'] || 'none'
+      masteryLevel: getMasteryLevel('getting-started')
     },
     {
       id: 'defi-tools',
@@ -119,7 +128,7 @@ export default function EducationModulesPage() {
       topics: ['Portfolio Tracking', 'TradingView', 'Multi-Chain Wallets', 'Security Tools'],
       completed: completedModules.includes('defi-tools'),
       prerequisites: ['getting-started'],
-      masteryLevel: masteryLevels['defi-tools'] || 'none'
+      masteryLevel: getMasteryLevel('defi-tools')
     },
     {
       id: 'stablecoins',
@@ -132,7 +141,7 @@ export default function EducationModulesPage() {
       topics: ['Price Stability', 'USDC', 'USDT', 'Algorithmic Stablecoins'],
       completed: completedModules.includes('stablecoins'),
       prerequisites: ['defi-tools'],
-      masteryLevel: masteryLevels['stablecoins'] || 'none'
+      masteryLevel: getMasteryLevel('stablecoins')
     },
     {
       id: 'defi-fundamentals',
@@ -145,7 +154,7 @@ export default function EducationModulesPage() {
       topics: ['Lending', 'DEXs', 'Yield Farming', 'Smart Contracts'],
       completed: completedModules.includes('defi-fundamentals'),
       prerequisites: ['stablecoins'],
-      masteryLevel: masteryLevels['defi-fundamentals'] || 'none'
+      masteryLevel: getMasteryLevel('defi-fundamentals')
     },
     {
       id: 'real-world-assets',
@@ -158,7 +167,7 @@ export default function EducationModulesPage() {
       topics: ['Asset Tokenization', 'BlackRock BUIDL', 'Real Estate', 'Compliance'],
       completed: completedModules.includes('real-world-assets'),
       prerequisites: ['defi-fundamentals'],
-      masteryLevel: masteryLevels['real-world-assets'] || 'none'
+      masteryLevel: getMasteryLevel('real-world-assets')
     },
     {
       id: 'institutional-crypto',
@@ -171,7 +180,7 @@ export default function EducationModulesPage() {
       topics: ['Custody Solutions', 'Compliance', 'Coinbase Custody', 'Anchorage'],
       completed: completedModules.includes('institutional-crypto'),
       prerequisites: ['real-world-assets'],
-      masteryLevel: masteryLevels['institutional-crypto'] || 'none'
+      masteryLevel: getMasteryLevel('institutional-crypto')
     },
     {
       id: 'cbdcs',
@@ -184,7 +193,7 @@ export default function EducationModulesPage() {
       topics: ['Digital Yuan', 'Digital Euro', 'Monetary Policy', 'Privacy vs Control'],
       completed: completedModules.includes('cbdcs'),
       prerequisites: ['institutional-crypto'],
-      masteryLevel: masteryLevels['cbdcs'] || 'none'
+      masteryLevel: getMasteryLevel('cbdcs')
     },
     {
       id: 'cross-chain-finance',
@@ -197,7 +206,7 @@ export default function EducationModulesPage() {
       topics: ['Bridges', 'Interoperability', 'Multi-Chain', 'Layer 2s'],
       completed: completedModules.includes('cross-chain-finance'),
       prerequisites: ['cbdcs'],
-      masteryLevel: masteryLevels['cross-chain-finance'] || 'none'
+      masteryLevel: getMasteryLevel('cross-chain-finance')
     },
     {
       id: 'defai',
@@ -210,7 +219,7 @@ export default function EducationModulesPage() {
       topics: ['AI Trading', 'Automated Strategies', 'Machine Learning', 'Predictive Analytics'],
       completed: completedModules.includes('defai'),
       prerequisites: ['cross-chain-finance'],
-      masteryLevel: masteryLevels['defai'] || 'none'
+      masteryLevel: getMasteryLevel('defai')
     },
     {
       id: 'advanced',
@@ -223,7 +232,7 @@ export default function EducationModulesPage() {
       topics: ['DeFi Strategies', 'Portfolio Theory', 'Risk Models', 'Tax Optimization'],
       completed: completedModules.includes('advanced'),
       prerequisites: ['defai'],
-      masteryLevel: masteryLevels['advanced'] || 'none'
+      masteryLevel: getMasteryLevel('advanced')
     },
     {
       id: 'security',
@@ -236,7 +245,7 @@ export default function EducationModulesPage() {
       topics: ['Cold Storage', 'Multi-sig', 'Risk Assessment', 'Insurance'],
       completed: completedModules.includes('security'),
       prerequisites: ['advanced'],
-      masteryLevel: masteryLevels['security'] || 'none'
+      masteryLevel: getMasteryLevel('security')
     }
   ]
 
