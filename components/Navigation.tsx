@@ -35,14 +35,9 @@ export default function Navigation({ className = '' }: NavigationProps) {
           description: 'Overview and progress tracking'
         },
         {
-          name: 'Foundation Track',
+          name: 'All Modules',
           href: '/education/modules',
-          description: 'Core crypto concepts and fundamentals'
-        },
-        {
-          name: 'Market Categories',
-          href: '/education/market-categories',
-          description: 'Learn by crypto market sectors'
+          description: 'Browse all learning modules with filters'
         },
         {
           name: 'Interactive Simulators',
