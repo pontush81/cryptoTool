@@ -284,6 +284,12 @@ export default function EducationDashboard() {
   const totalModules = modules.length
   const overallProgress = Math.round((totalCompleted / totalModules) * 100)
 
+  // Foundation Track Progress (less overwhelming than total)
+  const foundationTrack = tracks[0]
+  const foundationProgress = foundationTrack.progress
+  const foundationCompleted = foundationTrack.completed
+  const foundationTotal = foundationTrack.total
+
   // Get next recommended module
   const getNextModule = () => {
     // Find first incomplete module that has prerequisites met
@@ -302,7 +308,8 @@ export default function EducationDashboard() {
 
   const nextModule = getNextModule()
 
-  // Calculate achievements
+  // Calculate achievements - only show if user has started learning
+  const hasStartedLearning = totalCompleted > 0
   const achievements = [
     {
       id: 'first-steps',
@@ -388,12 +395,12 @@ export default function EducationDashboard() {
                   <BarChart3 className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Overall Progress</h2>
-                  <p className="text-gray-600">{totalCompleted} of {totalModules} modules completed</p>
+                  <h2 className="text-xl font-semibold text-gray-900">Foundation Track Progress</h2>
+                  <p className="text-gray-600">{foundationCompleted} of {foundationTotal} modules completed</p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-blue-600">{overallProgress}%</div>
+                <div className="text-3xl font-bold text-blue-600">{foundationProgress}%</div>
                 <div className="text-sm text-gray-500">Complete</div>
               </div>
             </div>
@@ -401,66 +408,75 @@ export default function EducationDashboard() {
             <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
               <div 
                 className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                style={{ width: `${overallProgress}%` }}
+                style={{ width: `${foundationProgress}%` }}
               ></div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="flex items-center space-x-3">
-                <Clock className="w-5 h-5 text-gray-400" />
+                <Clock className="w-5 h-5 text-green-500" />
                 <div>
-                  <div className="text-sm text-gray-500">Time Invested</div>
+                  <div className="text-sm text-gray-500">Time Invested (Foundation)</div>
                   <div className="font-semibold">{formatTime(totalTimeSpent)}</div>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <Target className="w-5 h-5 text-gray-400" />
+                <Target className="w-5 h-5 text-blue-500" />
                 <div>
-                  <div className="text-sm text-gray-500">Remaining</div>
-                  <div className="font-semibold">{formatTime((totalModules - totalCompleted) * 22)}</div>
+                  <div className="text-sm text-gray-500">Foundation Remaining</div>
+                  <div className="font-semibold">{formatTime((foundationTotal - foundationCompleted) * 20)}</div>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <Trophy className="w-5 h-5 text-gray-400" />
+                <BookOpen className="w-5 h-5 text-purple-500" />
                 <div>
-                  <div className="text-sm text-gray-500">Achievements</div>
-                  <div className="font-semibold">{achievements.filter(a => a.earned).length}/{achievements.length}</div>
+                  <div className="text-sm text-gray-500">Next Module</div>
+                  <div className="font-semibold">{nextModule?.title.substring(0, 20)}...</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Next Recommended Module */}
+        {/* Next Recommended Module - Enhanced */}
         {nextModule && (
           <div className="mb-8">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-sm p-6 text-white">
+            <div className="bg-gradient-to-r from-green-500 to-blue-600 rounded-xl shadow-lg p-8 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <PlayCircle className="w-5 h-5" />
-                    <span className="text-sm font-medium opacity-90">Continue Learning</span>
+                  <div className="flex items-center space-x-2 mb-3">
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <PlayCircle className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium opacity-90">Continue Learning</span>
+                      <div className="text-xs opacity-75">Step {foundationCompleted + 1} of {foundationTotal}</div>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">{nextModule.title}</h3>
-                  <p className="opacity-90 mb-4">{nextModule.description}</p>
-                  <div className="flex items-center space-x-4 text-sm opacity-90">
-                    <span className="flex items-center space-x-1">
+                  <h3 className="text-2xl font-bold mb-3">{nextModule.title}</h3>
+                  <p className="opacity-95 mb-4 text-lg">{nextModule.description}</p>
+                  <div className="flex items-center space-x-6 text-sm opacity-90">
+                    <span className="flex items-center space-x-2">
                       <Clock className="w-4 h-4" />
                       <span>{nextModule.duration}</span>
                     </span>
-                    <span className="flex items-center space-x-1">
+                    <span className="flex items-center space-x-2">
                       <Target className="w-4 h-4" />
                       <span>{nextModule.difficulty}</span>
                     </span>
+                    <span className="flex items-center space-x-2">
+                      <BookOpen className="w-4 h-4" />
+                      <span>{nextModule.topics.length} topics</span>
+                    </span>
                   </div>
                 </div>
-                <div className="ml-6">
+                <div className="ml-8">
                   <Link
                     href={nextModule.href}
-                    className="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                    className="inline-flex items-center px-8 py-4 bg-white text-green-600 rounded-xl font-semibold hover:bg-gray-50 transition-colors shadow-lg text-lg"
                   >
-                    Start Module
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    Start Learning
+                    <ArrowRight className="w-5 h-5 ml-3" />
                   </Link>
                 </div>
               </div>
@@ -468,116 +484,158 @@ export default function EducationDashboard() {
           </div>
         )}
 
-        {/* Learning Tracks */}
-        <div className="space-y-8">
-          {tracks.map((track, trackIndex) => (
-            <div key={track.name} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">{track.name}</h2>
-                  <p className="text-gray-600 mt-1">{track.description}</p>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-gray-900">{track.progress}%</div>
-                  <div className="text-sm text-gray-500">{track.completed}/{track.total} modules</div>
-                  <div className="text-xs text-gray-400 mt-1">{track.estimatedTime}</div>
-                </div>
+        {/* Learning Tracks - Progressive Disclosure */}
+        <div className="space-y-6">
+          {/* Foundation Track - Primary Focus */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">{foundationTrack.name}</h2>
+                <p className="text-gray-600 mt-1">{foundationTrack.description}</p>
               </div>
-              
-              <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
-                <div 
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    trackIndex === 0 ? 'bg-green-500' : 
-                    trackIndex === 1 ? 'bg-blue-500' : 'bg-purple-500'
-                  }`}
-                  style={{ width: `${track.progress}%` }}
-                ></div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {track.modules.map((module) => (
-                  <Link
-                    key={module.id}
-                    href={module.href}
-                    className="block bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors"
-                  >
-                    <div className="flex items-start space-x-3">
-                      <div className={`p-2 rounded-lg ${
-                        module.completed ? 'bg-green-100' : 'bg-gray-200'
-                      }`}>
-                        {module.completed ? 
-                          <CheckCircle2 className="w-5 h-5 text-green-600" /> :
-                          module.icon
-                        }
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-900 truncate">{module.title}</h3>
-                        <p className="text-sm text-gray-500 mt-1">{module.duration}</p>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            module.difficulty === 'Beginner' ? 'bg-green-100 text-green-700' :
-                            module.difficulty === 'Intermediate' ? 'bg-blue-100 text-blue-700' :
-                            'bg-purple-100 text-purple-700'
-                          }`}>
-                            {module.difficulty}
-                          </span>
-                          {module.completed && (
-                            <span className={`text-xs px-2 py-1 rounded-full ${masteryColors[module.masteryLevel]}`}>
-                              {masteryLabels[module.masteryLevel]}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+              <div className="text-right">
+                <div className="text-2xl font-bold text-green-600">{foundationTrack.progress}%</div>
+                <div className="text-sm text-gray-500">{foundationTrack.completed}/{foundationTrack.total} modules</div>
+                <div className="text-xs text-gray-400 mt-1">{foundationTrack.estimatedTime}</div>
               </div>
             </div>
-          ))}
-        </div>
+            
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
+              <div 
+                className="bg-green-500 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${foundationTrack.progress}%` }}
+              ></div>
+            </div>
 
-        {/* Achievements */}
-        <div className="mt-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Achievements</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {achievements.map((achievement) => (
-                <div
-                  key={achievement.id}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    achievement.earned
-                      ? 'border-yellow-300 bg-yellow-50'
-                      : 'border-gray-200 bg-gray-50'
-                  }`}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {foundationTrack.modules.map((module) => (
+                <Link
+                  key={module.id}
+                  href={module.href}
+                  className="block bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors"
                 >
-                  <div className="flex items-center space-x-3 mb-2">
+                  <div className="flex items-start space-x-3">
                     <div className={`p-2 rounded-lg ${
-                      achievement.earned ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-200 text-gray-400'
+                      module.completed ? 'bg-green-100' : 'bg-blue-100'
                     }`}>
-                      {achievement.icon}
+                      {module.completed ? 
+                        <CheckCircle2 className="w-5 h-5 text-green-600" /> :
+                        module.icon
+                      }
                     </div>
-                    <div className="flex-1">
-                      <h3 className={`font-medium ${
-                        achievement.earned ? 'text-yellow-800' : 'text-gray-600'
-                      }`}>
-                        {achievement.title}
-                      </h3>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900 truncate">{module.title}</h3>
+                      <p className="text-sm text-gray-500 mt-1">{module.duration}</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                          {module.difficulty}
+                        </span>
+                        {module.completed && (
+                          <span className={`text-xs px-2 py-1 rounded-full ${masteryColors[module.masteryLevel]}`}>
+                            {masteryLabels[module.masteryLevel]}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">{achievement.description}</p>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        achievement.earned ? 'bg-yellow-500' : 'bg-gray-400'
-                      }`}
-                      style={{ width: `${achievement.progress * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
+
+          {/* Coming Next - Only show when Foundation is progressing */}
+          {foundationProgress >= 40 && (
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100 p-6">
+              <div className="mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">🎯 Coming Next</h2>
+                <p className="text-sm text-gray-600">Advanced tracks unlock as you master the fundamentals</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {tracks.slice(1).map((track, index) => (
+                  <div 
+                    key={track.name}
+                    className={`p-4 rounded-lg border transition-all ${
+                      foundationProgress === 100 
+                        ? 'border-blue-300 bg-white hover:bg-blue-50 cursor-pointer shadow-sm' 
+                        : 'border-gray-200 bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className={`p-2 rounded-lg ${
+                        foundationProgress === 100 ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-400'
+                      }`}>
+                        {index === 0 ? <Target className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className={`font-medium ${
+                          foundationProgress === 100 ? 'text-gray-900' : 'text-gray-500'
+                        }`}>
+                          {track.name}
+                        </h3>
+                        <p className="text-xs text-gray-500">{track.total} modules • {track.estimatedTime}</p>
+                      </div>
+                      {foundationProgress === 100 && (
+                        <ChevronRight className="w-4 h-4 text-blue-400" />
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">{track.description}</p>
+                    {foundationProgress < 100 && (
+                      <div className="text-xs text-orange-600 bg-orange-50 rounded px-2 py-1 inline-block">
+                        🔒 Complete Foundation Track to unlock
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Achievements */}
+        {hasStartedLearning && (
+          <div className="mt-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Achievements</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {achievements.map((achievement) => (
+                  <div
+                    key={achievement.id}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      achievement.earned
+                        ? 'border-yellow-300 bg-yellow-50'
+                        : 'border-gray-200 bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className={`p-2 rounded-lg ${
+                        achievement.earned ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-200 text-gray-400'
+                      }`}>
+                        {achievement.icon}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className={`font-medium ${
+                          achievement.earned ? 'text-yellow-800' : 'text-gray-600'
+                        }`}>
+                          {achievement.title}
+                        </h3>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">{achievement.description}</p>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          achievement.earned ? 'bg-yellow-500' : 'bg-gray-400'
+                        }`}
+                        style={{ width: `${achievement.progress * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Learning Tracks */}
         <div className="mt-8">
