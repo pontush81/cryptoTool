@@ -26,7 +26,7 @@ export default function Navigation({ className = '' }: NavigationProps) {
     },
     {
       name: 'Education',
-      href: '/education',
+      href: '/education/dashboard',
       icon: BookOpen
     }
   ]
