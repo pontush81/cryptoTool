@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { BookOpen, TrendingUp, Shield, Zap, Clock, Users, ArrowRight, Search, Trophy, Filter, Settings, Brain, Target, CheckCircle2, Banknote, PiggyBank, Coins, Building, Landmark, Network, Bot, Wrench, Home, CheckCircle, ChevronUp, ChevronDown, BarChart3, Star } from 'lucide-react'
+import { BookOpen, TrendingUp, Shield, Zap, Clock, Users, ArrowRight, Search, Trophy, Filter, Brain, Target, CheckCircle2, Banknote, PiggyBank, Coins, Building, Landmark, Network, Bot, Wrench, Home, CheckCircle, ChevronUp, ChevronDown, BarChart3, Star } from 'lucide-react'
 import Breadcrumb from '../../../components/Breadcrumb'
 import Tooltip from '../../../components/Tooltip'
 
@@ -254,13 +254,12 @@ export default function EducationModulesPage() {
   const [preferences, setPreferences] = useState<UserPreferences>({
     learningPath: 'guided',
     minimalMode: false,
-    focusOnMastery: true
+    focusOnMastery: true  // Always enabled internally
   })
-  const [sortBy, setSortBy] = useState<'recommended' | 'duration' | 'difficulty' | 'progress'>('recommended')
-  const [filterDifficulty, setFilterDifficulty] = useState<'all' | 'Beginner' | 'Intermediate' | 'Advanced'>('all')
 
-  const [filterProgress, setFilterProgress] = useState<'all' | 'not-started' | 'in-progress' | 'completed'>('all')
-  const [filterCategory, setFilterCategory] = useState<string>('all')
+  const [filterDifficulty, setFilterDifficulty] = useState<'all' | 'Beginner' | 'Intermediate' | 'Advanced'>('all')
+  const [filterProgress, setFilterProgress] = useState<'all' | 'not-started' | 'completed'>('all')
+  const [filterCategory, setFilterCategory] = useState<'all' | 'Fundamentals' | 'Trading' | 'DeFi' | 'Investment' | 'Advanced'>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [showPreferences, setShowPreferences] = useState(false)
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
@@ -640,6 +639,24 @@ export default function EducationModulesPage() {
 
   // Remove the canAccessModule function entirely - all modules are now freely accessible
 
+  // Helper function to map specific categories to main categories
+  const getMainCategory = (categories: string[]) => {
+    const fundamentals = ['History', 'Blockchain', 'Technology', 'Security', 'Cryptocurrency', 'Cryptography', 'Mining', 'Context', 'Milestones', 'Wallets', 'Consensus']
+    const trading = ['Trading', 'Investing', 'Finance', 'Exchanges', 'Economics', 'Banking']
+    const defi = ['DeFi', 'Lending', 'Stablecoins', 'Smart Contracts', 'DApps', 'Ethereum', 'NFTs', 'Digital Art', 'Gaming']
+    const investment = ['Portfolio', 'Risk Management', 'Tools', 'Tokenomics', 'Incentives']
+    const advanced = ['Advanced Strategies', 'Institutional', 'CBDCs', 'Government', 'Policy', 'Regulation', 'Ethics', 'Legal', 'Layer 1', 'Scalability', 'Infrastructure', 'Interoperability', 'Bridges', 'AI', 'Automation', 'Governance', 'DAOs', 'Web3', 'Compliance', 'Custody', 'RWA', 'Tokenization']
+
+    for (const category of categories) {
+      if (fundamentals.some(f => category.includes(f))) return 'Fundamentals'
+      if (trading.some(t => category.includes(t))) return 'Trading'
+      if (defi.some(d => category.includes(d))) return 'DeFi'
+      if (investment.some(i => category.includes(i))) return 'Investment'
+      if (advanced.some(a => category.includes(a))) return 'Advanced'
+    }
+    return 'Fundamentals' // Default fallback
+  }
+
   const filteredAndSortedModules = modules
     .filter(module => {
       const matchesSearch = module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -647,35 +664,30 @@ export default function EducationModulesPage() {
                            module.topics.some(topic => topic.toLowerCase().includes(searchTerm.toLowerCase()))
       const matchesDifficulty = filterDifficulty === 'all' || module.difficulty === filterDifficulty
       const matchesProgress = filterProgress === 'all' || (module.completed ? 'completed' : 'not-started') === filterProgress
-      const matchesCategory = filterCategory === 'all' || module.categories.some(cat => cat.toLowerCase().includes(filterCategory.toLowerCase()))
+      const matchesCategory = filterCategory === 'all' || getMainCategory(module.categories) === filterCategory
 
       return matchesSearch && matchesDifficulty && matchesProgress && matchesCategory
     })
     .sort((a, b) => {
-      if (sortBy === 'recommended') {
-        // Simple recommendation: completed modules first, then by mastery level
-        if (a.completed && !b.completed) return -1
-        if (!a.completed && b.completed) return 1
-        if (a.completed && b.completed) {
-          const masteryOrder = { 'excellent': 4, 'good': 3, 'basic': 2, 'none': 1 }
-          return masteryOrder[b.masteryLevel] - masteryOrder[a.masteryLevel]
-        }
-        return 0
-      } else if (sortBy === 'duration') {
-        return parseInt(a.duration) - parseInt(b.duration)
-      } else if (sortBy === 'difficulty') {
-        const difficultyOrder = { 'Beginner': 1, 'Intermediate': 2, 'Advanced': 3 }
-        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]
-      } else {
-        // Sort by progress (completed first, then by mastery level)
-        if (a.completed && !b.completed) return -1
-        if (!a.completed && b.completed) return 1
-        if (a.completed && b.completed) {
-          const masteryOrder = { 'excellent': 4, 'good': 3, 'basic': 2, 'none': 1 }
-          return masteryOrder[b.masteryLevel] - masteryOrder[a.masteryLevel]
-        }
-        return 0
+      // Default sort: logical learning progression (fundamentals first, then by difficulty within each category)
+      const categoryOrder = { 'Fundamentals': 1, 'Trading': 2, 'DeFi': 3, 'Investment': 4, 'Advanced': 5 }
+      const difficultyOrder = { 'Beginner': 1, 'Intermediate': 2, 'Advanced': 3 }
+      
+      const aCategory = getMainCategory(a.categories)
+      const bCategory = getMainCategory(b.categories)
+      
+      // First sort by category
+      if (categoryOrder[aCategory] !== categoryOrder[bCategory]) {
+        return categoryOrder[aCategory] - categoryOrder[bCategory]
       }
+      
+      // Then by difficulty within same category
+      if (difficultyOrder[a.difficulty] !== difficultyOrder[b.difficulty]) {
+        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]
+      }
+      
+      // Finally alphabetically
+      return a.title.localeCompare(b.title)
     })
 
   const progressPercentage = Math.round((completedModules.length / modules.length) * 100)
@@ -710,18 +722,9 @@ export default function EducationModulesPage() {
 
           {/* Learning Journey Header */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Your Crypto Learning Journey</h1>
-                <p className="text-gray-600 mt-2">Master cryptocurrency from basics to advanced concepts</p>
-              </div>
-              <button
-                onClick={() => setShowPreferences(!showPreferences)}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                <Settings className="w-4 h-4" />
-                <span>Settings</span>
-              </button>
+            <div className="mb-4">
+              <h1 className="text-3xl font-bold text-gray-900">Your Crypto Learning Journey</h1>
+              <p className="text-gray-600 mt-2">Master cryptocurrency from basics to advanced concepts</p>
             </div>
           </div>
 
@@ -745,12 +748,15 @@ export default function EducationModulesPage() {
                 ></div>
               </div>
               
-              <button 
-                className="text-sm text-blue-600 hover:text-blue-800"
-                onClick={() => setShowPreferences(!showPreferences)}
-              >
-                {showPreferences ? '↑ Hide details' : '↓ View progress breakdown'}
-              </button>
+              {completedModules.length >= 3 && (
+                <button 
+                  className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                  onClick={() => setShowPreferences(!showPreferences)}
+                  title="View detailed progress breakdown and display preferences"
+                >
+                  {showPreferences ? '↑ Hide options' : '↓ Display options'}
+                </button>
+              )}
             </div>
             
             {/* Desktop: Full Progress Display */}
@@ -806,22 +812,11 @@ export default function EducationModulesPage() {
               </div>
             )}
 
-            {/* Preferences Panel */}
-            {showPreferences && (
+            {/* Simplified Preferences - Only Essential Options */}
+            {showPreferences && completedModules.length >= 3 && (
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Learning Preferences</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={preferences.focusOnMastery}
-                        onChange={(e) => savePreferences({...preferences, focusOnMastery: e.target.checked})}
-                        className="rounded border-gray-300"
-                      />
-                      <span className="text-sm text-gray-700">Focus on mastery levels</span>
-                    </label>
-                  </div>
+                <h3 className="font-semibold text-gray-900 mb-4">Display Options</h3>
+                <div className="space-y-3">
                   <div>
                     <label className="flex items-center space-x-2">
                       <input
@@ -831,19 +826,24 @@ export default function EducationModulesPage() {
                         className="rounded border-gray-300"
                       />
                       <span className="text-sm text-gray-700">Minimal interface mode</span>
+                      <span className="text-xs text-gray-500">(reduces visual complexity)</span>
                     </label>
                   </div>
-                  <div>
-                    <label className="block text-sm text-gray-700 mb-1">Learning Path</label>
-                    <select
-                      value={preferences.learningPath}
-                      onChange={(e) => savePreferences({...preferences, learningPath: e.target.value as 'guided' | 'self-paced'})}
-                      className="text-sm border border-gray-300 rounded px-2 py-1"
-                    >
-                      <option value="guided">Guided</option>
-                      <option value="self-paced">Self-paced</option>
-                    </select>
-                  </div>
+                  
+                  {/* Progressive disclosure: Show after more experience */}
+                  {completedModules.length >= 5 && (
+                    <div>
+                      <label className="block text-sm text-gray-700 mb-1">Learning Style</label>
+                      <select
+                        value={preferences.learningPath}
+                        onChange={(e) => savePreferences({...preferences, learningPath: e.target.value as 'guided' | 'self-paced'})}
+                        className="text-sm border border-gray-300 rounded px-2 py-1"
+                      >
+                        <option value="guided">📋 Guided (recommended path)</option>
+                        <option value="self-paced">🎯 Self-paced (choose your own)</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -868,7 +868,7 @@ export default function EducationModulesPage() {
                     className="px-3 py-2 border border-gray-300 rounded-lg flex items-center gap-1 text-sm bg-white hover:bg-gray-50"
                   >
                     <Filter className="w-4 h-4" />
-                    {(filterDifficulty !== 'all' || filterProgress !== 'all') && (
+                    {(filterDifficulty !== 'all' || filterProgress !== 'all' || filterCategory !== 'all') && (
                       <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                     )}
                   </button>
@@ -877,6 +877,19 @@ export default function EducationModulesPage() {
                 {/* Mobile: Collapsed Filters */}
                 {showPreferences && (
                   <div className="space-y-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <select
+                      value={filterCategory}
+                      onChange={(e) => setFilterCategory(e.target.value as typeof filterCategory)}
+                      className="w-full px-2 py-2 border border-gray-300 rounded text-sm"
+                    >
+                      <option value="all">📚 All Topics</option>
+                      <option value="Fundamentals">🔰 Fundamentals</option>
+                      <option value="Trading">📈 Trading</option>
+                      <option value="DeFi">🏦 DeFi</option>
+                      <option value="Investment">💰 Investment</option>
+                      <option value="Advanced">🚀 Advanced</option>
+                    </select>
+                    
                     <div className="grid grid-cols-2 gap-2">
                       <select
                         value={filterDifficulty}
@@ -894,21 +907,13 @@ export default function EducationModulesPage() {
                         onChange={(e) => setFilterProgress(e.target.value as typeof filterProgress)}
                         className="px-2 py-2 border border-gray-300 rounded text-sm"
                       >
-                        <option value="all">All Progress</option>
-                        <option value="not-started">Not Started</option>
-                        <option value="completed">Completed</option>
+                        <option value="all">📚 All Status</option>
+                        <option value="not-started">⭐ Not Started</option>
+                        <option value="completed">✅ Completed</option>
                       </select>
                     </div>
                     
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                      className="w-full px-2 py-2 border border-gray-300 rounded text-sm"
-                    >
-                      <option value="recommended">Recommended</option>
-                      <option value="duration">By Duration</option>
-                      <option value="difficulty">By Difficulty</option>
-                    </select>
+
                   </div>
                 )}
               </div>
@@ -929,14 +934,19 @@ export default function EducationModulesPage() {
                   
                   <div className="flex gap-3">
                     <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                      value={filterCategory}
+                      onChange={(e) => setFilterCategory(e.target.value as typeof filterCategory)}
                       className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                     >
-                      <option value="recommended">📋 Recommended</option>
-                      <option value="duration">⏱️ Duration</option>
-                      <option value="difficulty">📈 Difficulty</option>
+                      <option value="all">📚 All Topics</option>
+                      <option value="Fundamentals">🔰 Fundamentals</option>
+                      <option value="Trading">📈 Trading</option>
+                      <option value="DeFi">🏦 DeFi</option>
+                      <option value="Investment">💰 Investment</option>
+                      <option value="Advanced">🚀 Advanced</option>
                     </select>
+                    
+
                     
                     <select
                       value={filterDifficulty}
@@ -947,6 +957,16 @@ export default function EducationModulesPage() {
                       <option value="Beginner">🟢 Beginner</option>
                       <option value="Intermediate">🟡 Intermediate</option>
                       <option value="Advanced">🔴 Advanced</option>
+                    </select>
+                    
+                    <select
+                      value={filterProgress}
+                      onChange={(e) => setFilterProgress(e.target.value as typeof filterProgress)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                    >
+                      <option value="all">📚 All Status</option>
+                      <option value="not-started">⭐ Not Started</option>
+                      <option value="completed">✅ Completed</option>
                     </select>
                   </div>
                 </div>
@@ -970,7 +990,7 @@ export default function EducationModulesPage() {
                   )}
                   {filterProgress !== 'all' && (
                     <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs flex items-center">
-                      {filterProgress === 'not-started' ? 'Not started' : 'Completed'}
+                      {filterProgress === 'not-started' ? '⭐ Not Started' : '✅ Completed'}
                       <button onClick={() => setFilterProgress('all')} className="ml-1 text-green-500">×</button>
                     </span>
                   )}

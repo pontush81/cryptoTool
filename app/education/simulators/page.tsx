@@ -1,395 +1,440 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { 
-  Wallet, 
-  Shield, 
-  TrendingUp, 
-  Gamepad2, 
-  Star,
-  Clock,
-  Target,
-  ArrowRight,
-  CheckCircle2,
-  PlayCircle,
-  Award,
-  User,
-  BarChart3
-} from 'lucide-react'
+import { ArrowLeft, Play, Clock, Users, Target, Star, TrendingUp, Calculator, PieChart, Wallet, Coins, Award, Shield, Zap, BarChart3 } from 'lucide-react'
 
 interface Simulator {
   id: string
-  name: string
+  title: string
   description: string
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced'
-  estimatedTime: string
-  prerequisites: string[]
-  learningObjectives: string[]
-  riskScenarios: string[]
-  priority: 'Essential' | 'High' | 'Medium' | 'Optional'
-  status: 'available' | 'coming-soon'
-  icon: React.ElementType
-  href: string
+  duration: string
+  category: 'Trading' | 'Investment' | 'DeFi' | 'Fundamentals'
+  learningOutcomes: string[]
   features: string[]
+  href: string
+  icon: React.ReactNode
+  status: 'available' | 'coming-soon'
+  riskLevel: 'Safe' | 'Simulated' | 'Educational'
 }
 
 export default function SimulatorsPage() {
-  const [completedSimulators, setCompletedSimulators] = useState<string[]>([])
-  const [simulatorProgress, setSimulatorProgress] = useState<Record<string, number>>({})
-
-  useEffect(() => {
-    // Load completed simulators and progress from localStorage
-    const completed = JSON.parse(localStorage.getItem('completedSimulators') || '[]')
-    const progress = JSON.parse(localStorage.getItem('simulatorProgress') || '{}')
-    setCompletedSimulators(completed)
-    setSimulatorProgress(progress)
-  }, [])
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
   const simulators: Simulator[] = [
     {
       id: 'wallet-simulator',
-      name: 'Crypto Wallet Simulator',
-      description: 'Learn wallet creation, seed phrase security, and safe transaction practices in a risk-free environment',
+      title: 'Wallet Simulator',
+      description: 'Learn wallet fundamentals with hands-on transaction practice, security tests, and recovery scenarios',
       difficulty: 'Beginner',
-      estimatedTime: '30-45 min',
-      prerequisites: [],
-      learningObjectives: [
-        'Create and secure a crypto wallet',
-        'Backup and restore seed phrases safely',
-        'Send and receive transactions correctly',
-        'Recognize and avoid common security threats'
+      duration: '30-45 min',
+      category: 'Fundamentals',
+      learningOutcomes: [
+        'Understand wallet types and security',
+        'Practice sending/receiving transactions',
+        'Learn private key management',
+        'Complete security challenges'
       ],
-      riskScenarios: [
-        'Phishing seed phrase attempts',
-        'Wrong address transactions',
-        'Fake wallet apps',
-        'Lost backup recovery'
+      features: [
+        'Interactive transaction flow',
+        'Security scenario testing',
+        'Private key recovery simulation',
+        'Multi-wallet type comparison'
       ],
-      priority: 'Essential',
-      status: 'available',
-      icon: Wallet,
       href: '/education/simulators/wallet-simulator',
-      features: [
-        'Interactive wallet creation',
-        'Seed phrase backup practice',
-        'Transaction simulation',
-        'Security threat recognition'
-      ]
+      icon: <Wallet className="w-6 h-6" />,
+      status: 'available',
+      riskLevel: 'Safe'
     },
     {
-      id: 'security-simulator',
-      name: 'Scam & Security Simulator',
-      description: 'Practice identifying phishing attempts, verifying legitimate sites, and safe transaction practices',
-      difficulty: 'Beginner',
-      estimatedTime: '25-35 min',
-      prerequisites: [],
-      learningObjectives: [
-        'Recognize phishing attempts',
-        'Verify legitimate websites and apps',
-        'Practice safe transaction signing',
-        'Understand social engineering tactics'
-      ],
-      riskScenarios: [
-        'Fake website detection',
-        'Phishing email identification',
-        'Malicious DApp connections',
-        'Social engineering attacks'
-      ],
-      priority: 'Essential',
-      status: 'coming-soon',
-      icon: Shield,
-      href: '/education/simulators/security-simulator',
-      features: [
-        'Phishing detection tests',
-        'Website verification practice',
-        'Transaction review training',
-        'Real-world scam examples'
-      ]
-    },
-    {
-      id: 'trading-simulator',
-      name: 'Trading Practice Simulator',
-      description: 'Practice trading strategies, portfolio management, and risk assessment without real money',
+      id: 'defi-trading',
+      title: 'DeFi Trading Simulator',
+      description: 'Master decentralized trading with realistic DEX mechanics, slippage, fees, and market movements',
       difficulty: 'Intermediate',
-      estimatedTime: '45-60 min',
-      prerequisites: ['wallet-simulator'],
-      learningObjectives: [
-        'Understand market dynamics',
-        'Practice risk management',
-        'Learn trading psychology',
-        'Implement portfolio strategies'
+      duration: '45-60 min',
+      category: 'Trading',
+      learningOutcomes: [
+        'Understand DEX trading mechanics',
+        'Learn about slippage and price impact',
+        'Practice with live price feeds',
+        'Master trading psychology'
       ],
-      riskScenarios: [
-        'FOMO trading decisions',
-        'Leverage risks',
-        'Market manipulation',
-        'Emotional trading'
-      ],
-      priority: 'High',
-      status: 'coming-soon',
-      icon: TrendingUp,
-      href: '/education/simulators/trading-simulator',
       features: [
-        'Real market data simulation',
+        'Real-time price updates',
+        'Uniswap-style interface',
         'Portfolio tracking',
-        'Strategy backtesting',
-        'Psychology training'
-      ]
+        'Trade history analysis'
+      ],
+      href: '/education/simulators/defi-trading',
+      icon: <TrendingUp className="w-6 h-6" />,
+      status: 'available',
+      riskLevel: 'Simulated'
     },
     {
-      id: 'defi-simulator',
-      name: 'DeFi Protocol Simulator',
-      description: 'Practice DeFi interactions, liquidity provision, and yield farming in a safe environment',
-      difficulty: 'Advanced',
-      estimatedTime: '60-90 min',
-      prerequisites: ['wallet-simulator', 'security-simulator'],
-      learningObjectives: [
-        'Safe DApp interactions',
-        'Token approvals and revocations',
-        'Yield farming strategies',
-        'Gas optimization techniques'
+      id: 'staking-calculator',
+      title: 'Staking Rewards Calculator',
+      description: 'Calculate and compare staking rewards across protocols with compound interest effects',
+      difficulty: 'Intermediate',
+      duration: '20-30 min',
+      category: 'Investment',
+      learningOutcomes: [
+        'Compare staking protocols',
+        'Understand compound interest',
+        'Learn validator economics',
+        'Assess staking risks'
       ],
-      riskScenarios: [
-        'Smart contract risks',
-        'Impermanent loss',
-        'Rug pull detection',
-        'Gas fee optimization'
-      ],
-      priority: 'High',
-      status: 'coming-soon',
-      icon: Gamepad2,
-      href: '/education/simulators/defi-simulator',
       features: [
-        'DEX interaction practice',
-        'Liquidity pool simulation',
-        'Yield farming calculator',
-        'Risk assessment tools'
-      ]
+        '5+ staking protocols',
+        'Compound frequency options',
+        'Risk assessment tools',
+        'Validator fee calculations'
+      ],
+      href: '/education/simulators/staking-calculator',
+      icon: <Calculator className="w-6 h-6" />,
+      status: 'available',
+      riskLevel: 'Educational'
+    },
+    {
+      id: 'portfolio-rebalancing',
+      title: 'Portfolio Rebalancing Simulator',
+      description: 'Learn portfolio management with different rebalancing strategies and real market simulations',
+      difficulty: 'Advanced',
+      duration: '60-90 min',
+      category: 'Investment',
+      learningOutcomes: [
+        'Master rebalancing strategies',
+        'Understand portfolio drift',
+        'Learn risk management',
+        'Practice disciplined investing'
+      ],
+      features: [
+        '3 rebalancing strategies',
+        'Real-time market simulation',
+        'Portfolio health metrics',
+        'Rebalancing history tracking'
+      ],
+      href: '/education/simulators/portfolio-rebalancing',
+      icon: <PieChart className="w-6 h-6" />,
+      status: 'available',
+      riskLevel: 'Simulated'
+    },
+    {
+      id: 'liquidity-pool',
+      title: 'Liquidity Pool Simulator',
+      description: 'Understand impermanent loss, LP rewards, and yield farming strategies in a risk-free environment',
+      difficulty: 'Advanced',
+      duration: '45-60 min',
+      category: 'DeFi',
+      learningOutcomes: [
+        'Understand impermanent loss',
+        'Calculate LP rewards',
+        'Learn yield farming strategies',
+        'Assess risk/reward ratios'
+      ],
+      features: [
+        'Multiple trading pairs',
+        'Impermanent loss calculator',
+        'Yield farming scenarios',
+        'Fee distribution modeling'
+      ],
+      href: '/education/simulators/liquidity-pool',
+      icon: <Coins className="w-6 h-6" />,
+      status: 'coming-soon',
+      riskLevel: 'Simulated'
+    },
+    {
+      id: 'nft-marketplace',
+      title: 'NFT Marketplace Simulator',
+      description: 'Experience NFT trading, minting, and marketplace mechanics without spending real money',
+      difficulty: 'Intermediate',
+      duration: '30-45 min',
+      category: 'Trading',
+      learningOutcomes: [
+        'Understand NFT marketplaces',
+        'Practice minting and trading',
+        'Learn valuation basics',
+        'Understand gas fees impact'
+      ],
+      features: [
+        'Simulated NFT collections',
+        'Minting simulation',
+        'Market trends analysis',
+        'Gas fee calculations'
+      ],
+      href: '/education/simulators/nft-marketplace',
+      icon: <Star className="w-6 h-6" />,
+      status: 'coming-soon',
+      riskLevel: 'Safe'
     }
   ]
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Beginner': return 'text-green-600 bg-green-100'
-      case 'Intermediate': return 'text-yellow-600 bg-yellow-100'
-      case 'Advanced': return 'text-red-600 bg-red-100'
-      default: return 'text-gray-600 bg-gray-100'
-    }
-  }
+  const categories = [
+    { id: 'all', name: 'All Simulators', count: simulators.length },
+    { id: 'Fundamentals', name: 'Fundamentals', count: simulators.filter(s => s.category === 'Fundamentals').length },
+    { id: 'Trading', name: 'Trading', count: simulators.filter(s => s.category === 'Trading').length },
+    { id: 'Investment', name: 'Investment', count: simulators.filter(s => s.category === 'Investment').length },
+    { id: 'DeFi', name: 'DeFi', count: simulators.filter(s => s.category === 'DeFi').length }
+  ]
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'Essential': return 'text-red-600 bg-red-100'
-      case 'High': return 'text-orange-600 bg-orange-100'
-      case 'Medium': return 'text-yellow-600 bg-yellow-100'
-      case 'Optional': return 'text-blue-600 bg-blue-100'
-      default: return 'text-gray-600 bg-gray-100'
-    }
-  }
+  const filteredSimulators = selectedCategory === 'all' 
+    ? simulators 
+    : simulators.filter(s => s.category === selectedCategory)
 
-  const isSimulatorAccessible = (simulator: Simulator): boolean => {
-    if (simulator.status === 'coming-soon') return false
-    return simulator.prerequisites.every(prereq => completedSimulators.includes(prereq))
+  const stats = {
+    totalSimulators: simulators.length,
+    availableNow: simulators.filter(s => s.status === 'available').length,
+    totalLearningTime: '4-6 hours',
+    skillLevels: 3
   }
-
-  const availableSimulators = simulators.filter(s => s.status === 'available')
-  const comingSoonCount = simulators.filter(s => s.status === 'coming-soon').length
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Interactive Learning Simulators
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Practice crypto skills in a safe, risk-free environment. Learn by doing with realistic scenarios and interactive challenges.
-            </p>
-          </div>
-          
-          {/* Progress Stats */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4 text-center">
-              <BarChart3 className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-blue-900">{completedSimulators.length}</div>
-              <div className="text-sm text-blue-700">Completed</div>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4 text-center">
-              <PlayCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-green-900">{availableSimulators.length}</div>
-              <div className="text-sm text-green-700">Available Now</div>
-            </div>
-            <div className="bg-orange-50 rounded-lg p-4 text-center">
-              <Clock className="w-8 h-8 text-orange-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-orange-900">{comingSoonCount}</div>
-              <div className="text-sm text-orange-700">Coming Soon</div>
-            </div>
-            <div className="bg-purple-50 rounded-lg p-4 text-center">
-              <Award className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-purple-900">
-                {Object.values(simulatorProgress).reduce((a, b) => a + b, 0) || 0}%
-              </div>
-              <div className="text-sm text-purple-700">Avg Score</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Simulators Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {simulators.map((simulator) => {
-            const isAccessible = isSimulatorAccessible(simulator)
-            const isCompleted = completedSimulators.includes(simulator.id)
-            const progress = simulatorProgress[simulator.id] || 0
+        <div className="space-y-8">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <Link
+              href="/education/modules"
+              className="inline-flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Learning Modules
+            </Link>
+          </div>
 
-            return (
-              <div
-                key={simulator.id}
-                className={`bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow ${
-                  !isAccessible ? 'opacity-75' : ''
-                }`}
-              >
+          {/* Hero Section */}
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg text-white p-8">
+            <div className="max-w-4xl">
+              <h1 className="text-3xl font-bold mb-4">Interactive Crypto Simulators</h1>
+              <p className="text-blue-100 text-lg mb-6">
+                Learn by doing with hands-on simulators that let you practice crypto skills without financial risk. 
+                From wallet basics to advanced DeFi strategies - master crypto through interactive experiences.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm">
+                <div className="bg-white/10 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold">{stats.availableNow}</div>
+                  <div className="text-blue-100">Available Now</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold">{stats.totalSimulators}</div>
+                  <div className="text-blue-100">Total Simulators</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold">{stats.totalLearningTime}</div>
+                  <div className="text-blue-100">Learning Time</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold">{stats.skillLevels}</div>
+                  <div className="text-blue-100">Skill Levels</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Category Filter */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Browse by Category</h2>
+            <div className="flex flex-wrap gap-3">
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    selectedCategory === category.id
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {category.name} ({category.count})
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Simulators Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {filteredSimulators.map((simulator, index) => (
+              <div key={simulator.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                
+                {/* Status Badge */}
+                {simulator.status === 'coming-soon' && (
+                  <div className="bg-yellow-100 border-b border-yellow-200 px-4 py-2">
+                    <div className="flex items-center justify-center text-yellow-800 text-sm font-medium">
+                      <Clock className="w-4 h-4 mr-2" />
+                      Coming Soon
+                    </div>
+                  </div>
+                )}
+                
                 <div className="p-6">
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <simulator.icon className="w-6 h-6 text-blue-600" />
+                      <div className={`p-3 rounded-lg ${
+                        simulator.category === 'Fundamentals' ? 'bg-green-100' :
+                        simulator.category === 'Trading' ? 'bg-blue-100' :
+                        simulator.category === 'Investment' ? 'bg-purple-100' :
+                        'bg-orange-100'
+                      }`}>
+                        <div className={
+                          simulator.category === 'Fundamentals' ? 'text-green-600' :
+                          simulator.category === 'Trading' ? 'text-blue-600' :
+                          simulator.category === 'Investment' ? 'text-purple-600' :
+                          'text-orange-600'
+                        }>
+                          {simulator.icon}
+                        </div>
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-900">
-                          {simulator.name}
-                        </h3>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(simulator.difficulty)}`}>
+                        <h3 className="text-xl font-semibold text-gray-900">{simulator.title}</h3>
+                        <div className="flex items-center space-x-3 mt-1">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            simulator.difficulty === 'Beginner' ? 'bg-green-100 text-green-700' :
+                            simulator.difficulty === 'Intermediate' ? 'bg-blue-100 text-blue-700' :
+                            'bg-purple-100 text-purple-700'
+                          }`}>
                             {simulator.difficulty}
                           </span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(simulator.priority)}`}>
-                            {simulator.priority}
+                          <span className="text-xs text-gray-500">{simulator.duration}</span>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            simulator.riskLevel === 'Safe' ? 'bg-green-100 text-green-700' :
+                            simulator.riskLevel === 'Simulated' ? 'bg-blue-100 text-blue-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {simulator.riskLevel}
                           </span>
-                          {simulator.status === 'coming-soon' && (
-                            <span className="px-2 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-100">
-                              Coming Soon
-                            </span>
-                          )}
                         </div>
                       </div>
                     </div>
-                    {isCompleted && (
-                      <CheckCircle2 className="w-6 h-6 text-green-600" />
-                    )}
                   </div>
 
                   {/* Description */}
-                  <p className="text-gray-600 mb-4">{simulator.description}</p>
+                  <p className="text-gray-600 mb-4 leading-relaxed">
+                    {simulator.description}
+                  </p>
 
-                  {/* Time & Prerequisites */}
-                  <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
-                    <div className="flex items-center space-x-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{simulator.estimatedTime}</span>
-                    </div>
-                    {simulator.prerequisites.length > 0 && (
-                      <div className="flex items-center space-x-1">
-                        <Target className="w-4 h-4" />
-                        <span>{simulator.prerequisites.length} prerequisites</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Learning Objectives */}
+                  {/* Learning Outcomes */}
                   <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">Learning Objectives:</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      {simulator.learningObjectives.slice(0, 3).map((objective, idx) => (
-                        <li key={idx} className="flex items-start space-x-2">
-                          <span className="text-blue-600 mt-1">•</span>
-                          <span>{objective}</span>
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      <Target className="w-4 h-4 mr-2 text-green-600" />
+                      What You'll Learn
+                    </h4>
+                    <ul className="space-y-1">
+                      {simulator.learningOutcomes.slice(0, 3).map((outcome, idx) => (
+                        <li key={idx} className="text-sm text-gray-600 flex items-start">
+                          <span className="text-green-600 mr-2">•</span>
+                          {outcome}
                         </li>
                       ))}
-                      {simulator.learningObjectives.length > 3 && (
-                        <li className="text-blue-600 text-xs">
-                          +{simulator.learningObjectives.length - 3} more objectives
-                        </li>
-                      )}
                     </ul>
                   </div>
 
-                  {/* Progress bar for completed simulators */}
-                  {progress > 0 && (
-                    <div className="mb-4">
-                      <div className="flex justify-between text-sm text-gray-600 mb-1">
-                        <span>Progress</span>
-                        <span>{progress}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full"
-                          style={{ width: `${progress}%` }}
-                        ></div>
-                      </div>
+                  {/* Features */}
+                  <div className="mb-6">
+                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                      <Zap className="w-4 h-4 mr-2 text-blue-600" />
+                      Key Features
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {simulator.features.slice(0, 3).map((feature, idx) => (
+                        <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                          {feature}
+                        </span>
+                      ))}
+                      {simulator.features.length > 3 && (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                          +{simulator.features.length - 3} more
+                        </span>
+                      )}
                     </div>
-                  )}
-
-                  {/* CTA */}
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-500">
-                      {simulator.features.length} interactive features
-                    </div>
-                    
-                    {isAccessible ? (
-                      <Link
-                        href={simulator.href}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center text-sm font-medium"
-                      >
-                        {isCompleted ? 'Practice Again' : 'Start Simulator'}
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Link>
-                    ) : simulator.status === 'coming-soon' ? (
-                      <span className="bg-gray-100 text-gray-500 px-4 py-2 rounded-lg text-sm">
-                        Coming Soon
-                      </span>
-                    ) : (
-                      <span className="bg-gray-100 text-gray-500 px-4 py-2 rounded-lg text-sm">
-                        Complete Prerequisites
-                      </span>
-                    )}
                   </div>
+
+                  {/* Action Button */}
+                  {simulator.status === 'available' ? (
+                    <Link
+                      href={simulator.href}
+                      className="w-full inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      Start Simulator
+                    </Link>
+                  ) : (
+                    <button
+                      disabled
+                      className="w-full inline-flex items-center justify-center px-6 py-3 bg-gray-300 text-gray-500 rounded-lg font-medium cursor-not-allowed"
+                    >
+                      <Clock className="w-4 h-4 mr-2" />
+                      Coming Soon
+                    </button>
+                  )}
                 </div>
               </div>
-            )
-          })}
-        </div>
+            ))}
+          </div>
 
-        {/* Getting Started Section */}
-        <div className="mt-12 bg-blue-50 rounded-lg p-8">
-          <div className="text-center">
-            <User className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              New to Crypto? Start Here!
-            </h2>
-            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-              We recommend starting with the Crypto Wallet Simulator to learn the fundamentals of secure wallet management. 
-              Then progress through our structured learning path based on your interests.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/education/simulators/wallet-simulator"
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
-              >
-                Start with Wallet Simulator
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
-              <Link
-                href="/education/dashboard"
-                className="border border-blue-600 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center"
-              >
-                View Learning Dashboard
-              </Link>
+          {/* Why Simulators Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Why Use Interactive Simulators?</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <div className="bg-green-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <Shield className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">Risk-Free Learning</h3>
+                <p className="text-gray-600 text-sm">
+                  Practice with fake money and simulated environments. Make mistakes without financial consequences while building real skills.
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="bg-blue-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <BarChart3 className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">Hands-On Experience</h3>
+                <p className="text-gray-600 text-sm">
+                  Learn by doing with interactive interfaces that mirror real crypto platforms and tools you'll use in practice.
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="bg-purple-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <Award className="w-8 h-8 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">Progressive Skills</h3>
+                <p className="text-gray-600 text-sm">
+                  Start with basics and advance to complex strategies. Each simulator builds on previous knowledge with clear learning paths.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Learning Path Recommendation */}
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+            <h3 className="font-semibold text-green-900 mb-3 flex items-center">
+              <Target className="w-5 h-5 mr-2" />
+              Recommended Learning Path
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+              <div className="text-center p-3 bg-white rounded-lg border border-green-200">
+                <div className="font-semibold text-green-900">1. Start Here</div>
+                <div className="text-green-700">Wallet Simulator</div>
+                <div className="text-xs text-green-600 mt-1">Learn the basics</div>
+              </div>
+              <div className="text-center p-3 bg-white rounded-lg border border-blue-200">
+                <div className="font-semibold text-blue-900">2. Trading</div>
+                <div className="text-blue-700">DeFi Trading</div>
+                <div className="text-xs text-blue-600 mt-1">Practice swapping</div>
+              </div>
+              <div className="text-center p-3 bg-white rounded-lg border border-purple-200">
+                <div className="font-semibold text-purple-900">3. Investing</div>
+                <div className="text-purple-700">Staking Calculator</div>
+                <div className="text-xs text-purple-600 mt-1">Learn yields</div>
+              </div>
+              <div className="text-center p-3 bg-white rounded-lg border border-orange-200">
+                <div className="font-semibold text-orange-900">4. Advanced</div>
+                <div className="text-orange-700">Portfolio Manager</div>
+                <div className="text-xs text-orange-600 mt-1">Master strategy</div>
+              </div>
             </div>
           </div>
         </div>
