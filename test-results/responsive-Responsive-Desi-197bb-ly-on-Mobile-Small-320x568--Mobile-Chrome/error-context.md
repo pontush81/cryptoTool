@@ -1,0 +1,115 @@
+# Page snapshot
+
+```yaml
+- navigation:
+  - link "Crypto Analysis Tool":
+    - /url: /
+  - button
+- main:
+  - heading "Crypto Analysis Made Simple" [level=1]
+  - paragraph: Learn and analyze cryptocurrency markets with confidence. Our beginner-friendly tools and comprehensive education help you understand Bitcoin, technical analysis, and market trends—no experience required.
+  - link "Start Free Analysis":
+    - /url: /dashboard
+  - link "Learn Crypto Basics":
+    - /url: /education
+  - heading "New to Crypto? Start Here" [level=2]
+  - paragraph: Build your cryptocurrency knowledge step by step with our guided learning path
+  - link "1 Understanding Bitcoin Learn what Bitcoin is, how it works, and why it matters. Perfect for complete beginners. 15 minutes":
+    - /url: /education/bitcoin-basics
+    - text: "1"
+    - heading "Understanding Bitcoin" [level=3]
+    - paragraph: Learn what Bitcoin is, how it works, and why it matters. Perfect for complete beginners.
+    - text: 15 minutes
+  - link "2 How Blockchain Works Dive deeper into blockchain technology and understand the foundation of crypto. 25 minutes":
+    - /url: /education/how-it-works
+    - text: "2"
+    - heading "How Blockchain Works" [level=3]
+    - paragraph: Dive deeper into blockchain technology and understand the foundation of crypto.
+    - text: 25 minutes
+  - link "3 Practice Analysis Apply your knowledge with our beginner-friendly analysis tools and real market data. Try now":
+    - /url: /dashboard
+    - text: "3"
+    - heading "Practice Analysis" [level=3]
+    - paragraph: Apply your knowledge with our beginner-friendly analysis tools and real market data.
+    - text: Try now
+  - heading "See Our Tools In Action" [level=2]
+  - paragraph: Live cryptocurrency market analysis and insights—updated in real-time
+  - heading "Technical Analysis" [level=3]
+  - paragraph: AI-powered market signals
+  - text: RSI Signal Buy Signal MACD Bullish Trend Strong Uptrend
+  - paragraph: Perfect for beginners - no complex setup required
+  - heading "Global Market Data" [level=3]
+  - paragraph: Real-time crypto metrics
+  - text: Total Market Cap $3.4T Bitcoin Dominance 58.2% 24h Volume +12.8%
+  - paragraph: Easy-to-understand market overview for everyone
+  - heading "Smart Risk Analysis" [level=3]
+  - paragraph: AI-powered insights
+  - text: LOW RISK 90% confidence level Safe to hold position
+  - paragraph: Beginner-friendly risk assessment tools
+  - link "Try All Tools Free":
+    - /url: /dashboard
+  - heading "Why Choose Our Platform" [level=2]
+  - paragraph: The easiest way to learn and analyze cryptocurrency markets
+  - heading "Beginner-Friendly" [level=3]
+  - paragraph: Start with zero experience. Our educational content guides you step by step.
+  - heading "Real-Time Data" [level=3]
+  - paragraph: Live market data and analysis. Stay updated with the latest trends.
+  - heading "Learn Crypto" [level=3]
+  - paragraph: Educate yourself about cryptocurrencies and technical analysis with our tools and guides.
+  - heading "Easy to Use" [level=3]
+  - paragraph: Intuitive interface designed for users of all skill levels.
+  - heading "Master Crypto Analysis" [level=2]
+  - paragraph: Comprehensive learning resources for every skill level
+  - link "Education Center Start your crypto journey here Bitcoin & Blockchain Fundamentals Technical Analysis Basics Market Psychology & Risk Management Interactive Learning Modules Start Learning Free":
+    - /url: /education
+    - heading "Education Center" [level=3]
+    - paragraph: Start your crypto journey here
+    - list:
+      - listitem: Bitcoin & Blockchain Fundamentals
+      - listitem: Technical Analysis Basics
+      - listitem: Market Psychology & Risk Management
+      - listitem: Interactive Learning Modules
+    - text: Start Learning Free
+  - link "Analysis Dashboard Professional tools made simple Real-time Price Charts & Data Technical Indicators (RSI, MACD, MA) Market Dominance Analysis Beginner-Friendly Interface Try Analysis Tools":
+    - /url: /dashboard
+    - heading "Analysis Dashboard" [level=3]
+    - paragraph: Professional tools made simple
+    - list:
+      - listitem: Real-time Price Charts & Data
+      - listitem: Technical Indicators (RSI, MACD, MA)
+      - listitem: Market Dominance Analysis
+      - listitem: Beginner-Friendly Interface
+    - text: Try Analysis Tools
+  - heading "Ready to Master Cryptocurrency Analysis?" [level=2]
+  - paragraph: Start your crypto journey with our free educational content and analysis tools. Learn at your own pace with beginner-friendly guidance.
+  - link "Start Learning Now":
+    - /url: /education
+  - link "Try Analysis Tools":
+    - /url: /dashboard
+  - text: Crypto Analysis Tool
+  - paragraph: The easiest way to learn cryptocurrency analysis and understand Bitcoin markets. Educational focused platform for beginners and intermediate traders worldwide.
+  - heading "Learn" [level=3]
+  - list:
+    - listitem:
+      - link "Bitcoin Basics":
+        - /url: /education/bitcoin-basics
+    - listitem:
+      - link "How Blockchain Works":
+        - /url: /education/how-it-works
+    - listitem:
+      - link "All Courses":
+        - /url: /education
+  - heading "Tools" [level=3]
+  - list:
+    - listitem:
+      - link "Analysis Dashboard":
+        - /url: /dashboard
+    - listitem:
+      - link "Technical Indicators":
+        - /url: /dashboard
+    - listitem:
+      - link "Market Data":
+        - /url: /dashboard
+  - text: © 2025 Crypto Analysis Tool - Empowering crypto education worldwide
+- alert
+```
