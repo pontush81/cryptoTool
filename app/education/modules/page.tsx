@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { BookOpen, TrendingUp, Shield, Zap, Clock, Users, ArrowRight, Search, Trophy, Filter, Settings, Brain, Target, CheckCircle2, Banknote, PiggyBank, Coins, Building, Landmark, Network, Bot, Wrench } from 'lucide-react'
+import { BookOpen, TrendingUp, Shield, Zap, Clock, Users, ArrowRight, Search, Trophy, Filter, Settings, Brain, Target, CheckCircle2, Banknote, PiggyBank, Coins, Building, Landmark, Network, Bot, Wrench, Home } from 'lucide-react'
+import Breadcrumb from '../../../components/Breadcrumb'
+import Tooltip from '../../../components/Tooltip'
 
 interface LearningModule {
   id: string
@@ -43,6 +45,7 @@ export default function EducationModulesPage() {
   const [filterCategory, setFilterCategory] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [showPreferences, setShowPreferences] = useState(false)
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null)
 
   useEffect(() => {
     // Load data from localStorage
@@ -347,9 +350,19 @@ export default function EducationModulesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-6">
           
+          {/* Breadcrumb Navigation */}
+          <Breadcrumb 
+            items={[
+              { label: 'Home', href: '/', icon: <Home className="w-4 h-4" /> },
+              { label: 'Education', href: '/education/dashboard', icon: <BookOpen className="w-4 h-4" /> },
+              { label: 'All Modules', current: true, icon: <Target className="w-4 h-4" /> }
+            ]} 
+            className="mb-4" 
+          />
+          
           {/* Header */}
           <div className="flex items-center justify-between">
-            <Link href="/education" className="inline-flex items-center text-blue-600 hover:text-blue-700">
+            <Link href="/education/dashboard" className="inline-flex items-center text-blue-600 hover:text-blue-700">
               <ArrowRight className="w-4 h-4 mr-2" />
               Back to Dashboard
             </Link>
@@ -509,7 +522,9 @@ export default function EducationModulesPage() {
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-700">Track:</span>
+                  <Tooltip content="Choose learning track based on your experience level">
+                    <span className="text-sm font-medium text-gray-700 cursor-help">Track:</span>
+                  </Tooltip>
                   <select
                     value={filterTrack}
                     onChange={(e) => setFilterTrack(e.target.value as typeof filterTrack)}
@@ -629,11 +644,15 @@ export default function EducationModulesPage() {
               const isAccessible = canAccessModule(module)
               
               return (
-                <div key={module.id} className={`bg-white rounded-lg shadow-sm border-2 transition-all duration-200 ${
-                  !isAccessible ? 'border-gray-200 opacity-60' : 
-                  module.completed ? 'border-green-200 hover:border-green-300' : 
-                  'border-gray-200 hover:border-blue-300 hover:shadow-md'
-                }`}>
+                <div 
+                  key={module.id} 
+                  onMouseEnter={() => setHoveredCard(module.id)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                  className={`bg-white rounded-lg shadow-sm border-2 transition-all duration-200 ${
+                    !isAccessible ? 'border-gray-200 opacity-60' : 
+                    module.completed ? 'border-green-200 hover:border-green-300' : 
+                    'border-gray-200 hover:border-blue-300 hover:shadow-md'
+                  }`}>
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className={`p-3 rounded-lg ${
@@ -646,26 +665,44 @@ export default function EducationModulesPage() {
                         )}
                       </div>
                       <div className="flex flex-col items-end space-y-2">
-                        {/* Track Badge */}
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                          module.track === 'foundation' ? 'bg-green-100 text-green-700' :
-                          module.track === 'applications' ? 'bg-blue-100 text-blue-700' :
-                          'bg-purple-100 text-purple-700'
-                        }`}>
-                          {module.track === 'foundation' ? '🏗️ Foundation' :
-                           module.track === 'applications' ? '⚡ Applications' :
-                           '🚀 Advanced'}
-                        </span>
-                        {/* Difficulty Badge */}
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          module.difficulty === 'Beginner' ? 'bg-emerald-100 text-emerald-700' :
-                          module.difficulty === 'Intermediate' ? 'bg-amber-100 text-amber-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {module.difficulty === 'Beginner' ? '🟢 Beginner' :
-                           module.difficulty === 'Intermediate' ? '🟡 Intermediate' :
-                           '🔴 Advanced'}
-                        </span>
+                        {/* Track Badge with Tooltip */}
+                        <Tooltip 
+                          content={
+                            module.track === 'foundation' ? 'Core crypto concepts and fundamentals' :
+                            module.track === 'applications' ? 'Real-world crypto applications and use cases' :
+                            'Advanced strategies and complex concepts'
+                          }
+                          position="left"
+                        >
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium cursor-help ${
+                            module.track === 'foundation' ? 'bg-green-100 text-green-700' :
+                            module.track === 'applications' ? 'bg-blue-100 text-blue-700' :
+                            'bg-purple-100 text-purple-700'
+                          }`}>
+                            {module.track === 'foundation' ? '🏗️ Foundation' :
+                             module.track === 'applications' ? '⚡ Applications' :
+                             '🚀 Advanced'}
+                          </span>
+                        </Tooltip>
+                        {/* Difficulty Badge with Tooltip */}
+                        <Tooltip 
+                          content={
+                            module.difficulty === 'Beginner' ? 'No prior crypto knowledge required' :
+                            module.difficulty === 'Intermediate' ? 'Some basic crypto understanding helpful' :
+                            'Requires solid foundation in crypto concepts'
+                          }
+                          position="left"
+                        >
+                          <span className={`text-xs px-2 py-1 rounded-full cursor-help ${
+                            module.difficulty === 'Beginner' ? 'bg-emerald-100 text-emerald-700' :
+                            module.difficulty === 'Intermediate' ? 'bg-amber-100 text-amber-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {module.difficulty === 'Beginner' ? '🟢 Beginner' :
+                             module.difficulty === 'Intermediate' ? '🟡 Intermediate' :
+                             '🔴 Advanced'}
+                          </span>
+                        </Tooltip>
                         {module.completed && (
                           <span className={`text-xs px-2 py-1 rounded-full ${masteryColors[module.masteryLevel]}`}>
                             ✨ {masteryLabels[module.masteryLevel]}
@@ -684,26 +721,48 @@ export default function EducationModulesPage() {
                       <span>{module.topics.length} topics</span>
                     </div>
                     
-                    {/* Categories & Topics */}
-                    <div className="space-y-2 mb-4">
-                      {module.categories.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          <span className="text-xs text-gray-500 mr-1">Categories:</span>
-                          {module.categories.map((category, index) => (
-                            <span key={index} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full border border-blue-200">
-                              {category}
-                            </span>
-                          ))}
+                    {/* Categories & Topics - Progressive Disclosure */}
+                    <div className="mb-4">
+                      {/* Always visible: Basic info */}
+                      <div className="flex items-center text-gray-500 text-sm mb-2">
+                        <Clock className="w-4 h-4 mr-1" />
+                        <span>{module.duration}</span>
+                        <Users className="w-4 h-4 ml-4 mr-1" />
+                        <span>{module.topics.length} topics</span>
+                        {module.categories.length > 0 && (
+                          <>
+                            <div className="w-1 h-1 bg-gray-400 rounded-full mx-3"></div>
+                            <span>{module.categories.length} categories</span>
+                          </>
+                        )}
+                        {hoveredCard !== module.id && (
+                          <span className="ml-2 text-xs text-gray-400">hover for details</span>
+                        )}
+                      </div>
+                      
+                      {/* On hover: Detailed categories & topics */}
+                      {hoveredCard === module.id && (
+                        <div className="space-y-2 animate-in fade-in duration-200">
+                          {module.categories.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              <span className="text-xs text-gray-500 mr-1 font-medium">Categories:</span>
+                              {module.categories.map((category, index) => (
+                                <span key={index} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full border border-blue-200">
+                                  {category}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          <div className="flex flex-wrap gap-1">
+                            <span className="text-xs text-gray-500 mr-1 font-medium">Topics:</span>
+                            {module.topics.map((topic, index) => (
+                              <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                {topic}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       )}
-                      <div className="flex flex-wrap gap-1">
-                        <span className="text-xs text-gray-500 mr-1">Topics:</span>
-                        {module.topics.map((topic, index) => (
-                          <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                            {topic}
-                          </span>
-                        ))}
-                      </div>
                     </div>
                     
                     {!preferences.allowSkipPrerequisites && module.prerequisites.length > 0 && (
