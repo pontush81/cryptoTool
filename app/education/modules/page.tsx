@@ -258,32 +258,40 @@ export default function EducationModulesPage() {
   })
 
   const [filterDifficulty, setFilterDifficulty] = useState<'all' | 'Beginner' | 'Intermediate' | 'Advanced'>('all')
-  const [filterProgress, setFilterProgress] = useState<'all' | 'not-started' | 'completed'>('all')
-  const [filterCategory, setFilterCategory] = useState<'all' | 'Fundamentals' | 'Trading' | 'DeFi' | 'Investment' | 'Advanced'>('all')
+  const [filterProgress, setFilterProgress] = useState<'all' | 'not-started' | 'in-progress' | 'completed'>('all')
+  const [filterCategory, setFilterCategory] = useState<'all' | 'Fundamentals' | 'Wallets & Security' | 'Trading & Investment' | 'Blockchain Technology' | 'DeFi & DAOs' | 'NFTs & Digital Assets' | 'Regulation & Compliance' | 'Industry & Institutional'>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [showPreferences, setShowPreferences] = useState(false)
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
 
-  // Analytics tracking function
-  const trackEvent = (eventName: string, properties: Record<string, any>) => {
+  // Get completed modules from localStorage
+  const completedModulesFromStorage = typeof window !== 'undefined' 
+    ? JSON.parse(localStorage.getItem('completedEducationModules') || '[]') 
+    : []
+
+  // Get visited/started modules from localStorage  
+  const visitedModules = typeof window !== 'undefined'
+    ? JSON.parse(localStorage.getItem('visitedEducationModules') || '[]')
+    : []
+
+  const savePreferences = (newPrefs: UserPreferences) => {
+    setPreferences(newPrefs)
     if (typeof window !== 'undefined') {
-      // Console logging for development - replace with your analytics service
-      console.log('📊 Analytics Event:', eventName, properties)
-      
-      // Example integration points:
-      // gtag('event', eventName, properties)
-      // mixpanel.track(eventName, properties)
-      // analytics.track(eventName, properties)
-      
-      // Store in localStorage for now (replace with proper analytics)
-      const events = JSON.parse(localStorage.getItem('educationAnalytics') || '[]')
-      events.push({
-        timestamp: new Date().toISOString(),
-        event: eventName,
-        properties
-      })
-      localStorage.setItem('educationAnalytics', JSON.stringify(events.slice(-100))) // Keep last 100 events
+      localStorage.setItem('educationPreferences', JSON.stringify(newPrefs))
+    }
+  }
+
+  const trackEvent = (event: string, properties: Record<string, any>) => {
+    console.log('📊 Event:', event, properties)
+    
+    // Track module visits for progress filtering
+    if (event === 'module_started' && typeof window !== 'undefined') {
+      const visitedModules = JSON.parse(localStorage.getItem('visitedEducationModules') || '[]')
+      if (!visitedModules.includes(properties.moduleId)) {
+        visitedModules.push(properties.moduleId)
+        localStorage.setItem('visitedEducationModules', JSON.stringify(visitedModules))
+      }
     }
   }
 
@@ -298,11 +306,6 @@ export default function EducationModulesPage() {
     setPreferences({ ...preferences, ...userPrefs })
   }, [])
 
-  const savePreferences = (newPrefs: UserPreferences) => {
-    setPreferences(newPrefs)
-    localStorage.setItem('educationPreferences', JSON.stringify(newPrefs))
-  }
-
   // Helper function to get valid mastery level
   const getMasteryLevel = (moduleId: string): 'none' | 'basic' | 'good' | 'excellent' => {
     const level = masteryLevels[moduleId] || 'none'
@@ -310,6 +313,17 @@ export default function EducationModulesPage() {
       return level as 'none' | 'basic' | 'good' | 'excellent'
     }
     return 'none'
+  }
+
+  // Helper function to get module progress status
+  const getModuleProgressStatus = (moduleId: string): 'not-started' | 'in-progress' | 'completed' => {
+    if (completedModulesFromStorage.includes(moduleId)) {
+      return 'completed'
+    }
+    if (visitedModules.includes(moduleId)) {
+      return 'in-progress'
+    }
+    return 'not-started'
   }
 
   const modules: LearningModule[] = [
@@ -322,7 +336,7 @@ export default function EducationModulesPage() {
       icon: <BookOpen className="w-6 h-6" />,
       href: '/education/modules/crypto-history',
       topics: ['Bitcoin Genesis', 'Major Crashes', 'DeFi Summer', 'Regulatory Milestones', 'Institutional Adoption'],
-      completed: completedModules.includes('crypto-history'),
+      completed: completedModulesFromStorage.includes('crypto-history'),
       recommendedBackground: 'No prior knowledge required - great for understanding context',
       masteryLevel: getMasteryLevel('crypto-history'),
       categories: ['History', 'Context', 'Milestones']
@@ -336,7 +350,7 @@ export default function EducationModulesPage() {
       icon: <TrendingUp className="w-6 h-6" />,
       href: '/education/modules/getting-started',
       topics: ['Exchange Selection', 'Basic Wallets', 'First Purchase', 'Initial Setup'],
-      completed: completedModules.includes('getting-started'),
+      completed: completedModulesFromStorage.includes('getting-started'),
       recommendedBackground: 'No prior knowledge required - perfect starting point',
       masteryLevel: getMasteryLevel('getting-started'),
       categories: ['Blockchain', 'Wallets', 'Exchanges']
@@ -350,7 +364,7 @@ export default function EducationModulesPage() {
       icon: <Coins className="w-6 h-6" />,
       href: '/education/modules/bitcoin-basics',
       topics: ['Digital Gold', 'Blockchain', 'Mining', 'Decentralization'],
-      completed: completedModules.includes('bitcoin-basics'),
+      completed: completedModulesFromStorage.includes('bitcoin-basics'),
       recommendedBackground: 'Basic understanding of traditional money systems helpful',
       masteryLevel: getMasteryLevel('bitcoin-basics'),
       categories: ['Blockchain', 'Cryptocurrency', 'Mining']
@@ -364,7 +378,7 @@ export default function EducationModulesPage() {
       icon: <Banknote className="w-6 h-6" />,
       href: '/education/modules/money-systems',
       topics: ['Fiat Money', 'Central Banking', 'Inflation', 'Financial History'],
-      completed: completedModules.includes('money-systems'),
+      completed: completedModulesFromStorage.includes('money-systems'),
       recommendedBackground: 'No prior knowledge required - foundational content',
       masteryLevel: getMasteryLevel('money-systems'),
       categories: ['Finance', 'Banking', 'Economics']
@@ -378,7 +392,7 @@ export default function EducationModulesPage() {
       icon: <Zap className="w-6 h-6" />,
       href: '/education/modules/how-it-works',
       topics: ['Cryptography', 'Consensus', 'Nodes', 'Immutability'],
-      completed: completedModules.includes('how-it-works'),
+      completed: completedModulesFromStorage.includes('how-it-works'),
       recommendedBackground: 'Basic understanding of Bitcoin helpful but not required',
       masteryLevel: getMasteryLevel('how-it-works'),
       categories: ['Blockchain', 'Technology', 'Cryptography']
@@ -392,7 +406,7 @@ export default function EducationModulesPage() {
       icon: <Users className="w-6 h-6" />,
       href: '/education/modules/consensus-blockchain-types',
       topics: ['Proof of Work', 'Proof of Stake', 'Delegated PoS', 'Consensus Mechanisms', 'Blockchain Types'],
-      completed: completedModules.includes('consensus-blockchain-types'),
+      completed: completedModulesFromStorage.includes('consensus-blockchain-types'),
       recommendedBackground: 'Understanding of basic blockchain concepts helpful',
       masteryLevel: getMasteryLevel('consensus-blockchain-types'),
       categories: ['Consensus', 'Technology', 'Infrastructure']
@@ -406,7 +420,7 @@ export default function EducationModulesPage() {
       icon: <Network className="w-6 h-6" />,
       href: '/education/modules/ethereum-smart-contracts',
       topics: ['Smart Contract Basics', 'Ethereum Virtual Machine', 'Gas Economics', 'Ethereum 2.0', 'Layer 2 Solutions'],
-      completed: completedModules.includes('ethereum-smart-contracts'),
+      completed: completedModulesFromStorage.includes('ethereum-smart-contracts'),
       recommendedBackground: 'Understanding of blockchain basics and Bitcoin concepts helpful',
       masteryLevel: getMasteryLevel('ethereum-smart-contracts'),
       categories: ['Ethereum', 'Smart Contracts', 'DApps']
@@ -420,7 +434,7 @@ export default function EducationModulesPage() {
       icon: <Wrench className="w-6 h-6" />,
       href: '/education/modules/defi-tools',
       topics: ['Advanced Wallets', 'Portfolio Trackers', 'TradingView Setup', 'Multi-Chain Tools'],
-      completed: completedModules.includes('defi-tools'),
+      completed: completedModulesFromStorage.includes('defi-tools'),
       recommendedBackground: 'Basic crypto knowledge helpful for practical application',
       masteryLevel: getMasteryLevel('defi-tools'),
       categories: ['Tools', 'Portfolio', 'Security']
@@ -434,7 +448,7 @@ export default function EducationModulesPage() {
       icon: <Target className="w-6 h-6" />,
       href: '/education/modules/stablecoins',
       topics: ['Price Stability', 'USDC', 'USDT', 'Algorithmic Stablecoins'],
-      completed: completedModules.includes('stablecoins'),
+      completed: completedModulesFromStorage.includes('stablecoins'),
       recommendedBackground: 'Understanding of traditional finance and basic crypto concepts',
       masteryLevel: getMasteryLevel('stablecoins'),
       categories: ['Stablecoins', 'DeFi', 'Finance']
@@ -448,7 +462,7 @@ export default function EducationModulesPage() {
       icon: <Coins className="w-6 h-6" />,
       href: '/education/modules/tokenomics',
       topics: ['Token Supply Models', 'Inflation vs Deflation', 'Staking Economics', 'Governance Tokens', 'Incentive Alignment'],
-      completed: completedModules.includes('tokenomics'),
+      completed: completedModulesFromStorage.includes('tokenomics'),
       recommendedBackground: 'Understanding of basic crypto concepts and DeFi helpful',
       masteryLevel: getMasteryLevel('tokenomics'),
       categories: ['Economics', 'Tokenomics', 'Incentives']
@@ -462,7 +476,7 @@ export default function EducationModulesPage() {
       icon: <Star className="w-6 h-6" />,
       href: '/education/modules/nfts-digital-ownership',
       topics: ['NFT Standards', 'Digital Art', 'Utility NFTs', 'Marketplaces', 'IP Rights'],
-      completed: completedModules.includes('nfts-digital-ownership'),
+      completed: completedModulesFromStorage.includes('nfts-digital-ownership'),
       recommendedBackground: 'Understanding of Ethereum and smart contracts helpful',
       masteryLevel: getMasteryLevel('nfts-digital-ownership'),
       categories: ['NFTs', 'Digital Art', 'Gaming']
@@ -476,7 +490,7 @@ export default function EducationModulesPage() {
       icon: <TrendingUp className="w-6 h-6" />,
       href: '/education/modules/crypto-trading-investing',
       topics: ['Dollar-Cost Averaging', 'Basic Portfolio Theory', 'Tax Planning', 'Rebalancing', 'Exit Strategies'],
-      completed: completedModules.includes('crypto-trading-investing'),
+      completed: completedModulesFromStorage.includes('crypto-trading-investing'),
       recommendedBackground: 'Basic understanding of crypto wallets and exchanges',
       masteryLevel: getMasteryLevel('crypto-trading-investing'),
       categories: ['Trading', 'Investing', 'Finance']
@@ -490,7 +504,7 @@ export default function EducationModulesPage() {
       icon: <Building className="w-6 h-6" />,
       href: '/education/modules/defi-fundamentals',
       topics: ['AMM Trading', 'Lending Protocols', 'Yield Farming', 'Liquidity Mining', 'DeFi Composability'],
-      completed: completedModules.includes('defi-fundamentals'),
+      completed: completedModulesFromStorage.includes('defi-fundamentals'),
       recommendedBackground: 'Familiarity with crypto wallets and basic blockchain concepts',
       masteryLevel: getMasteryLevel('defi-fundamentals'),
       categories: ['DeFi', 'Lending', 'Trading']
@@ -504,7 +518,7 @@ export default function EducationModulesPage() {
       icon: <Landmark className="w-6 h-6" />,
       href: '/education/modules/real-world-assets',
       topics: ['Asset Tokenization', 'BlackRock BUIDL', 'Real Estate', 'Compliance'],
-      completed: completedModules.includes('real-world-assets'),
+      completed: completedModulesFromStorage.includes('real-world-assets'),
       recommendedBackground: 'Understanding of both traditional assets and blockchain technology',
       masteryLevel: getMasteryLevel('real-world-assets'),
       categories: ['RWA', 'Tokenization', 'Finance']
@@ -518,7 +532,7 @@ export default function EducationModulesPage() {
       icon: <Users className="w-6 h-6" />,
       href: '/education/modules/dao-governance',
       topics: ['DAO Structure', 'Governance Tokens', 'Proposal Voting', 'Web3 Organizations', 'Decentralized Work'],
-      completed: completedModules.includes('dao-governance'),
+      completed: completedModulesFromStorage.includes('dao-governance'),
       recommendedBackground: 'Understanding of smart contracts and DeFi protocols helpful',
       masteryLevel: getMasteryLevel('dao-governance'),
       categories: ['Governance', 'DAOs', 'Web3']
@@ -532,7 +546,7 @@ export default function EducationModulesPage() {
       icon: <Building className="w-6 h-6" />,
       href: '/education/modules/institutional-crypto',
       topics: ['Custody Solutions', 'Compliance', 'Coinbase Custody', 'Anchorage'],
-      completed: completedModules.includes('institutional-crypto'),
+      completed: completedModulesFromStorage.includes('institutional-crypto'),
       recommendedBackground: 'Knowledge of crypto basics and regulatory frameworks helpful',
       masteryLevel: getMasteryLevel('institutional-crypto'),
       categories: ['Custody', 'Institutional', 'Compliance']
@@ -546,7 +560,7 @@ export default function EducationModulesPage() {
       icon: <Banknote className="w-6 h-6" />,
       href: '/education/modules/cbdcs',
       topics: ['Digital Yuan', 'Digital Euro', 'Monetary Policy', 'Privacy vs Control'],
-      completed: completedModules.includes('cbdcs'),
+      completed: completedModulesFromStorage.includes('cbdcs'),
       recommendedBackground: 'Understanding of monetary policy and digital currency concepts',
       masteryLevel: getMasteryLevel('cbdcs'),
       categories: ['CBDCs', 'Government', 'Policy']
@@ -560,7 +574,7 @@ export default function EducationModulesPage() {
       icon: <Network className="w-6 h-6" />,
       href: '/education/modules/layer1-diversity',
       topics: ['Solana Architecture', 'Avalanche Consensus', 'Cosmos Hub', 'Polkadot Parachains', 'Layer 0 Protocols'],
-      completed: completedModules.includes('layer1-diversity'),
+      completed: completedModulesFromStorage.includes('layer1-diversity'),
       recommendedBackground: 'Strong understanding of Ethereum and consensus mechanisms',
       masteryLevel: getMasteryLevel('layer1-diversity'),
       categories: ['Layer 1', 'Scalability', 'Infrastructure']
@@ -574,7 +588,7 @@ export default function EducationModulesPage() {
       icon: <Network className="w-6 h-6" />,
       href: '/education/modules/cross-chain-finance',
       topics: ['Bridges', 'Interoperability', 'Multi-Chain', 'Layer 2s'],
-      completed: completedModules.includes('cross-chain-finance'),
+      completed: completedModulesFromStorage.includes('cross-chain-finance'),
       recommendedBackground: 'Solid understanding of blockchain technology and multiple protocols',
       masteryLevel: getMasteryLevel('cross-chain-finance'),
       categories: ['Interoperability', 'Bridges', 'Infrastructure']
@@ -588,7 +602,7 @@ export default function EducationModulesPage() {
       icon: <Bot className="w-6 h-6" />,
       href: '/education/modules/defai',
       topics: ['ML-Driven Yield Farming', 'Trading Algorithms', 'Risk Prediction', 'Automated DeFi Strategies'],
-      completed: completedModules.includes('defai'),
+      completed: completedModulesFromStorage.includes('defai'),
       recommendedBackground: 'Experience with DeFi protocols and basic AI/ML concepts helpful',
       masteryLevel: getMasteryLevel('defai'),
       categories: ['AI', 'DeFi', 'Automation']
@@ -602,7 +616,7 @@ export default function EducationModulesPage() {
       icon: <Brain className="w-6 h-6" />,
       href: '/education/modules/advanced',
       topics: ['Quantitative DeFi', 'Risk Modeling', 'Yield Optimization', 'Algorithmic Trading', 'Advanced Tax Strategies'],
-      completed: completedModules.includes('advanced'),
+      completed: completedModulesFromStorage.includes('advanced'),
       recommendedBackground: 'Extensive DeFi experience and understanding of portfolio management',
       masteryLevel: getMasteryLevel('advanced'),
       categories: ['Advanced Strategies', 'Portfolio', 'Risk Management']
@@ -616,7 +630,7 @@ export default function EducationModulesPage() {
       icon: <Shield className="w-6 h-6" />,
       href: '/education/modules/security',
       topics: ['Cold Storage Systems', 'Multi-Sig Wallets', 'Risk Modeling', 'Crypto Insurance'],
-      completed: completedModules.includes('security'),
+      completed: completedModulesFromStorage.includes('security'),
       recommendedBackground: 'Experience with crypto storage and basic security concepts',
       masteryLevel: getMasteryLevel('security'),
       categories: ['Security', 'Risk Management', 'Storage']
@@ -630,7 +644,7 @@ export default function EducationModulesPage() {
       icon: <Landmark className="w-6 h-6" />,
       href: '/education/modules/regulation-ethics',
       topics: ['Global Regulation', 'Privacy vs Compliance', 'Environmental Impact', 'Ethical Debates', 'Legal Risks'],
-      completed: completedModules.includes('regulation-ethics'),
+      completed: completedModulesFromStorage.includes('regulation-ethics'),
       recommendedBackground: 'General understanding of crypto ecosystem and global finance',
       masteryLevel: getMasteryLevel('regulation-ethics'),
       categories: ['Regulation', 'Ethics', 'Legal']
@@ -639,20 +653,26 @@ export default function EducationModulesPage() {
 
   // Remove the canAccessModule function entirely - all modules are now freely accessible
 
-  // Helper function to map specific categories to main categories
+  // Helper function to map specific categories to main categories (Updated to 8 industry-standard categories)
   const getMainCategory = (categories: string[]) => {
-    const fundamentals = ['History', 'Blockchain', 'Technology', 'Security', 'Cryptocurrency', 'Cryptography', 'Mining', 'Context', 'Milestones', 'Wallets', 'Consensus']
-    const trading = ['Trading', 'Investing', 'Finance', 'Exchanges', 'Economics', 'Banking']
-    const defi = ['DeFi', 'Lending', 'Stablecoins', 'Smart Contracts', 'DApps', 'Ethereum', 'NFTs', 'Digital Art', 'Gaming']
-    const investment = ['Portfolio', 'Risk Management', 'Tools', 'Tokenomics', 'Incentives']
-    const advanced = ['Advanced Strategies', 'Institutional', 'CBDCs', 'Government', 'Policy', 'Regulation', 'Ethics', 'Legal', 'Layer 1', 'Scalability', 'Infrastructure', 'Interoperability', 'Bridges', 'AI', 'Automation', 'Governance', 'DAOs', 'Web3', 'Compliance', 'Custody', 'RWA', 'Tokenization']
+    const fundamentals = ['History', 'Context', 'Milestones', 'Blockchain', 'Technology', 'Cryptocurrency', 'Cryptography', 'Mining', 'Consensus', 'Finance', 'Banking', 'Economics']
+    const walletsAndSecurity = ['Wallets', 'Exchanges', 'Tools', 'Portfolio', 'Security', 'Risk Management', 'Storage']
+    const tradingAndInvestment = ['Trading', 'Investing', 'Tokenomics', 'Incentives', 'Advanced Strategies']
+    const blockchainTechnology = ['Ethereum', 'Smart Contracts', 'DApps', 'Layer 1', 'Scalability', 'Infrastructure', 'Interoperability', 'Bridges']
+    const defiAndDaos = ['DeFi', 'Lending', 'Stablecoins', 'Governance', 'DAOs', 'Web3', 'AI', 'Automation']
+    const nftsAndDigitalAssets = ['NFTs', 'Digital Art', 'Gaming', 'RWA', 'Tokenization']
+    const regulationAndCompliance = ['Regulation', 'Ethics', 'Legal', 'CBDCs', 'Government', 'Policy']
+    const industryAndInstitutional = ['Institutional', 'Custody', 'Compliance']
 
     for (const category of categories) {
       if (fundamentals.some(f => category.includes(f))) return 'Fundamentals'
-      if (trading.some(t => category.includes(t))) return 'Trading'
-      if (defi.some(d => category.includes(d))) return 'DeFi'
-      if (investment.some(i => category.includes(i))) return 'Investment'
-      if (advanced.some(a => category.includes(a))) return 'Advanced'
+      if (walletsAndSecurity.some(w => category.includes(w))) return 'Wallets & Security'
+      if (tradingAndInvestment.some(t => category.includes(t))) return 'Trading & Investment'
+      if (blockchainTechnology.some(b => category.includes(b))) return 'Blockchain Technology'
+      if (defiAndDaos.some(d => category.includes(d))) return 'DeFi & DAOs'
+      if (nftsAndDigitalAssets.some(n => category.includes(n))) return 'NFTs & Digital Assets'
+      if (regulationAndCompliance.some(r => category.includes(r))) return 'Regulation & Compliance'
+      if (industryAndInstitutional.some(i => category.includes(i))) return 'Industry & Institutional'
     }
     return 'Fundamentals' // Default fallback
   }
@@ -663,14 +683,14 @@ export default function EducationModulesPage() {
                            module.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            module.topics.some(topic => topic.toLowerCase().includes(searchTerm.toLowerCase()))
       const matchesDifficulty = filterDifficulty === 'all' || module.difficulty === filterDifficulty
-      const matchesProgress = filterProgress === 'all' || (module.completed ? 'completed' : 'not-started') === filterProgress
+      const matchesProgress = filterProgress === 'all' || getModuleProgressStatus(module.id) === filterProgress
       const matchesCategory = filterCategory === 'all' || getMainCategory(module.categories) === filterCategory
 
       return matchesSearch && matchesDifficulty && matchesProgress && matchesCategory
     })
     .sort((a, b) => {
       // Default sort: logical learning progression (fundamentals first, then by difficulty within each category)
-      const categoryOrder = { 'Fundamentals': 1, 'Trading': 2, 'DeFi': 3, 'Investment': 4, 'Advanced': 5 }
+      const categoryOrder = { 'Fundamentals': 1, 'Wallets & Security': 2, 'Trading & Investment': 3, 'Blockchain Technology': 4, 'DeFi & DAOs': 5, 'NFTs & Digital Assets': 6, 'Regulation & Compliance': 7, 'Industry & Institutional': 8 }
       const difficultyOrder = { 'Beginner': 1, 'Intermediate': 2, 'Advanced': 3 }
       
       const aCategory = getMainCategory(a.categories)
@@ -690,7 +710,7 @@ export default function EducationModulesPage() {
       return a.title.localeCompare(b.title)
     })
 
-  const progressPercentage = Math.round((completedModules.length / modules.length) * 100)
+  const progressPercentage = Math.round((completedModulesFromStorage.length / modules.length) * 100)
 
   const masteryColors = {
     none: 'bg-gray-200 text-gray-600',
@@ -736,7 +756,7 @@ export default function EducationModulesPage() {
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">Your Progress</h2>
-                  <p className="text-sm text-gray-600">{completedModules.length}/{modules.length} modules</p>
+                  <p className="text-sm text-gray-600">{completedModulesFromStorage.length}/{modules.length} modules</p>
                 </div>
                 <div className="text-2xl font-bold text-blue-600">{progressPercentage}%</div>
               </div>
@@ -748,7 +768,7 @@ export default function EducationModulesPage() {
                 ></div>
               </div>
               
-              {completedModules.length >= 3 && (
+              {completedModulesFromStorage.length >= 3 && (
                 <button 
                   className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
                   onClick={() => setShowPreferences(!showPreferences)}
@@ -768,7 +788,7 @@ export default function EducationModulesPage() {
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-gray-900">Your Learning Progress</h2>
-                    <p className="text-gray-600">{completedModules.length} of {modules.length} modules completed</p>
+                    <p className="text-gray-600">{completedModulesFromStorage.length} of {modules.length} modules completed</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -802,18 +822,25 @@ export default function EducationModulesPage() {
                     <div className="text-sm sm:text-base font-semibold">{modules.filter(m => m.difficulty === 'Intermediate' && m.completed).length}/{modules.filter(m => m.difficulty === 'Intermediate').length}</div>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2 sm:space-x-3 col-span-2 sm:col-span-1">
-                  <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
                   <div>
                     <div className="text-xs sm:text-sm text-gray-500">Advanced</div>
                     <div className="text-sm sm:text-base font-semibold">{modules.filter(m => m.difficulty === 'Advanced' && m.completed).length}/{modules.filter(m => m.difficulty === 'Advanced').length}</div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2 sm:space-x-3 col-span-2 sm:col-span-1">
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+                  <div>
+                    <div className="text-xs sm:text-sm text-gray-500">In Progress</div>
+                    <div className="text-sm sm:text-base font-semibold">{modules.filter(m => getModuleProgressStatus(m.id) === 'in-progress').length}</div>
                   </div>
                 </div>
               </div>
             )}
 
             {/* Simplified Preferences - Only Essential Options */}
-            {showPreferences && completedModules.length >= 3 && (
+            {showPreferences && completedModulesFromStorage.length >= 3 && (
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Display Options</h3>
                 <div className="space-y-3">
@@ -831,7 +858,7 @@ export default function EducationModulesPage() {
                   </div>
                   
                   {/* Progressive disclosure: Show after more experience */}
-                  {completedModules.length >= 5 && (
+                  {completedModulesFromStorage.length >= 5 && (
                     <div>
                       <label className="block text-sm text-gray-700 mb-1">Learning Style</label>
                       <select
@@ -884,10 +911,13 @@ export default function EducationModulesPage() {
                     >
                       <option value="all">📚 All Topics</option>
                       <option value="Fundamentals">🔰 Fundamentals</option>
-                      <option value="Trading">📈 Trading</option>
-                      <option value="DeFi">🏦 DeFi</option>
-                      <option value="Investment">💰 Investment</option>
-                      <option value="Advanced">🚀 Advanced</option>
+                      <option value="Wallets & Security">🔒 Wallets & Security</option>
+                      <option value="Trading & Investment">📈 Trading & Investment</option>
+                      <option value="Blockchain Technology">🌐 Blockchain Technology</option>
+                      <option value="DeFi & DAOs">🏦 DeFi & DAOs</option>
+                      <option value="NFTs & Digital Assets">🎨 NFTs & Digital Assets</option>
+                      <option value="Regulation & Compliance">⚖️ Regulation & Compliance</option>
+                      <option value="Industry & Institutional">🏢 Industry & Institutional</option>
                     </select>
                     
                     <div className="grid grid-cols-2 gap-2">
@@ -909,6 +939,7 @@ export default function EducationModulesPage() {
                       >
                         <option value="all">📚 All Status</option>
                         <option value="not-started">⭐ Not Started</option>
+                        <option value="in-progress">🟡 In Progress</option>
                         <option value="completed">✅ Completed</option>
                       </select>
                     </div>
@@ -940,10 +971,13 @@ export default function EducationModulesPage() {
                     >
                       <option value="all">📚 All Topics</option>
                       <option value="Fundamentals">🔰 Fundamentals</option>
-                      <option value="Trading">📈 Trading</option>
-                      <option value="DeFi">🏦 DeFi</option>
-                      <option value="Investment">💰 Investment</option>
-                      <option value="Advanced">🚀 Advanced</option>
+                      <option value="Wallets & Security">🔒 Wallets & Security</option>
+                      <option value="Trading & Investment">📈 Trading & Investment</option>
+                      <option value="Blockchain Technology">🌐 Blockchain Technology</option>
+                      <option value="DeFi & DAOs">🏦 DeFi & DAOs</option>
+                      <option value="NFTs & Digital Assets">🎨 NFTs & Digital Assets</option>
+                      <option value="Regulation & Compliance">⚖️ Regulation & Compliance</option>
+                      <option value="Industry & Institutional">🏢 Industry & Institutional</option>
                     </select>
                     
 
@@ -966,6 +1000,7 @@ export default function EducationModulesPage() {
                     >
                       <option value="all">📚 All Status</option>
                       <option value="not-started">⭐ Not Started</option>
+                      <option value="in-progress">🟡 In Progress</option>
                       <option value="completed">✅ Completed</option>
                     </select>
                   </div>
@@ -990,8 +1025,22 @@ export default function EducationModulesPage() {
                   )}
                   {filterProgress !== 'all' && (
                     <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs flex items-center">
-                      {filterProgress === 'not-started' ? '⭐ Not Started' : '✅ Completed'}
+                      {filterProgress === 'not-started' ? '⭐ Not Started' : 
+                       filterProgress === 'in-progress' ? '🟡 In Progress' : '✅ Completed'}
                       <button onClick={() => setFilterProgress('all')} className="ml-1 text-green-500">×</button>
+                    </span>
+                  )}
+                  {filterCategory !== 'all' && (
+                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs flex items-center">
+                      {filterCategory === 'Fundamentals' ? '🔰' : 
+                       filterCategory === 'Wallets & Security' ? '🔒' :
+                       filterCategory === 'Trading & Investment' ? '📈' :
+                       filterCategory === 'Blockchain Technology' ? '🌐' :
+                       filterCategory === 'DeFi & DAOs' ? '🏦' :
+                       filterCategory === 'NFTs & Digital Assets' ? '🎨' :
+                       filterCategory === 'Regulation & Compliance' ? '⚖️' :
+                       filterCategory === 'Industry & Institutional' ? '🏢' : '📚'} {filterCategory}
+                      <button onClick={() => setFilterCategory('all')} className="ml-1 text-purple-500">×</button>
                     </span>
                   )}
                 </div>
