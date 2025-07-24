@@ -228,7 +228,7 @@ export default function EthereumSmartContractsPage() {
             </p>
             <div className="bg-white rounded-lg p-4">
               <div className="text-sm text-gray-600 font-mono">
-                <div>IF flight_delay > 2_hours</div>
+                <div>IF flight_delay &gt; 2_hours</div>
                 <div>THEN send_payout(passenger_wallet, insurance_amount)</div>
                 <div>END</div>
               </div>
@@ -668,9 +668,9 @@ export default function EthereumSmartContractsPage() {
 
             {showQuiz && (
               <QuizComponent
+                title="Ethereum & Smart Contracts Quiz"
                 questions={quizQuestions}
                 onComplete={handleQuizComplete}
-                moduleTitle="Ethereum & Smart Contracts"
               />
             )}
 

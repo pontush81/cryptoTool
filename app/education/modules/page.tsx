@@ -52,228 +52,163 @@ const ModuleCard = memo(({ module, index, isAccessible, expandedCard, setExpande
         ></div>
       )}
       
-      <div className="p-8">
-        {/* Header Section with Enhanced Micro-interactions */}
-        <div className="flex items-start gap-4 mb-6">
-          {/* Icon with Progress Ring and Hover Effects */}
-          <div className="relative flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+      <div className="p-4 sm:p-6">
+        {/* Header Section - Mobile Optimized */}
+        <div className="flex items-start gap-3 mb-4">
+          {/* Smaller Icon for Mobile */}
+          <div className="relative flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
               module.completed ? 
-                'bg-green-50 border-2 border-green-200 group-hover:bg-green-100 group-hover:border-green-300' : 
-                'bg-blue-50 border-2 border-blue-100 group-hover:bg-blue-100 group-hover:border-blue-200'
+                'bg-green-50 border border-green-200 group-hover:bg-green-100' : 
+                'bg-blue-50 border border-blue-100 group-hover:bg-blue-100'
             }`}>
               {module.completed ? (
-                <CheckCircle className="w-8 h-8 text-green-600 animate-in zoom-in duration-500" />
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               ) : (
-                <div className="text-blue-600 group-hover:text-blue-700 transition-colors duration-300">
+                <div className="text-blue-600 [&>svg]:w-5 [&>svg]:h-5 sm:[&>svg]:w-6 sm:[&>svg]:h-6">
                   {module.icon}
                 </div>
               )}
             </div>
             
-            {/* Animated Completion Badge */}
-            {module.completed && (
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
-                <CheckCircle className="w-4 h-4 text-white" />
-              </div>
-            )}
-            
-            {/* Subtle pulse effect for incomplete modules */}
-            {!module.completed && isAccessible && (
-              <div className="absolute inset-0 rounded-2xl bg-blue-400 opacity-0 group-hover:animate-ping"></div>
-            )}
           </div>
           
-          {/* Title and Badges with Improved Accessibility */}
+          {/* Title and Essential Info Only - Mobile First */}
           <div className="flex-1 min-w-0">
-            <h3 
-              id={`module-title-${module.id}`}
-              className="text-xl font-bold text-gray-900 mb-3 leading-tight group-hover:text-blue-900 transition-colors duration-300"
-            >
-              {module.title}
-            </h3>
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <h3 
+                id={`module-title-${module.id}`}
+                className="text-lg sm:text-xl font-semibold text-gray-900 leading-tight line-clamp-2"
+              >
+                {module.title}
+              </h3>
+              {module.completed && (
+                <div className="flex-shrink-0 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-3 h-3 text-white" />
+                </div>
+              )}
+            </div>
             
-            {/* Enhanced Badges with Hover States */}
-            <div className="flex items-center gap-2 mb-2">
-              <Tooltip content={`${module.difficulty} level - Appropriate skill level for this module`}>
-                <span 
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 cursor-help focus:ring-2 focus:ring-offset-2 ${
-                    module.difficulty === 'Beginner' ? 
-                      'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 hover:border-green-300 focus:ring-green-500' :
-                    module.difficulty === 'Intermediate' ? 
-                      'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 focus:ring-blue-500' :
-                      'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 hover:border-purple-300 focus:ring-purple-500'
-                  }`}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Difficulty level: ${module.difficulty}`}
-                >
-                  <Target className="w-3 h-3 mr-1" />
-                  {module.difficulty}
-                </span>
-              </Tooltip>
-              
-              <Tooltip content={`${module.difficulty} level - Complexity rating for this module`}>
-                <span 
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 cursor-help focus:ring-2 focus:ring-offset-2 ${
-                    module.difficulty === 'Beginner' ? 
-                      'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 focus:ring-emerald-500' :
-                    module.difficulty === 'Intermediate' ? 
-                      'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 hover:border-amber-300 focus:ring-amber-500' :
-                      'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 hover:border-red-300 focus:ring-red-500'
-                  }`}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Difficulty level: ${module.difficulty}`}
-                >
-                  <Target className="w-3 h-3 mr-1" />
-                  {module.difficulty}
-                </span>
-              </Tooltip>
+            {/* Single Primary Badge Only - Mobile Optimized */}
+            <div className="flex items-center gap-2 mb-3">
+              <span 
+                className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                  module.difficulty === 'Beginner' ? 'bg-green-100 text-green-700' :
+                  module.difficulty === 'Intermediate' ? 'bg-blue-100 text-blue-700' :
+                  'bg-purple-100 text-purple-700'
+                }`}
+              >
+                {module.difficulty}
+              </span>
+              <span className="text-xs text-gray-500">
+                {module.duration}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Description with Improved Readability */}
-        <p 
-          id={`module-description-${module.id}`}
-          className="text-gray-600 text-base leading-relaxed mb-6 group-hover:text-gray-700 transition-colors duration-300"
-        >
-          {module.description}
-        </p>
-
-        {/* Enhanced Meta Information with Icons */}
-        <div className="flex items-center gap-6 text-sm text-gray-500 mb-6">
-          <div className="flex items-center gap-1 hover:text-gray-700 transition-colors duration-200">
-            <Clock className="w-4 h-4" />
-            <span>{module.duration}</span>
-          </div>
-          <div className="flex items-center gap-1 hover:text-gray-700 transition-colors duration-200">
-            <Users className="w-4 h-4" />
-            <span>{module.topics.length} topics</span>
-          </div>
-          {module.categories.length > 0 && (
-            <div className="flex items-center gap-1 hover:text-gray-700 transition-colors duration-200">
-              <Filter className="w-4 h-4" />
-              <span>{module.categories.length} categories</span>
-            </div>
-          )}
+        {/* Mobile: Hide description by default, show on expand */}
+        <div className="hidden sm:block mb-4">
+          <p 
+            id={`module-description-${module.id}`}
+            className="text-gray-600 text-sm leading-relaxed"
+          >
+            {module.description}
+          </p>
         </div>
         
-        {/* Enhanced Expandable Details with Better UX */}
-        <div className="mb-6">
-          <button
-            onClick={handleToggleExpand}
-            className="flex items-center text-sm text-blue-600 hover:text-blue-800 focus:text-blue-800 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md px-2 py-1 -mx-2"
-            aria-expanded={isExpanded}
-            aria-controls={`module-details-${module.id}`}
-            aria-label={isExpanded ? `Hide details for ${module.title}` : `View learning details for ${module.title}`}
-          >
-            {isExpanded ? (
-              <>
-                <ChevronUp className="w-4 h-4 mr-1 transition-transform duration-200" />
-                Hide details
-              </>
-            ) : (
-              <>
-                <ChevronDown className="w-4 h-4 mr-1 transition-transform duration-200" />
-                View learning details
-              </>
-            )}
-          </button>
-          
-          {/* Enhanced Expanded Content */}
-          {isExpanded && (
-            <div 
-              id={`module-details-${module.id}`}
-              className="mt-4 p-4 bg-gray-50 rounded-lg animate-in slide-in-from-top duration-300"
-              role="region"
-              aria-label={`Detailed information for ${module.title}`}
+        {/* Simplified Expandable - Mobile First */}
+        <div className="mb-4">
+          {/* Mobile: Show on tap only */}
+          <div className="sm:hidden">
+            <button
+              onClick={handleToggleExpand}
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium py-1"
+              aria-expanded={isExpanded}
             >
-              <div className="space-y-4">
-                {/* Recommended Background - Soft Guidance */}
+              {isExpanded ? '↑ Less info' : '↓ More info'}
+            </button>
+            
+            {isExpanded && (
+              <div className="mt-3 p-3 bg-gray-50 rounded-lg text-sm space-y-2">
+                <p className="text-gray-600">{module.description}</p>
+                <div className="flex flex-wrap gap-1">
+                  {module.topics.slice(0, 3).map((topic: string, index: number) => (
+                    <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                      {topic}
+                    </span>
+                  ))}
+                  {module.topics.length > 3 && (
+                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                      +{module.topics.length - 3}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Desktop: Always show details button */}
+          <div className="hidden sm:block">
+            <button
+              onClick={handleToggleExpand}
+              className="flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+              aria-expanded={isExpanded}
+            >
+              <ChevronDown className={`w-4 h-4 mr-1 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+              Learning details
+            </button>
+            
+            {isExpanded && (
+              <div className="mt-3 p-4 bg-gray-50 rounded-lg space-y-3">
                 {module.recommendedBackground && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <div className="flex items-start gap-2">
-                      <div className="flex-shrink-0 mt-0.5">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm text-blue-800">{module.recommendedBackground}</p>
-                      </div>
-                    </div>
+                  <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                    <p className="text-sm text-blue-800">{module.recommendedBackground}</p>
                   </div>
                 )}
-                
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">What You'll Learn</h4>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Topics covered</h4>
                   <div className="flex flex-wrap gap-2">
-                    {module.topics.slice(0, 4).map((topic: string, index: number) => (
-                      <span 
-                        key={index} 
-                        className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full hover:bg-blue-200 transition-colors duration-200 cursor-default animate-in fade-in"
-                        style={{
-                          animationDelay: `${index * 50}ms`
-                        }}
-                      >
+                    {module.topics.map((topic: string, index: number) => (
+                      <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
                         {topic}
                       </span>
                     ))}
-                    {module.topics.length > 4 && (
-                      <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                        +{module.topics.length - 4} more
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* Enhanced Action Section with Gamification */}
-        <div className="pt-4 border-t border-gray-100">
+        {/* Compact CTA - Mobile Optimized */}
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Users className="w-3 h-3" />
+            <span>{module.topics.length} topics</span>
+          </div>
+          
           <Link
             href={module.href}
-            className={`w-full inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold text-base transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-offset-2 ${
+            className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               module.completed ? 
-                'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 hover:shadow-xl transform hover:-translate-y-1 focus:ring-green-500 group/btn' :
-                'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 hover:shadow-xl transform hover:-translate-y-1 focus:ring-blue-500 group/btn'
+                'bg-green-600 text-white hover:bg-green-700' :
+                'bg-blue-600 text-white hover:bg-blue-700'
             }`}
-            onClick={() => {
-              trackEvent('module_started', { moduleId: module.id, moduleTitle: module.title })
-            }}
-            aria-label={module.completed ? `Review completed module: ${module.title}` : `Start learning module: ${module.title}`}
-            role="button"
+            onClick={() => trackEvent('module_started', { moduleId: module.id, moduleTitle: module.title })}
           >
             {module.completed ? (
               <>
-                <Trophy className="w-5 h-5 mr-2 group-hover/btn:animate-bounce" />
-                Review Module
+                <Trophy className="w-4 h-4 mr-2" />
+                Review
               </>
             ) : (
               <>
-                <ArrowRight className="w-5 h-5 mr-2 group-hover/btn:translate-x-1 transition-transform duration-300" />
-                Start Learning
+                <ArrowRight className="w-4 h-4 mr-2" />
+                Start
               </>
             )}
           </Link>
-          
-          {/* Enhanced Progress Messaging with Animations */}
-          {module.completed && (
-            <div className="text-center mt-3 animate-in fade-in duration-500">
-              <p className="text-sm text-green-600 font-medium mb-1">
-                ✨ Module completed!
-              </p>
-              <div className="flex items-center justify-center gap-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '150ms'}}></div>
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '300ms'}}></div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -791,111 +726,85 @@ export default function EducationModulesPage() {
           </div>
 
           {/* Main Progress Overview */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <BarChart3 className="w-6 h-6 text-blue-600" />
-                </div>
+          {/* Simplified Progress - Mobile First */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
+            {/* Mobile: Compact Progress */}
+            <div className="sm:hidden">
+              <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Your Learning Progress</h2>
-                  <p className="text-gray-600">{completedModules.length} of {modules.length} modules completed</p>
+                  <h2 className="text-lg font-semibold text-gray-900">Your Progress</h2>
+                  <p className="text-sm text-gray-600">{completedModules.length}/{modules.length} modules</p>
+                </div>
+                <div className="text-2xl font-bold text-blue-600">{progressPercentage}%</div>
+              </div>
+              
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+              
+              <button 
+                className="text-sm text-blue-600 hover:text-blue-800"
+                onClick={() => setShowPreferences(!showPreferences)}
+              >
+                {showPreferences ? '↑ Hide details' : '↓ View progress breakdown'}
+              </button>
+            </div>
+            
+            {/* Desktop: Full Progress Display */}
+            <div className="hidden sm:block">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <BarChart3 className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">Your Learning Progress</h2>
+                    <p className="text-gray-600">{completedModules.length} of {modules.length} modules completed</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-blue-600">{progressPercentage}%</div>
+                  <div className="text-sm text-gray-500">Complete</div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-blue-600">{progressPercentage}%</div>
-                <div className="text-sm text-gray-500">Complete</div>
+              
+              <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+                <div 
+                  className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
               </div>
             </div>
             
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-              <div 
-                className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                style={{ width: `${progressPercentage}%` }}
-              ></div>
-            </div>
-            
-            {/* Learning Progress Breakdown */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex items-center space-x-3">
-                <BookOpen className="w-5 h-5 text-blue-500" />
-                <div>
-                  <div className="text-sm text-gray-500">Beginner Level</div>
-                  <div className="font-semibold">{modules.filter(m => m.difficulty === 'Beginner' && m.completed).length} of {modules.filter(m => m.difficulty === 'Beginner').length} completed</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Target className="w-5 h-5 text-green-500" />
-                <div>
-                  <div className="text-sm text-gray-500">Intermediate Level</div>
-                  <div className="font-semibold">{modules.filter(m => m.difficulty === 'Intermediate' && m.completed).length} of {modules.filter(m => m.difficulty === 'Intermediate').length} completed</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Zap className="w-5 h-5 text-purple-500" />
-                <div>
-                  <div className="text-sm text-gray-500">Advanced Level</div>
-                  <div className="font-semibold">{modules.filter(m => m.difficulty === 'Advanced' && m.completed).length} of {modules.filter(m => m.difficulty === 'Advanced').length} completed</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Stats Overview */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Learning Overview</h3>
-            
-            {/* Progress Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="flex items-center">
-                  <Trophy className="w-8 h-8 text-blue-500 mr-3" />
+            {/* Expandable Progress Breakdown */}
+            {showPreferences && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6 pt-4 border-t border-gray-100">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
                   <div>
-                    <div className="text-2xl font-bold text-blue-700">{completedModules.length}</div>
-                    <div className="text-sm text-blue-600">Modules Completed</div>
+                    <div className="text-xs sm:text-sm text-gray-500">Beginner</div>
+                    <div className="text-sm sm:text-base font-semibold">{modules.filter(m => m.difficulty === 'Beginner' && m.completed).length}/{modules.filter(m => m.difficulty === 'Beginner').length}</div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <Target className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+                  <div>
+                    <div className="text-xs sm:text-sm text-gray-500">Intermediate</div>
+                    <div className="text-sm sm:text-base font-semibold">{modules.filter(m => m.difficulty === 'Intermediate' && m.completed).length}/{modules.filter(m => m.difficulty === 'Intermediate').length}</div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2 sm:space-x-3 col-span-2 sm:col-span-1">
+                  <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+                  <div>
+                    <div className="text-xs sm:text-sm text-gray-500">Advanced</div>
+                    <div className="text-sm sm:text-base font-semibold">{modules.filter(m => m.difficulty === 'Advanced' && m.completed).length}/{modules.filter(m => m.difficulty === 'Advanced').length}</div>
                   </div>
                 </div>
               </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="flex items-center">
-                  <Target className="w-8 h-8 text-green-500 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold text-green-700">{progressPercentage}%</div>
-                    <div className="text-sm text-green-600">Progress</div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <div className="flex items-center">
-                  <BookOpen className="w-8 h-8 text-purple-500 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold text-purple-700">
-                      {modules.length - completedModules.length}
-                    </div>
-                    <div className="text-sm text-purple-600">Modules Remaining</div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <div className="flex items-center">
-                  <Brain className="w-8 h-8 text-orange-500 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold text-orange-700">
-                      {Object.values(masteryLevels).filter(level => ['good', 'excellent'].includes(level)).length}
-                    </div>
-                    <div className="text-sm text-orange-600">High Mastery</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
-              <div 
-                className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                style={{ width: `${progressPercentage}%` }}
-              ></div>
-            </div>
+            )}
 
             {/* Preferences Panel */}
             {showPreferences && (
@@ -939,136 +848,139 @@ export default function EducationModulesPage() {
               </div>
             )}
 
-            {/* Search and Filters */}
+            {/* Simplified Search and Filters - Mobile First */}
             <div className="space-y-4 mb-6">
-              {/* Search Bar */}
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="🔍 Search modules, topics, or categories..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-                  />
+              {/* Mobile: Compact Search + Filter Button */}
+              <div className="sm:hidden">
+                <div className="flex gap-2 mb-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      placeholder="Search modules..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+                  <button
+                    onClick={() => setShowPreferences(!showPreferences)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg flex items-center gap-1 text-sm bg-white hover:bg-gray-50"
+                  >
+                    <Filter className="w-4 h-4" />
+                    {(filterDifficulty !== 'all' || filterProgress !== 'all') && (
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    )}
+                  </button>
+                </div>
+                
+                {/* Mobile: Collapsed Filters */}
+                {showPreferences && (
+                  <div className="space-y-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="grid grid-cols-2 gap-2">
+                      <select
+                        value={filterDifficulty}
+                        onChange={(e) => setFilterDifficulty(e.target.value as typeof filterDifficulty)}
+                        className="px-2 py-2 border border-gray-300 rounded text-sm"
+                      >
+                        <option value="all">All Levels</option>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                      </select>
+                      
+                      <select
+                        value={filterProgress}
+                        onChange={(e) => setFilterProgress(e.target.value as typeof filterProgress)}
+                        className="px-2 py-2 border border-gray-300 rounded text-sm"
+                      >
+                        <option value="all">All Progress</option>
+                        <option value="not-started">Not Started</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    </div>
+                    
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                      className="w-full px-2 py-2 border border-gray-300 rounded text-sm"
+                    >
+                      <option value="recommended">Recommended</option>
+                      <option value="duration">By Duration</option>
+                      <option value="difficulty">By Difficulty</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+              
+              {/* Desktop: Full Filter Layout */}
+              <div className="hidden sm:block">
+                <div className="flex gap-4">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="text"
+                      placeholder="🔍 Search modules, topics, or categories..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                    >
+                      <option value="recommended">📋 Recommended</option>
+                      <option value="duration">⏱️ Duration</option>
+                      <option value="difficulty">📈 Difficulty</option>
+                    </select>
+                    
+                    <select
+                      value={filterDifficulty}
+                      onChange={(e) => setFilterDifficulty(e.target.value as typeof filterDifficulty)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                    >
+                      <option value="all">📚 All Levels</option>
+                      <option value="Beginner">🟢 Beginner</option>
+                      <option value="Intermediate">🟡 Intermediate</option>
+                      <option value="Advanced">🔴 Advanced</option>
+                    </select>
+                  </div>
                 </div>
               </div>
               
-              {/* Filter Chips */}
-              <div className="flex flex-wrap gap-3">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-700">Sort:</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                  >
-                    <option value="recommended">📋 Recommended</option>
-                    <option value="duration">⏱️ Duration</option>
-                    <option value="difficulty">📈 Difficulty</option>
-                    <option value="progress">✅ Progress</option>
-                  </select>
-                </div>
-                
-
-                
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-700">Level:</span>
-                  <select
-                    value={filterDifficulty}
-                    onChange={(e) => setFilterDifficulty(e.target.value as typeof filterDifficulty)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                  >
-                    <option value="all">📚 All Levels</option>
-                    <option value="Beginner">🟢 Beginner</option>
-                    <option value="Intermediate">🟡 Intermediate</option>
-                    <option value="Advanced">🔴 Advanced</option>
-                  </select>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-700">Progress:</span>
-                  <select
-                    value={filterProgress}
-                    onChange={(e) => setFilterProgress(e.target.value as typeof filterProgress)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                  >
-                    <option value="all">📊 All Progress</option>
-                    <option value="not-started">⚪ Not Started</option>
-                    <option value="in-progress">🟡 In Progress</option>
-                    <option value="completed">✅ Completed</option>
-                  </select>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-700">Category:</span>
-                  <select
-                    value={filterCategory}
-                    onChange={(e) => setFilterCategory(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                  >
-                    <option value="all">🏷️ All Categories</option>
-                    <option value="Exchanges">💱 Exchanges</option>
-                    <option value="Wallets">👛 Wallets</option>
-                    <option value="Blockchain">⛓️ Blockchain</option>
-                    <option value="Mining">⛏️ Mining</option>
-                    <option value="Stablecoins">💲 Stablecoins</option>
-                    <option value="DeFi">🏦 DeFi</option>
-                    <option value="NFTs">🖼️ NFTs</option>
-                    <option value="Security">🔒 Security</option>
-                    <option value="Trading">📈 Trading</option>
-                    <option value="Compliance">📋 Compliance</option>
-                  </select>
-                </div>
-              </div>
-              
-              {/* Active Filters */}
-              {(searchTerm || filterDifficulty !== 'all' || filterProgress !== 'all' || filterCategory !== 'all') && (
+              {/* Simplified Active Filters */}
+              {(searchTerm || filterDifficulty !== 'all' || filterProgress !== 'all') && (
                 <div className="flex flex-wrap gap-2 items-center">
-                  <span className="text-sm text-gray-500">Active filters:</span>
+                  <span className="text-xs text-gray-500">Filters:</span>
                   {searchTerm && (
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center">
-                      🔍 "{searchTerm}"
-                      <button onClick={() => setSearchTerm('')} className="ml-2 text-blue-500 hover:text-blue-700">×</button>
+                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs flex items-center">
+                      "{searchTerm}"
+                      <button onClick={() => setSearchTerm('')} className="ml-1 text-blue-500">×</button>
                     </span>
                   )}
                   {filterDifficulty !== 'all' && (
-                    <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm flex items-center">
-                      📚 {filterDifficulty}
-                      <button onClick={() => setFilterDifficulty('all')} className="ml-2 text-purple-500 hover:text-purple-700">×</button>
+                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs flex items-center">
+                      {filterDifficulty}
+                      <button onClick={() => setFilterDifficulty('all')} className="ml-1 text-purple-500">×</button>
                     </span>
                   )}
                   {filterProgress !== 'all' && (
-                    <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm flex items-center">
-                      📊 {filterProgress}
-                      <button onClick={() => setFilterProgress('all')} className="ml-2 text-orange-500 hover:text-orange-700">×</button>
+                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs flex items-center">
+                      {filterProgress === 'not-started' ? 'Not started' : 'Completed'}
+                      <button onClick={() => setFilterProgress('all')} className="ml-1 text-green-500">×</button>
                     </span>
                   )}
-                  {filterCategory !== 'all' && (
-                    <span className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm flex items-center">
-                      🏷️ {filterCategory}
-                      <button onClick={() => setFilterCategory('all')} className="ml-2 text-pink-500 hover:text-pink-700">×</button>
-                    </span>
-                  )}
-                  <button 
-                    onClick={() => {
-                      setSearchTerm('')
-                      setFilterDifficulty('all')
-                      setFilterProgress('all')
-                      setFilterCategory('all')
-                    }}
-                    className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm hover:bg-gray-200"
-                  >
-                    Clear all
-                  </button>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Module Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+          {/* Module Grid - Mobile List, Desktop Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
             {filteredAndSortedModules.map((module, index) => {
               const isAccessible = true // All modules are now freely accessible
               const progressPercentage = module.completed ? 100 : 0

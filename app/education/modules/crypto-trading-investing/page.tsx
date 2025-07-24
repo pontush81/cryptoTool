@@ -587,8 +587,8 @@ export default function CryptoTradingInvestingPage() {
                 <div className="text-sm text-gray-600">
                   <div>• Measures overbought/oversold</div>
                   <div>• Scale: 0-100</div>
-                  <div>• >70 = potentially overbought</div>
-                  <div>• <30 = potentially oversold</div>
+                  <div>• &gt;70 = potentially overbought</div>
+                  <div>• &lt;30 = potentially oversold</div>
                 </div>
               </div>
               
@@ -597,7 +597,7 @@ export default function CryptoTradingInvestingPage() {
                 <div className="text-sm text-gray-600">
                   <div>• Shows trend changes</div>
                   <div>• Histogram shows momentum</div>
-                  <div>• Bullish: MACD > Signal line</div>
+                  <div>• Bullish: MACD &gt; Signal line</div>
                   <div>• Look for crossovers</div>
                 </div>
               </div>
@@ -894,9 +894,9 @@ export default function CryptoTradingInvestingPage() {
 
             {showQuiz && (
               <QuizComponent
+                title="Crypto Trading & Investing Quiz"
                 questions={quizQuestions}
                 onComplete={handleQuizComplete}
-                moduleTitle="Crypto Trading & Investing"
               />
             )}
 

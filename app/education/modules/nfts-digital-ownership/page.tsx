@@ -695,9 +695,9 @@ export default function NFTsDigitalOwnershipPage() {
 
             {showQuiz && (
               <QuizComponent
+                title="NFTs & Digital Ownership Quiz"
                 questions={quizQuestions}
                 onComplete={handleQuizComplete}
-                moduleTitle="NFTs & Digital Ownership"
               />
             )}
 
