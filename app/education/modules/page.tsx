@@ -2,9 +2,295 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { BookOpen, TrendingUp, Shield, Zap, Clock, Users, ArrowRight, Search, Trophy, Filter, Settings, Brain, Target, CheckCircle2, Banknote, PiggyBank, Coins, Building, Landmark, Network, Bot, Wrench, Home } from 'lucide-react'
+import { BookOpen, TrendingUp, Shield, Zap, Clock, Users, ArrowRight, Search, Trophy, Filter, Settings, Brain, Target, CheckCircle2, Banknote, PiggyBank, Coins, Building, Landmark, Network, Bot, Wrench, Home, CheckCircle, ChevronUp, ChevronDown, BarChart3, Star } from 'lucide-react'
 import Breadcrumb from '../../../components/Breadcrumb'
 import Tooltip from '../../../components/Tooltip'
+
+// Performance optimization: Memoized module card component
+import { memo, useCallback } from 'react'
+
+const ModuleCard = memo(({ module, index, isAccessible, expandedCard, setExpandedCard, trackEvent, modules }: {
+  module: any
+  index: number
+  isAccessible: boolean
+  expandedCard: string | null
+  setExpandedCard: (id: string | null) => void
+  trackEvent: (event: string, properties: Record<string, any>) => void
+  modules: any[]
+}) => {
+  const isExpanded = expandedCard === module.id
+  
+  const handleToggleExpand = useCallback(() => {
+    const newExpandedState = isExpanded ? null : module.id
+    console.log('🔧 Toggling card:', module.id, 'from', isExpanded, 'to', !isExpanded)
+    setExpandedCard(newExpandedState)
+    trackEvent('module_expanded', { moduleId: module.id, moduleTitle: module.title, expanded: !isExpanded })
+  }, [isExpanded, module.id, module.title, setExpandedCard, trackEvent])
+
+  return (
+    <div 
+      className={`bg-white rounded-xl shadow-sm border border-gray-200 transition-all duration-300 hover:shadow-xl hover:border-blue-300 hover:scale-[1.02] overflow-hidden group ${
+        !isAccessible ? 'opacity-60' : 
+        module.completed ? 'ring-2 ring-green-100 hover:ring-green-200' : ''
+      }`}
+      role="article"
+      aria-labelledby={`module-title-${module.id}`}
+      aria-describedby={`module-description-${module.id}`}
+      style={{
+        animationDelay: `${index * 100}ms`
+      }}
+    >
+      {/* Animated Progress Bar at Top */}
+      {module.completed && (
+        <div 
+          className="h-1 bg-gradient-to-r from-green-400 to-green-600 w-full animate-in slide-in-from-left duration-1000"
+          role="progressbar" 
+          aria-valuenow={100} 
+          aria-valuemin={0} 
+          aria-valuemax={100}
+          aria-label="Module completion progress"
+        ></div>
+      )}
+      
+      <div className="p-8">
+        {/* Header Section with Enhanced Micro-interactions */}
+        <div className="flex items-start gap-4 mb-6">
+          {/* Icon with Progress Ring and Hover Effects */}
+          <div className="relative flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+              module.completed ? 
+                'bg-green-50 border-2 border-green-200 group-hover:bg-green-100 group-hover:border-green-300' : 
+                'bg-blue-50 border-2 border-blue-100 group-hover:bg-blue-100 group-hover:border-blue-200'
+            }`}>
+              {module.completed ? (
+                <CheckCircle className="w-8 h-8 text-green-600 animate-in zoom-in duration-500" />
+              ) : (
+                <div className="text-blue-600 group-hover:text-blue-700 transition-colors duration-300">
+                  {module.icon}
+                </div>
+              )}
+            </div>
+            
+            {/* Animated Completion Badge */}
+            {module.completed && (
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
+                <CheckCircle className="w-4 h-4 text-white" />
+              </div>
+            )}
+            
+            {/* Subtle pulse effect for incomplete modules */}
+            {!module.completed && isAccessible && (
+              <div className="absolute inset-0 rounded-2xl bg-blue-400 opacity-0 group-hover:animate-ping"></div>
+            )}
+          </div>
+          
+          {/* Title and Badges with Improved Accessibility */}
+          <div className="flex-1 min-w-0">
+            <h3 
+              id={`module-title-${module.id}`}
+              className="text-xl font-bold text-gray-900 mb-3 leading-tight group-hover:text-blue-900 transition-colors duration-300"
+            >
+              {module.title}
+            </h3>
+            
+            {/* Enhanced Badges with Hover States */}
+            <div className="flex items-center gap-2 mb-2">
+              <Tooltip content={`${module.difficulty} level - Appropriate skill level for this module`}>
+                <span 
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 cursor-help focus:ring-2 focus:ring-offset-2 ${
+                    module.difficulty === 'Beginner' ? 
+                      'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 hover:border-green-300 focus:ring-green-500' :
+                    module.difficulty === 'Intermediate' ? 
+                      'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 focus:ring-blue-500' :
+                      'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 hover:border-purple-300 focus:ring-purple-500'
+                  }`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Difficulty level: ${module.difficulty}`}
+                >
+                  <Target className="w-3 h-3 mr-1" />
+                  {module.difficulty}
+                </span>
+              </Tooltip>
+              
+              <Tooltip content={`${module.difficulty} level - Complexity rating for this module`}>
+                <span 
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 cursor-help focus:ring-2 focus:ring-offset-2 ${
+                    module.difficulty === 'Beginner' ? 
+                      'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 focus:ring-emerald-500' :
+                    module.difficulty === 'Intermediate' ? 
+                      'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 hover:border-amber-300 focus:ring-amber-500' :
+                      'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 hover:border-red-300 focus:ring-red-500'
+                  }`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Difficulty level: ${module.difficulty}`}
+                >
+                  <Target className="w-3 h-3 mr-1" />
+                  {module.difficulty}
+                </span>
+              </Tooltip>
+            </div>
+          </div>
+        </div>
+
+        {/* Description with Improved Readability */}
+        <p 
+          id={`module-description-${module.id}`}
+          className="text-gray-600 text-base leading-relaxed mb-6 group-hover:text-gray-700 transition-colors duration-300"
+        >
+          {module.description}
+        </p>
+
+        {/* Enhanced Meta Information with Icons */}
+        <div className="flex items-center gap-6 text-sm text-gray-500 mb-6">
+          <div className="flex items-center gap-1 hover:text-gray-700 transition-colors duration-200">
+            <Clock className="w-4 h-4" />
+            <span>{module.duration}</span>
+          </div>
+          <div className="flex items-center gap-1 hover:text-gray-700 transition-colors duration-200">
+            <Users className="w-4 h-4" />
+            <span>{module.topics.length} topics</span>
+          </div>
+          {module.categories.length > 0 && (
+            <div className="flex items-center gap-1 hover:text-gray-700 transition-colors duration-200">
+              <Filter className="w-4 h-4" />
+              <span>{module.categories.length} categories</span>
+            </div>
+          )}
+        </div>
+        
+        {/* Enhanced Expandable Details with Better UX */}
+        <div className="mb-6">
+          <button
+            onClick={handleToggleExpand}
+            className="flex items-center text-sm text-blue-600 hover:text-blue-800 focus:text-blue-800 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md px-2 py-1 -mx-2"
+            aria-expanded={isExpanded}
+            aria-controls={`module-details-${module.id}`}
+            aria-label={isExpanded ? `Hide details for ${module.title}` : `View learning details for ${module.title}`}
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="w-4 h-4 mr-1 transition-transform duration-200" />
+                Hide details
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4 mr-1 transition-transform duration-200" />
+                View learning details
+              </>
+            )}
+          </button>
+          
+          {/* Enhanced Expanded Content */}
+          {isExpanded && (
+            <div 
+              id={`module-details-${module.id}`}
+              className="mt-4 p-4 bg-gray-50 rounded-lg animate-in slide-in-from-top duration-300"
+              role="region"
+              aria-label={`Detailed information for ${module.title}`}
+            >
+              <div className="space-y-4">
+                {/* Recommended Background - Soft Guidance */}
+                {module.recommendedBackground && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <div className="flex-shrink-0 mt-0.5">
+                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-sm text-blue-800">{module.recommendedBackground}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">What You'll Learn</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {module.topics.slice(0, 4).map((topic: string, index: number) => (
+                      <span 
+                        key={index} 
+                        className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full hover:bg-blue-200 transition-colors duration-200 cursor-default animate-in fade-in"
+                        style={{
+                          animationDelay: `${index * 50}ms`
+                        }}
+                      >
+                        {topic}
+                      </span>
+                    ))}
+                    {module.topics.length > 4 && (
+                      <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                        +{module.topics.length - 4} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Enhanced Action Section with Gamification */}
+        <div className="pt-4 border-t border-gray-100">
+          <Link
+            href={module.href}
+            className={`w-full inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold text-base transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-offset-2 ${
+              module.completed ? 
+                'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 hover:shadow-xl transform hover:-translate-y-1 focus:ring-green-500 group/btn' :
+                'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 hover:shadow-xl transform hover:-translate-y-1 focus:ring-blue-500 group/btn'
+            }`}
+            onClick={() => {
+              trackEvent('module_started', { moduleId: module.id, moduleTitle: module.title })
+            }}
+            aria-label={module.completed ? `Review completed module: ${module.title}` : `Start learning module: ${module.title}`}
+            role="button"
+          >
+            {module.completed ? (
+              <>
+                <Trophy className="w-5 h-5 mr-2 group-hover/btn:animate-bounce" />
+                Review Module
+              </>
+            ) : (
+              <>
+                <ArrowRight className="w-5 h-5 mr-2 group-hover/btn:translate-x-1 transition-transform duration-300" />
+                Start Learning
+              </>
+            )}
+          </Link>
+          
+          {/* Enhanced Progress Messaging with Animations */}
+          {module.completed && (
+            <div className="text-center mt-3 animate-in fade-in duration-500">
+              <p className="text-sm text-green-600 font-medium mb-1">
+                ✨ Module completed!
+              </p>
+              <div className="flex items-center justify-center gap-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '150ms'}}></div>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '300ms'}}></div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+})
+
+ModuleCard.displayName = 'ModuleCard'
+
+// Add proper memoization comparison
+const ModuleCardMemo = memo(ModuleCard, (prevProps, nextProps) => {
+  return (
+    prevProps.module.id === nextProps.module.id &&
+    prevProps.isAccessible === nextProps.isAccessible &&
+    prevProps.expandedCard === nextProps.expandedCard &&
+    prevProps.index === nextProps.index
+  )
+})
 
 interface LearningModule {
   id: string
@@ -16,15 +302,13 @@ interface LearningModule {
   href: string
   topics: string[]
   completed: boolean
-  prerequisites: string[]
+  recommendedBackground?: string // Optional soft guidance instead of hard prerequisites
   masteryLevel: 'none' | 'basic' | 'good' | 'excellent'
-  track: 'foundation' | 'applications' | 'advanced'
-  categories: string[] // New: Layer 1, DeFi, Stablecoins, etc.
+  categories: string[] // Primary categorization: Blockchain, DeFi, NFTs, Trading, Security, etc.
 }
 
 interface UserPreferences {
   learningPath: 'guided' | 'self-paced'
-  allowSkipPrerequisites: boolean
   minimalMode: boolean
   focusOnMastery: boolean
 }
@@ -34,18 +318,40 @@ export default function EducationModulesPage() {
   const [masteryLevels, setMasteryLevels] = useState<Record<string, string>>({})
   const [preferences, setPreferences] = useState<UserPreferences>({
     learningPath: 'guided',
-    allowSkipPrerequisites: true,
     minimalMode: false,
     focusOnMastery: true
   })
   const [sortBy, setSortBy] = useState<'recommended' | 'duration' | 'difficulty' | 'progress'>('recommended')
   const [filterDifficulty, setFilterDifficulty] = useState<'all' | 'Beginner' | 'Intermediate' | 'Advanced'>('all')
-  const [filterTrack, setFilterTrack] = useState<'all' | 'foundation' | 'applications' | 'advanced'>('all')
+
   const [filterProgress, setFilterProgress] = useState<'all' | 'not-started' | 'in-progress' | 'completed'>('all')
   const [filterCategory, setFilterCategory] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [showPreferences, setShowPreferences] = useState(false)
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
+  const [expandedCard, setExpandedCard] = useState<string | null>(null)
+
+  // Analytics tracking function
+  const trackEvent = (eventName: string, properties: Record<string, any>) => {
+    if (typeof window !== 'undefined') {
+      // Console logging for development - replace with your analytics service
+      console.log('📊 Analytics Event:', eventName, properties)
+      
+      // Example integration points:
+      // gtag('event', eventName, properties)
+      // mixpanel.track(eventName, properties)
+      // analytics.track(eventName, properties)
+      
+      // Store in localStorage for now (replace with proper analytics)
+      const events = JSON.parse(localStorage.getItem('educationAnalytics') || '[]')
+      events.push({
+        timestamp: new Date().toISOString(),
+        event: eventName,
+        properties
+      })
+      localStorage.setItem('educationAnalytics', JSON.stringify(events.slice(-100))) // Keep last 100 events
+    }
+  }
 
   useEffect(() => {
     // Load data from localStorage
@@ -83,10 +389,9 @@ export default function EducationModulesPage() {
       href: '/education/modules/getting-started',
       topics: ['Exchanges', 'Wallets', 'Private Keys', 'First Purchase'],
       completed: completedModules.includes('getting-started'),
-      prerequisites: [],
+      recommendedBackground: 'No prior knowledge required - perfect starting point',
       masteryLevel: getMasteryLevel('getting-started'),
-      track: 'foundation',
-      categories: ['Exchanges', 'Wallets']
+      categories: ['Blockchain', 'Wallets', 'Exchanges']
     },
     {
       id: 'bitcoin-basics',
@@ -98,10 +403,9 @@ export default function EducationModulesPage() {
       href: '/education/modules/bitcoin-basics',
       topics: ['Digital Gold', 'Blockchain', 'Mining', 'Decentralization'],
       completed: completedModules.includes('bitcoin-basics'),
-      prerequisites: ['getting-started'],
+      recommendedBackground: 'Basic understanding of traditional money systems helpful',
       masteryLevel: getMasteryLevel('bitcoin-basics'),
-      track: 'foundation',
-      categories: ['Blockchain', 'Mining']
+      categories: ['Blockchain', 'Cryptocurrency', 'Mining']
     },
     {
       id: 'money-systems',
@@ -113,10 +417,9 @@ export default function EducationModulesPage() {
       href: '/education/modules/money-systems',
       topics: ['Fiat Money', 'Central Banking', 'Inflation', 'Financial History'],
       completed: completedModules.includes('money-systems'),
-      prerequisites: ['bitcoin-basics'],
+      recommendedBackground: 'No prior knowledge required - foundational content',
       masteryLevel: getMasteryLevel('money-systems'),
-      track: 'foundation',
-      categories: ['Fiat Money', 'Financial History']
+      categories: ['Finance', 'Banking', 'Economics']
     },
     {
       id: 'how-it-works',
@@ -128,10 +431,23 @@ export default function EducationModulesPage() {
       href: '/education/modules/how-it-works',
       topics: ['Cryptography', 'Consensus', 'Nodes', 'Immutability'],
       completed: completedModules.includes('how-it-works'),
-      prerequisites: ['money-systems'],
+      recommendedBackground: 'Basic understanding of Bitcoin helpful but not required',
       masteryLevel: getMasteryLevel('how-it-works'),
-      track: 'foundation',
-      categories: ['Cryptography', 'Consensus']
+      categories: ['Blockchain', 'Technology', 'Cryptography']
+    },
+    {
+      id: 'ethereum-smart-contracts',
+      title: 'Ethereum & Smart Contracts',
+      description: 'The programmable blockchain enabling DeFi, NFTs, and decentralized applications',
+      difficulty: 'Beginner',
+      duration: '30 min',
+      icon: <Network className="w-6 h-6" />,
+      href: '/education/modules/ethereum-smart-contracts',
+      topics: ['Smart Contracts', 'EVM', 'Gas Fees', 'DApps', 'Ethereum 2.0'],
+      completed: completedModules.includes('ethereum-smart-contracts'),
+      recommendedBackground: 'Understanding of blockchain basics and Bitcoin concepts helpful',
+      masteryLevel: getMasteryLevel('ethereum-smart-contracts'),
+      categories: ['Ethereum', 'Smart Contracts', 'DApps']
     },
     {
       id: 'defi-tools',
@@ -143,10 +459,9 @@ export default function EducationModulesPage() {
       href: '/education/modules/defi-tools',
       topics: ['Portfolio Tracking', 'TradingView', 'Multi-Chain Wallets', 'Security Tools'],
       completed: completedModules.includes('defi-tools'),
-      prerequisites: ['how-it-works'],
+      recommendedBackground: 'Basic crypto knowledge helpful for practical application',
       masteryLevel: getMasteryLevel('defi-tools'),
-      track: 'applications',
-      categories: ['Portfolio Tracking', 'Security Tools']
+      categories: ['Tools', 'Portfolio', 'Security']
     },
     {
       id: 'stablecoins',
@@ -158,10 +473,37 @@ export default function EducationModulesPage() {
       href: '/education/modules/stablecoins',
       topics: ['Price Stability', 'USDC', 'USDT', 'Algorithmic Stablecoins'],
       completed: completedModules.includes('stablecoins'),
-      prerequisites: ['defi-tools'],
+      recommendedBackground: 'Understanding of traditional finance and basic crypto concepts',
       masteryLevel: getMasteryLevel('stablecoins'),
-      track: 'applications',
-      categories: ['Stablecoins']
+      categories: ['Stablecoins', 'DeFi', 'Finance']
+    },
+    {
+      id: 'nfts-digital-ownership',
+      title: 'NFTs & Digital Ownership',
+      description: 'Non-fungible tokens and the future of digital asset ownership',
+      difficulty: 'Intermediate',
+      duration: '25 min',
+      icon: <Star className="w-6 h-6" />,
+      href: '/education/modules/nfts-digital-ownership',
+      topics: ['NFT Standards', 'Digital Art', 'Utility NFTs', 'Marketplaces', 'IP Rights'],
+      completed: completedModules.includes('nfts-digital-ownership'),
+      recommendedBackground: 'Understanding of Ethereum and smart contracts helpful',
+      masteryLevel: getMasteryLevel('nfts-digital-ownership'),
+      categories: ['NFTs', 'Digital Art', 'Gaming']
+    },
+    {
+      id: 'crypto-trading-investing',
+      title: 'Crypto Trading & Investing',
+      description: 'Strategies for buying, holding, and trading cryptocurrencies safely',
+      difficulty: 'Intermediate',
+      duration: '35 min',
+      icon: <TrendingUp className="w-6 h-6" />,
+      href: '/education/modules/crypto-trading-investing',
+      topics: ['Portfolio Strategy', 'Technical Analysis', 'Risk Management', 'Tax Planning', 'Dollar-Cost Averaging'],
+      completed: completedModules.includes('crypto-trading-investing'),
+      recommendedBackground: 'Basic understanding of crypto wallets and exchanges',
+      masteryLevel: getMasteryLevel('crypto-trading-investing'),
+      categories: ['Trading', 'Investing', 'Finance']
     },
     {
       id: 'defi-fundamentals',
@@ -173,10 +515,9 @@ export default function EducationModulesPage() {
       href: '/education/modules/defi-fundamentals',
       topics: ['Lending', 'DEXs', 'Yield Farming', 'Smart Contracts'],
       completed: completedModules.includes('defi-fundamentals'),
-      prerequisites: ['stablecoins'],
+      recommendedBackground: 'Familiarity with crypto wallets and basic blockchain concepts',
       masteryLevel: getMasteryLevel('defi-fundamentals'),
-      track: 'applications',
-      categories: ['Lending', 'DEXs', 'Yield Farming']
+      categories: ['DeFi', 'Lending', 'Trading']
     },
     {
       id: 'real-world-assets',
@@ -188,10 +529,9 @@ export default function EducationModulesPage() {
       href: '/education/modules/real-world-assets',
       topics: ['Asset Tokenization', 'BlackRock BUIDL', 'Real Estate', 'Compliance'],
       completed: completedModules.includes('real-world-assets'),
-      prerequisites: ['defi-fundamentals'],
+      recommendedBackground: 'Understanding of both traditional assets and blockchain technology',
       masteryLevel: getMasteryLevel('real-world-assets'),
-      track: 'applications',
-      categories: ['Asset Tokenization', 'Real Estate']
+      categories: ['RWA', 'Tokenization', 'Finance']
     },
     {
       id: 'institutional-crypto',
@@ -203,10 +543,9 @@ export default function EducationModulesPage() {
       href: '/education/modules/institutional-crypto',
       topics: ['Custody Solutions', 'Compliance', 'Coinbase Custody', 'Anchorage'],
       completed: completedModules.includes('institutional-crypto'),
-      prerequisites: ['real-world-assets'],
+      recommendedBackground: 'Knowledge of crypto basics and regulatory frameworks helpful',
       masteryLevel: getMasteryLevel('institutional-crypto'),
-      track: 'applications',
-      categories: ['Custody Solutions', 'Compliance']
+      categories: ['Custody', 'Institutional', 'Compliance']
     },
     {
       id: 'cbdcs',
@@ -218,10 +557,9 @@ export default function EducationModulesPage() {
       href: '/education/modules/cbdcs',
       topics: ['Digital Yuan', 'Digital Euro', 'Monetary Policy', 'Privacy vs Control'],
       completed: completedModules.includes('cbdcs'),
-      prerequisites: ['institutional-crypto'],
+      recommendedBackground: 'Understanding of monetary policy and digital currency concepts',
       masteryLevel: getMasteryLevel('cbdcs'),
-      track: 'advanced',
-      categories: ['CBDCs']
+      categories: ['CBDCs', 'Government', 'Policy']
     },
     {
       id: 'cross-chain-finance',
@@ -233,10 +571,9 @@ export default function EducationModulesPage() {
       href: '/education/modules/cross-chain-finance',
       topics: ['Bridges', 'Interoperability', 'Multi-Chain', 'Layer 2s'],
       completed: completedModules.includes('cross-chain-finance'),
-      prerequisites: ['cbdcs'],
+      recommendedBackground: 'Solid understanding of blockchain technology and multiple protocols',
       masteryLevel: getMasteryLevel('cross-chain-finance'),
-      track: 'advanced',
-      categories: ['Bridges', 'Interoperability']
+      categories: ['Interoperability', 'Bridges', 'Infrastructure']
     },
     {
       id: 'defai',
@@ -248,10 +585,9 @@ export default function EducationModulesPage() {
       href: '/education/modules/defai',
       topics: ['AI Trading', 'Automated Strategies', 'Machine Learning', 'Predictive Analytics'],
       completed: completedModules.includes('defai'),
-      prerequisites: ['cross-chain-finance'],
+      recommendedBackground: 'Experience with DeFi protocols and basic AI/ML concepts helpful',
       masteryLevel: getMasteryLevel('defai'),
-      track: 'advanced',
-      categories: ['AI Trading', 'Automated Strategies']
+      categories: ['AI', 'DeFi', 'Automation']
     },
     {
       id: 'advanced',
@@ -263,10 +599,9 @@ export default function EducationModulesPage() {
       href: '/education/modules/advanced',
       topics: ['DeFi Strategies', 'Portfolio Theory', 'Risk Models', 'Tax Optimization'],
       completed: completedModules.includes('advanced'),
-      prerequisites: ['defai'],
+      recommendedBackground: 'Extensive DeFi experience and understanding of portfolio management',
       masteryLevel: getMasteryLevel('advanced'),
-      track: 'advanced',
-      categories: ['DeFi Strategies', 'Portfolio Theory']
+      categories: ['Advanced Strategies', 'Portfolio', 'Risk Management']
     },
     {
       id: 'security',
@@ -278,17 +613,13 @@ export default function EducationModulesPage() {
       href: '/education/modules/security',
       topics: ['Cold Storage', 'Multi-sig', 'Risk Assessment', 'Insurance'],
       completed: completedModules.includes('security'),
-      prerequisites: ['advanced'],
+      recommendedBackground: 'Experience with crypto storage and basic security concepts',
       masteryLevel: getMasteryLevel('security'),
-      track: 'advanced',
-      categories: ['Cold Storage', 'Multi-sig', 'Risk Assessment']
+      categories: ['Security', 'Risk Management', 'Storage']
     }
   ]
 
-  const canAccessModule = (module: LearningModule) => {
-    if (preferences.allowSkipPrerequisites) return true
-    return module.prerequisites.every(prereq => completedModules.includes(prereq))
-  }
+  // Remove the canAccessModule function entirely - all modules are now freely accessible
 
   const filteredAndSortedModules = modules
     .filter(module => {
@@ -296,11 +627,10 @@ export default function EducationModulesPage() {
                            module.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            module.topics.some(topic => topic.toLowerCase().includes(searchTerm.toLowerCase()))
       const matchesDifficulty = filterDifficulty === 'all' || module.difficulty === filterDifficulty
-      const matchesTrack = filterTrack === 'all' || module.track === filterTrack
       const matchesProgress = filterProgress === 'all' || (module.completed ? 'completed' : 'not-started') === filterProgress
       const matchesCategory = filterCategory === 'all' || module.categories.some(cat => cat.toLowerCase().includes(filterCategory.toLowerCase()))
 
-      return matchesSearch && matchesDifficulty && matchesTrack && matchesProgress && matchesCategory
+      return matchesSearch && matchesDifficulty && matchesProgress && matchesCategory
     })
     .sort((a, b) => {
       if (sortBy === 'recommended') {
@@ -354,26 +684,17 @@ export default function EducationModulesPage() {
           <Breadcrumb 
             items={[
               { label: 'Home', href: '/', icon: <Home className="w-4 h-4" /> },
-              { label: 'Education', href: '/education/dashboard', icon: <BookOpen className="w-4 h-4" /> },
-              { label: 'All Modules', current: true, icon: <Target className="w-4 h-4" /> }
+              { label: 'Education', current: true, icon: <BookOpen className="w-4 h-4" /> }
             ]} 
             className="mb-4" 
           />
-          
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <Link href="/education/dashboard" className="inline-flex items-center text-blue-600 hover:text-blue-700">
-              <ArrowRight className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Link>
-          </div>
 
-          {/* Course Overview */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          {/* Learning Journey Header */}
+          <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">All Learning Modules</h1>
-                <p className="text-gray-600 mt-2">Complete curriculum from basics to advanced concepts</p>
+                <h1 className="text-3xl font-bold text-gray-900">Your Crypto Learning Journey</h1>
+                <p className="text-gray-600 mt-2">Master cryptocurrency from basics to advanced concepts</p>
               </div>
               <button
                 onClick={() => setShowPreferences(!showPreferences)}
@@ -383,6 +704,62 @@ export default function EducationModulesPage() {
                 <span>Settings</span>
               </button>
             </div>
+          </div>
+
+          {/* Main Progress Overview */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  <BarChart3 className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Your Learning Progress</h2>
+                  <p className="text-gray-600">{completedModules.length} of {modules.length} modules completed</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold text-blue-600">{progressPercentage}%</div>
+                <div className="text-sm text-gray-500">Complete</div>
+              </div>
+            </div>
+            
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+              <div 
+                className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
+            
+            {/* Learning Progress Breakdown */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex items-center space-x-3">
+                <BookOpen className="w-5 h-5 text-blue-500" />
+                <div>
+                  <div className="text-sm text-gray-500">Beginner Level</div>
+                  <div className="font-semibold">{modules.filter(m => m.difficulty === 'Beginner' && m.completed).length} of {modules.filter(m => m.difficulty === 'Beginner').length} completed</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Target className="w-5 h-5 text-green-500" />
+                <div>
+                  <div className="text-sm text-gray-500">Intermediate Level</div>
+                  <div className="font-semibold">{modules.filter(m => m.difficulty === 'Intermediate' && m.completed).length} of {modules.filter(m => m.difficulty === 'Intermediate').length} completed</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Zap className="w-5 h-5 text-purple-500" />
+                <div>
+                  <div className="text-sm text-gray-500">Advanced Level</div>
+                  <div className="font-semibold">{modules.filter(m => m.difficulty === 'Advanced' && m.completed).length} of {modules.filter(m => m.difficulty === 'Advanced').length} completed</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Stats Overview */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Learning Overview</h3>
             
             {/* Progress Overview */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -406,12 +783,12 @@ export default function EducationModulesPage() {
               </div>
               <div className="bg-purple-50 p-4 rounded-lg">
                 <div className="flex items-center">
-                  <Clock className="w-8 h-8 text-purple-500 mr-3" />
+                  <BookOpen className="w-8 h-8 text-purple-500 mr-3" />
                   <div>
                     <div className="text-2xl font-bold text-purple-700">
-                      {Math.round((modules.length - completedModules.length) * 22)}min
+                      {modules.length - completedModules.length}
                     </div>
-                    <div className="text-sm text-purple-600">Time Remaining</div>
+                    <div className="text-sm text-purple-600">Modules Remaining</div>
                   </div>
                 </div>
               </div>
@@ -441,17 +818,6 @@ export default function EducationModulesPage() {
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Learning Preferences</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={preferences.allowSkipPrerequisites}
-                        onChange={(e) => savePreferences({...preferences, allowSkipPrerequisites: e.target.checked})}
-                        className="rounded border-gray-300"
-                      />
-                      <span className="text-sm text-gray-700">Allow skipping prerequisites</span>
-                    </label>
-                  </div>
                   <div>
                     <label className="flex items-center space-x-2">
                       <input
@@ -521,21 +887,7 @@ export default function EducationModulesPage() {
                   </select>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <Tooltip content="Choose learning track based on your experience level">
-                    <span className="text-sm font-medium text-gray-700 cursor-help">Track:</span>
-                  </Tooltip>
-                  <select
-                    value={filterTrack}
-                    onChange={(e) => setFilterTrack(e.target.value as typeof filterTrack)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                  >
-                    <option value="all">🎯 All Tracks</option>
-                    <option value="foundation">🏗️ Foundation</option>
-                    <option value="applications">⚡ Applications</option>
-                    <option value="advanced">🚀 Advanced</option>
-                  </select>
-                </div>
+
                 
                 <div className="flex items-center space-x-2">
                   <span className="text-sm font-medium text-gray-700">Level:</span>
@@ -588,19 +940,13 @@ export default function EducationModulesPage() {
               </div>
               
               {/* Active Filters */}
-              {(searchTerm || filterTrack !== 'all' || filterDifficulty !== 'all' || filterProgress !== 'all' || filterCategory !== 'all') && (
+              {(searchTerm || filterDifficulty !== 'all' || filterProgress !== 'all' || filterCategory !== 'all') && (
                 <div className="flex flex-wrap gap-2 items-center">
                   <span className="text-sm text-gray-500">Active filters:</span>
                   {searchTerm && (
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center">
                       🔍 "{searchTerm}"
                       <button onClick={() => setSearchTerm('')} className="ml-2 text-blue-500 hover:text-blue-700">×</button>
-                    </span>
-                  )}
-                  {filterTrack !== 'all' && (
-                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm flex items-center">
-                      🎯 {filterTrack}
-                      <button onClick={() => setFilterTrack('all')} className="ml-2 text-green-500 hover:text-green-700">×</button>
                     </span>
                   )}
                   {filterDifficulty !== 'all' && (
@@ -624,7 +970,6 @@ export default function EducationModulesPage() {
                   <button 
                     onClick={() => {
                       setSearchTerm('')
-                      setFilterTrack('all')
                       setFilterDifficulty('all')
                       setFilterProgress('all')
                       setFilterCategory('all')
@@ -639,159 +984,22 @@ export default function EducationModulesPage() {
           </div>
 
           {/* Module Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAndSortedModules.map((module) => {
-              const isAccessible = canAccessModule(module)
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            {filteredAndSortedModules.map((module, index) => {
+              const isAccessible = true // All modules are now freely accessible
+              const progressPercentage = module.completed ? 100 : 0
               
               return (
-                <div 
+                <ModuleCardMemo
                   key={module.id} 
-                  onMouseEnter={() => setHoveredCard(module.id)}
-                  onMouseLeave={() => setHoveredCard(null)}
-                  className={`bg-white rounded-lg shadow-sm border-2 transition-all duration-200 ${
-                    !isAccessible ? 'border-gray-200 opacity-60' : 
-                    module.completed ? 'border-green-200 hover:border-green-300' : 
-                    'border-gray-200 hover:border-blue-300 hover:shadow-md'
-                  }`}>
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className={`p-3 rounded-lg ${
-                        module.completed ? 'bg-green-100' : 'bg-blue-100'
-                      }`}>
-                        {module.completed ? (
-                          <CheckCircle2 className="w-6 h-6 text-green-600" />
-                        ) : (
-                          module.icon
-                        )}
-                      </div>
-                      <div className="flex flex-col items-end space-y-2">
-                        {/* Track Badge with Tooltip */}
-                        <Tooltip 
-                          content={
-                            module.track === 'foundation' ? 'Core crypto concepts and fundamentals' :
-                            module.track === 'applications' ? 'Real-world crypto applications and use cases' :
-                            'Advanced strategies and complex concepts'
-                          }
-                          position="left"
-                        >
-                          <span className={`text-xs px-2 py-1 rounded-full font-medium cursor-help ${
-                            module.track === 'foundation' ? 'bg-green-100 text-green-700' :
-                            module.track === 'applications' ? 'bg-blue-100 text-blue-700' :
-                            'bg-purple-100 text-purple-700'
-                          }`}>
-                            {module.track === 'foundation' ? '🏗️ Foundation' :
-                             module.track === 'applications' ? '⚡ Applications' :
-                             '🚀 Advanced'}
-                          </span>
-                        </Tooltip>
-                        {/* Difficulty Badge with Tooltip */}
-                        <Tooltip 
-                          content={
-                            module.difficulty === 'Beginner' ? 'No prior crypto knowledge required' :
-                            module.difficulty === 'Intermediate' ? 'Some basic crypto understanding helpful' :
-                            'Requires solid foundation in crypto concepts'
-                          }
-                          position="left"
-                        >
-                          <span className={`text-xs px-2 py-1 rounded-full cursor-help ${
-                            module.difficulty === 'Beginner' ? 'bg-emerald-100 text-emerald-700' :
-                            module.difficulty === 'Intermediate' ? 'bg-amber-100 text-amber-700' :
-                            'bg-red-100 text-red-700'
-                          }`}>
-                            {module.difficulty === 'Beginner' ? '🟢 Beginner' :
-                             module.difficulty === 'Intermediate' ? '🟡 Intermediate' :
-                             '🔴 Advanced'}
-                          </span>
-                        </Tooltip>
-                        {module.completed && (
-                          <span className={`text-xs px-2 py-1 rounded-full ${masteryColors[module.masteryLevel]}`}>
-                            ✨ {masteryLabels[module.masteryLevel]}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{module.title}</h3>
-                    <p className="text-gray-600 text-sm mb-4">{module.description}</p>
-                    
-                    {/* Categories & Topics - Progressive Disclosure */}
-                    <div className="mb-4">
-                      {/* Always visible: Basic info */}
-                      <div className="flex items-center text-gray-500 text-sm mb-2">
-                        <Clock className="w-4 h-4 mr-1" />
-                        <span>{module.duration}</span>
-                        <Users className="w-4 h-4 ml-4 mr-1" />
-                        <span>{module.topics.length} topics</span>
-                        {module.categories.length > 0 && (
-                          <>
-                            <div className="w-1 h-1 bg-gray-400 rounded-full mx-3"></div>
-                            <span>{module.categories.length} categories</span>
-                          </>
-                        )}
-                        {hoveredCard !== module.id && (
-                          <span className="ml-2 text-xs text-gray-400">hover for details</span>
-                        )}
-                      </div>
-                      
-                      {/* On hover: Detailed categories & topics */}
-                      {hoveredCard === module.id && (
-                        <div className="space-y-2 animate-in fade-in duration-200">
-                          {module.categories.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                              <span className="text-xs text-gray-500 mr-1 font-medium">Categories:</span>
-                              {module.categories.map((category, index) => (
-                                <span key={index} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full border border-blue-200">
-                                  {category}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          <div className="flex flex-wrap gap-1">
-                            <span className="text-xs text-gray-500 mr-1 font-medium">Topics:</span>
-                            {module.topics.map((topic, index) => (
-                              <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                {topic}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {!preferences.allowSkipPrerequisites && module.prerequisites.length > 0 && (
-                      <div className="mb-4">
-                        <div className="text-xs text-gray-500 mb-1">Prerequisites:</div>
-                        <div className="flex flex-wrap gap-1">
-                          {module.prerequisites.map((prereq) => {
-                            const prereqModule = modules.find(m => m.id === prereq)
-                            const isPrereqCompleted = completedModules.includes(prereq)
-                            return (
-                              <span key={prereq} className={`text-xs px-2 py-1 rounded ${
-                                isPrereqCompleted ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                              }`}>
-                                {prereqModule?.title || prereq}
-                                {isPrereqCompleted && ' ✓'}
-                              </span>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <Link
-                      href={isAccessible ? module.href : '#'}
-                      className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        !isAccessible ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
-                        module.completed ? 'bg-green-50 text-green-700 hover:bg-green-100' :
-                        'bg-blue-600 text-white hover:bg-blue-700'
-                      }`}
-                      onClick={(e) => !isAccessible && e.preventDefault()}
-                    >
-                      {module.completed ? 'Review Module' : 'Start Learning'}
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </div>
-                </div>
+                  module={module} 
+                  index={index} 
+                  isAccessible={isAccessible} 
+                  expandedCard={expandedCard} 
+                  setExpandedCard={setExpandedCard} 
+                  trackEvent={trackEvent} 
+                  modules={modules}
+                />
               )
             })}
           </div>
