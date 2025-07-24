@@ -807,33 +807,60 @@ export default function EducationModulesPage() {
             
             {/* Expandable Progress Breakdown */}
             {showPreferences && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6 pt-4 border-t border-gray-100">
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-                  <div>
-                    <div className="text-xs sm:text-sm text-gray-500">Beginner</div>
-                    <div className="text-sm sm:text-base font-semibold">{modules.filter(m => m.difficulty === 'Beginner' && m.completed).length}/{modules.filter(m => m.difficulty === 'Beginner').length}</div>
+              <div className="pt-4 border-t border-gray-100 space-y-4">
+                {/* Progress by Difficulty */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Progress by Difficulty</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
+                    <div className="flex items-center space-x-2 sm:space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+                      <div>
+                        <div className="text-xs sm:text-sm text-gray-500">Beginner</div>
+                        <div className="text-sm sm:text-base font-semibold">{modules.filter(m => m.difficulty === 'Beginner' && m.completed).length}/{modules.filter(m => m.difficulty === 'Beginner').length}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2 sm:space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <Target className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+                      <div>
+                        <div className="text-xs sm:text-sm text-gray-500">Intermediate</div>
+                        <div className="text-sm sm:text-base font-semibold">{modules.filter(m => m.difficulty === 'Intermediate' && m.completed).length}/{modules.filter(m => m.difficulty === 'Intermediate').length}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2 sm:space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+                      <div>
+                        <div className="text-xs sm:text-sm text-gray-500">Advanced</div>
+                        <div className="text-sm sm:text-base font-semibold">{modules.filter(m => m.difficulty === 'Advanced' && m.completed).length}/{modules.filter(m => m.difficulty === 'Advanced').length}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <Target className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
-                  <div>
-                    <div className="text-xs sm:text-sm text-gray-500">Intermediate</div>
-                    <div className="text-sm sm:text-base font-semibold">{modules.filter(m => m.difficulty === 'Intermediate' && m.completed).length}/{modules.filter(m => m.difficulty === 'Intermediate').length}</div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
-                  <div>
-                    <div className="text-xs sm:text-sm text-gray-500">Advanced</div>
-                    <div className="text-sm sm:text-base font-semibold">{modules.filter(m => m.difficulty === 'Advanced' && m.completed).length}/{modules.filter(m => m.difficulty === 'Advanced').length}</div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2 sm:space-x-3 col-span-2 sm:col-span-1">
-                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
-                  <div>
-                    <div className="text-xs sm:text-sm text-gray-500">In Progress</div>
-                    <div className="text-sm sm:text-base font-semibold">{modules.filter(m => getModuleProgressStatus(m.id) === 'in-progress').length}</div>
+
+                {/* Progress Status */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Learning Status</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
+                    <div className="flex items-center space-x-2 sm:space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+                      <div>
+                        <div className="text-xs sm:text-sm text-gray-500">Completed</div>
+                        <div className="text-sm sm:text-base font-semibold text-green-700">{completedModulesFromStorage.length}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2 sm:space-x-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                      <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+                      <div>
+                        <div className="text-xs sm:text-sm text-gray-500">In Progress</div>
+                        <div className="text-sm sm:text-base font-semibold text-orange-700">{modules.filter(m => getModuleProgressStatus(m.id) === 'in-progress').length}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2 sm:space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+                      <div>
+                        <div className="text-xs sm:text-sm text-gray-500">Not Started</div>
+                        <div className="text-sm sm:text-base font-semibold text-blue-700">{modules.filter(m => getModuleProgressStatus(m.id) === 'not-started').length}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -874,12 +901,12 @@ export default function EducationModulesPage() {
                 </div>
               </div>
             )}
-
-            {/* Simplified Search and Filters - Mobile First */}
-            <div className="space-y-4 mb-6">
+          
+          {/* Simplified Search and Filters - Mobile First */}
+          <div className="space-y-4 mb-6">
               {/* Mobile: Compact Search + Filter Button */}
               <div className="sm:hidden">
-                <div className="flex gap-2 mb-3">
+                <div className="flex mb-3 bg-gray-50 p-2 rounded-lg">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
@@ -892,7 +919,7 @@ export default function EducationModulesPage() {
                   </div>
                   <button
                     onClick={() => setShowPreferences(!showPreferences)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg flex items-center gap-1 text-sm bg-white hover:bg-gray-50"
+                    className="ml-4 px-3 py-2 border border-gray-300 rounded-lg flex items-center gap-1 text-sm bg-white hover:bg-gray-50"
                   >
                     <Filter className="w-4 h-4" />
                     {(filterDifficulty !== 'all' || filterProgress !== 'all' || filterCategory !== 'all') && (
