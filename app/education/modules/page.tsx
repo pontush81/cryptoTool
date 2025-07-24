@@ -16,6 +16,8 @@ interface LearningModule {
   completed: boolean
   prerequisites: string[]
   masteryLevel: 'none' | 'basic' | 'good' | 'excellent'
+  track: 'foundation' | 'applications' | 'advanced'
+  categories: string[] // New: Layer 1, DeFi, Stablecoins, etc.
 }
 
 interface UserPreferences {
@@ -34,8 +36,11 @@ export default function EducationModulesPage() {
     minimalMode: false,
     focusOnMastery: true
   })
-  const [sortBy, setSortBy] = useState<'difficulty' | 'duration' | 'progress'>('difficulty')
+  const [sortBy, setSortBy] = useState<'recommended' | 'duration' | 'difficulty' | 'progress'>('recommended')
   const [filterDifficulty, setFilterDifficulty] = useState<'all' | 'Beginner' | 'Intermediate' | 'Advanced'>('all')
+  const [filterTrack, setFilterTrack] = useState<'all' | 'foundation' | 'applications' | 'advanced'>('all')
+  const [filterProgress, setFilterProgress] = useState<'all' | 'not-started' | 'in-progress' | 'completed'>('all')
+  const [filterCategory, setFilterCategory] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [showPreferences, setShowPreferences] = useState(false)
 
@@ -76,7 +81,9 @@ export default function EducationModulesPage() {
       topics: ['Exchanges', 'Wallets', 'Private Keys', 'First Purchase'],
       completed: completedModules.includes('getting-started'),
       prerequisites: [],
-      masteryLevel: getMasteryLevel('getting-started')
+      masteryLevel: getMasteryLevel('getting-started'),
+      track: 'foundation',
+      categories: ['Exchanges', 'Wallets']
     },
     {
       id: 'bitcoin-basics',
@@ -89,7 +96,9 @@ export default function EducationModulesPage() {
       topics: ['Digital Gold', 'Blockchain', 'Mining', 'Decentralization'],
       completed: completedModules.includes('bitcoin-basics'),
       prerequisites: ['getting-started'],
-      masteryLevel: getMasteryLevel('bitcoin-basics')
+      masteryLevel: getMasteryLevel('bitcoin-basics'),
+      track: 'foundation',
+      categories: ['Blockchain', 'Mining']
     },
     {
       id: 'money-systems',
@@ -102,7 +111,9 @@ export default function EducationModulesPage() {
       topics: ['Fiat Money', 'Central Banking', 'Inflation', 'Financial History'],
       completed: completedModules.includes('money-systems'),
       prerequisites: ['bitcoin-basics'],
-      masteryLevel: getMasteryLevel('money-systems')
+      masteryLevel: getMasteryLevel('money-systems'),
+      track: 'foundation',
+      categories: ['Fiat Money', 'Financial History']
     },
     {
       id: 'how-it-works',
@@ -115,7 +126,9 @@ export default function EducationModulesPage() {
       topics: ['Cryptography', 'Consensus', 'Nodes', 'Immutability'],
       completed: completedModules.includes('how-it-works'),
       prerequisites: ['money-systems'],
-      masteryLevel: getMasteryLevel('how-it-works')
+      masteryLevel: getMasteryLevel('how-it-works'),
+      track: 'foundation',
+      categories: ['Cryptography', 'Consensus']
     },
     {
       id: 'defi-tools',
@@ -128,7 +141,9 @@ export default function EducationModulesPage() {
       topics: ['Portfolio Tracking', 'TradingView', 'Multi-Chain Wallets', 'Security Tools'],
       completed: completedModules.includes('defi-tools'),
       prerequisites: ['how-it-works'],
-      masteryLevel: getMasteryLevel('defi-tools')
+      masteryLevel: getMasteryLevel('defi-tools'),
+      track: 'applications',
+      categories: ['Portfolio Tracking', 'Security Tools']
     },
     {
       id: 'stablecoins',
@@ -141,7 +156,9 @@ export default function EducationModulesPage() {
       topics: ['Price Stability', 'USDC', 'USDT', 'Algorithmic Stablecoins'],
       completed: completedModules.includes('stablecoins'),
       prerequisites: ['defi-tools'],
-      masteryLevel: getMasteryLevel('stablecoins')
+      masteryLevel: getMasteryLevel('stablecoins'),
+      track: 'applications',
+      categories: ['Stablecoins']
     },
     {
       id: 'defi-fundamentals',
@@ -154,7 +171,9 @@ export default function EducationModulesPage() {
       topics: ['Lending', 'DEXs', 'Yield Farming', 'Smart Contracts'],
       completed: completedModules.includes('defi-fundamentals'),
       prerequisites: ['stablecoins'],
-      masteryLevel: getMasteryLevel('defi-fundamentals')
+      masteryLevel: getMasteryLevel('defi-fundamentals'),
+      track: 'applications',
+      categories: ['Lending', 'DEXs', 'Yield Farming']
     },
     {
       id: 'real-world-assets',
@@ -167,7 +186,9 @@ export default function EducationModulesPage() {
       topics: ['Asset Tokenization', 'BlackRock BUIDL', 'Real Estate', 'Compliance'],
       completed: completedModules.includes('real-world-assets'),
       prerequisites: ['defi-fundamentals'],
-      masteryLevel: getMasteryLevel('real-world-assets')
+      masteryLevel: getMasteryLevel('real-world-assets'),
+      track: 'applications',
+      categories: ['Asset Tokenization', 'Real Estate']
     },
     {
       id: 'institutional-crypto',
@@ -180,7 +201,9 @@ export default function EducationModulesPage() {
       topics: ['Custody Solutions', 'Compliance', 'Coinbase Custody', 'Anchorage'],
       completed: completedModules.includes('institutional-crypto'),
       prerequisites: ['real-world-assets'],
-      masteryLevel: getMasteryLevel('institutional-crypto')
+      masteryLevel: getMasteryLevel('institutional-crypto'),
+      track: 'applications',
+      categories: ['Custody Solutions', 'Compliance']
     },
     {
       id: 'cbdcs',
@@ -193,7 +216,9 @@ export default function EducationModulesPage() {
       topics: ['Digital Yuan', 'Digital Euro', 'Monetary Policy', 'Privacy vs Control'],
       completed: completedModules.includes('cbdcs'),
       prerequisites: ['institutional-crypto'],
-      masteryLevel: getMasteryLevel('cbdcs')
+      masteryLevel: getMasteryLevel('cbdcs'),
+      track: 'advanced',
+      categories: ['CBDCs']
     },
     {
       id: 'cross-chain-finance',
@@ -206,7 +231,9 @@ export default function EducationModulesPage() {
       topics: ['Bridges', 'Interoperability', 'Multi-Chain', 'Layer 2s'],
       completed: completedModules.includes('cross-chain-finance'),
       prerequisites: ['cbdcs'],
-      masteryLevel: getMasteryLevel('cross-chain-finance')
+      masteryLevel: getMasteryLevel('cross-chain-finance'),
+      track: 'advanced',
+      categories: ['Bridges', 'Interoperability']
     },
     {
       id: 'defai',
@@ -219,7 +246,9 @@ export default function EducationModulesPage() {
       topics: ['AI Trading', 'Automated Strategies', 'Machine Learning', 'Predictive Analytics'],
       completed: completedModules.includes('defai'),
       prerequisites: ['cross-chain-finance'],
-      masteryLevel: getMasteryLevel('defai')
+      masteryLevel: getMasteryLevel('defai'),
+      track: 'advanced',
+      categories: ['AI Trading', 'Automated Strategies']
     },
     {
       id: 'advanced',
@@ -232,7 +261,9 @@ export default function EducationModulesPage() {
       topics: ['DeFi Strategies', 'Portfolio Theory', 'Risk Models', 'Tax Optimization'],
       completed: completedModules.includes('advanced'),
       prerequisites: ['defai'],
-      masteryLevel: getMasteryLevel('advanced')
+      masteryLevel: getMasteryLevel('advanced'),
+      track: 'advanced',
+      categories: ['DeFi Strategies', 'Portfolio Theory']
     },
     {
       id: 'security',
@@ -245,7 +276,9 @@ export default function EducationModulesPage() {
       topics: ['Cold Storage', 'Multi-sig', 'Risk Assessment', 'Insurance'],
       completed: completedModules.includes('security'),
       prerequisites: ['advanced'],
-      masteryLevel: getMasteryLevel('security')
+      masteryLevel: getMasteryLevel('security'),
+      track: 'advanced',
+      categories: ['Cold Storage', 'Multi-sig', 'Risk Assessment']
     }
   ]
 
@@ -260,14 +293,27 @@ export default function EducationModulesPage() {
                            module.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            module.topics.some(topic => topic.toLowerCase().includes(searchTerm.toLowerCase()))
       const matchesDifficulty = filterDifficulty === 'all' || module.difficulty === filterDifficulty
-      return matchesSearch && matchesDifficulty
+      const matchesTrack = filterTrack === 'all' || module.track === filterTrack
+      const matchesProgress = filterProgress === 'all' || (module.completed ? 'completed' : 'not-started') === filterProgress
+      const matchesCategory = filterCategory === 'all' || module.categories.some(cat => cat.toLowerCase().includes(filterCategory.toLowerCase()))
+
+      return matchesSearch && matchesDifficulty && matchesTrack && matchesProgress && matchesCategory
     })
     .sort((a, b) => {
-      if (sortBy === 'difficulty') {
-        const difficultyOrder = { 'Beginner': 1, 'Intermediate': 2, 'Advanced': 3 }
-        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]
+      if (sortBy === 'recommended') {
+        // Simple recommendation: completed modules first, then by mastery level
+        if (a.completed && !b.completed) return -1
+        if (!a.completed && b.completed) return 1
+        if (a.completed && b.completed) {
+          const masteryOrder = { 'excellent': 4, 'good': 3, 'basic': 2, 'none': 1 }
+          return masteryOrder[b.masteryLevel] - masteryOrder[a.masteryLevel]
+        }
+        return 0
       } else if (sortBy === 'duration') {
         return parseInt(a.duration) - parseInt(b.duration)
+      } else if (sortBy === 'difficulty') {
+        const difficultyOrder = { 'Beginner': 1, 'Intermediate': 2, 'Advanced': 3 }
+        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]
       } else {
         // Sort by progress (completed first, then by mastery level)
         if (a.completed && !b.completed) return -1
@@ -431,40 +477,149 @@ export default function EducationModulesPage() {
             )}
 
             {/* Search and Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="space-y-4 mb-6">
+              {/* Search Bar */}
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     type="text"
-                    placeholder="Search modules..."
+                    placeholder="🔍 Search modules, topics, or categories..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
                   />
                 </div>
               </div>
-              <div className="flex gap-2">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="difficulty">Sort by Difficulty</option>
-                  <option value="duration">Sort by Duration</option>
-                  <option value="progress">Sort by Progress</option>
-                </select>
-                <select
-                  value={filterDifficulty}
-                  onChange={(e) => setFilterDifficulty(e.target.value as typeof filterDifficulty)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">All Levels</option>
-                  <option value="Beginner">Beginner</option>
-                  <option value="Intermediate">Intermediate</option>
-                  <option value="Advanced">Advanced</option>
-                </select>
+              
+              {/* Filter Chips */}
+              <div className="flex flex-wrap gap-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-700">Sort:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  >
+                    <option value="recommended">📋 Recommended</option>
+                    <option value="duration">⏱️ Duration</option>
+                    <option value="difficulty">📈 Difficulty</option>
+                    <option value="progress">✅ Progress</option>
+                  </select>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-700">Track:</span>
+                  <select
+                    value={filterTrack}
+                    onChange={(e) => setFilterTrack(e.target.value as typeof filterTrack)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  >
+                    <option value="all">🎯 All Tracks</option>
+                    <option value="foundation">🏗️ Foundation</option>
+                    <option value="applications">⚡ Applications</option>
+                    <option value="advanced">🚀 Advanced</option>
+                  </select>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-700">Level:</span>
+                  <select
+                    value={filterDifficulty}
+                    onChange={(e) => setFilterDifficulty(e.target.value as typeof filterDifficulty)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  >
+                    <option value="all">📚 All Levels</option>
+                    <option value="Beginner">🟢 Beginner</option>
+                    <option value="Intermediate">🟡 Intermediate</option>
+                    <option value="Advanced">🔴 Advanced</option>
+                  </select>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-700">Progress:</span>
+                  <select
+                    value={filterProgress}
+                    onChange={(e) => setFilterProgress(e.target.value as typeof filterProgress)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  >
+                    <option value="all">📊 All Progress</option>
+                    <option value="not-started">⚪ Not Started</option>
+                    <option value="in-progress">🟡 In Progress</option>
+                    <option value="completed">✅ Completed</option>
+                  </select>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-700">Category:</span>
+                  <select
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  >
+                    <option value="all">🏷️ All Categories</option>
+                    <option value="Exchanges">💱 Exchanges</option>
+                    <option value="Wallets">👛 Wallets</option>
+                    <option value="Blockchain">⛓️ Blockchain</option>
+                    <option value="Mining">⛏️ Mining</option>
+                    <option value="Stablecoins">💲 Stablecoins</option>
+                    <option value="DeFi">🏦 DeFi</option>
+                    <option value="NFTs">🖼️ NFTs</option>
+                    <option value="Security">🔒 Security</option>
+                    <option value="Trading">📈 Trading</option>
+                    <option value="Compliance">📋 Compliance</option>
+                  </select>
+                </div>
               </div>
+              
+              {/* Active Filters */}
+              {(searchTerm || filterTrack !== 'all' || filterDifficulty !== 'all' || filterProgress !== 'all' || filterCategory !== 'all') && (
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="text-sm text-gray-500">Active filters:</span>
+                  {searchTerm && (
+                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center">
+                      🔍 "{searchTerm}"
+                      <button onClick={() => setSearchTerm('')} className="ml-2 text-blue-500 hover:text-blue-700">×</button>
+                    </span>
+                  )}
+                  {filterTrack !== 'all' && (
+                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm flex items-center">
+                      🎯 {filterTrack}
+                      <button onClick={() => setFilterTrack('all')} className="ml-2 text-green-500 hover:text-green-700">×</button>
+                    </span>
+                  )}
+                  {filterDifficulty !== 'all' && (
+                    <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm flex items-center">
+                      📚 {filterDifficulty}
+                      <button onClick={() => setFilterDifficulty('all')} className="ml-2 text-purple-500 hover:text-purple-700">×</button>
+                    </span>
+                  )}
+                  {filterProgress !== 'all' && (
+                    <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm flex items-center">
+                      📊 {filterProgress}
+                      <button onClick={() => setFilterProgress('all')} className="ml-2 text-orange-500 hover:text-orange-700">×</button>
+                    </span>
+                  )}
+                  {filterCategory !== 'all' && (
+                    <span className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm flex items-center">
+                      🏷️ {filterCategory}
+                      <button onClick={() => setFilterCategory('all')} className="ml-2 text-pink-500 hover:text-pink-700">×</button>
+                    </span>
+                  )}
+                  <button 
+                    onClick={() => {
+                      setSearchTerm('')
+                      setFilterTrack('all')
+                      setFilterDifficulty('all')
+                      setFilterProgress('all')
+                      setFilterCategory('all')
+                    }}
+                    className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm hover:bg-gray-200"
+                  >
+                    Clear all
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -491,16 +646,29 @@ export default function EducationModulesPage() {
                         )}
                       </div>
                       <div className="flex flex-col items-end space-y-2">
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          module.difficulty === 'Beginner' ? 'bg-green-100 text-green-700' :
-                          module.difficulty === 'Intermediate' ? 'bg-blue-100 text-blue-700' :
+                        {/* Track Badge */}
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                          module.track === 'foundation' ? 'bg-green-100 text-green-700' :
+                          module.track === 'applications' ? 'bg-blue-100 text-blue-700' :
                           'bg-purple-100 text-purple-700'
                         }`}>
-                          {module.difficulty}
+                          {module.track === 'foundation' ? '🏗️ Foundation' :
+                           module.track === 'applications' ? '⚡ Applications' :
+                           '🚀 Advanced'}
+                        </span>
+                        {/* Difficulty Badge */}
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          module.difficulty === 'Beginner' ? 'bg-emerald-100 text-emerald-700' :
+                          module.difficulty === 'Intermediate' ? 'bg-amber-100 text-amber-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {module.difficulty === 'Beginner' ? '🟢 Beginner' :
+                           module.difficulty === 'Intermediate' ? '🟡 Intermediate' :
+                           '🔴 Advanced'}
                         </span>
                         {module.completed && (
                           <span className={`text-xs px-2 py-1 rounded-full ${masteryColors[module.masteryLevel]}`}>
-                            {masteryLabels[module.masteryLevel]}
+                            ✨ {masteryLabels[module.masteryLevel]}
                           </span>
                         )}
                       </div>
@@ -516,12 +684,26 @@ export default function EducationModulesPage() {
                       <span>{module.topics.length} topics</span>
                     </div>
                     
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {module.topics.map((topic, index) => (
-                        <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                          {topic}
-                        </span>
-                      ))}
+                    {/* Categories & Topics */}
+                    <div className="space-y-2 mb-4">
+                      {module.categories.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          <span className="text-xs text-gray-500 mr-1">Categories:</span>
+                          {module.categories.map((category, index) => (
+                            <span key={index} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full border border-blue-200">
+                              {category}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex flex-wrap gap-1">
+                        <span className="text-xs text-gray-500 mr-1">Topics:</span>
+                        {module.topics.map((topic, index) => (
+                          <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                            {topic}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                     
                     {!preferences.allowSkipPrerequisites && module.prerequisites.length > 0 && (
