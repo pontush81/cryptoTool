@@ -714,13 +714,6 @@ export default function EducationModulesPage() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">{module.title}</h3>
                     <p className="text-gray-600 text-sm mb-4">{module.description}</p>
                     
-                    <div className="flex items-center text-gray-500 text-sm mb-4">
-                      <Clock className="w-4 h-4 mr-1" />
-                      <span>{module.duration}</span>
-                      <Users className="w-4 h-4 ml-4 mr-1" />
-                      <span>{module.topics.length} topics</span>
-                    </div>
-                    
                     {/* Categories & Topics - Progressive Disclosure */}
                     <div className="mb-4">
                       {/* Always visible: Basic info */}
