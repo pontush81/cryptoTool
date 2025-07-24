@@ -10,24 +10,6 @@ interface NavigationProps {
 }
 
 export default function Navigation({ className = '' }: NavigationProps) {
-  // Early return if React context is not available (prevents hook errors during testing)
-  if (!React || typeof useState !== 'function') {
-    return (
-      <nav className={`bg-white shadow-sm border-b ${className}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <Link href="/" className="flex items-center space-x-2">
-                <TrendingUp className="w-8 h-8 text-blue-600" />
-                <span className="font-bold text-xl text-gray-900">CryptoAnalysis</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-    )
-  }
-
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname() || '/'
 

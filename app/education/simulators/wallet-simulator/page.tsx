@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   Wallet, 
@@ -28,7 +28,8 @@ import {
   Key,
   Globe,
   Smartphone,
-  HardDrive
+  HardDrive,
+  Award
 } from 'lucide-react'
 
 // Wallet Types
@@ -74,6 +75,17 @@ interface SimulatorScenario {
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced'
   completed: boolean
   points: number
+}
+
+interface SecurityScenario {
+  id: string
+  title: string
+  description: string
+  scenario: string
+  question: string
+  correctAnswer: boolean | number
+  explanation: string
+  options?: string[]
 }
 
 export default function WalletSimulatorPage() {
@@ -202,6 +214,103 @@ export default function WalletSimulatorPage() {
     }
     return false
   }
+
+  // Add additional state for transactions and security tests
+  const [sendAmount, setSendAmount] = useState('')
+  const [sendAddress, setSendAddress] = useState('')
+  const [receiveAddress, setReceiveAddress] = useState('')
+  const [transactionStep, setTransactionStep] = useState<'send' | 'receive' | 'history'>('send')
+  const [securityScenarios, setSecurityScenarios] = useState<number>(0)
+  const [securityAnswers, setSecurityAnswers] = useState<Record<string, boolean>>({})
+
+  // Create a sample transaction
+  const createTransaction = (type: 'send' | 'receive', amount: number, address: string) => {
+    const transaction: Transaction = {
+      id: Date.now().toString(),
+      type,
+      amount,
+      toAddress: type === 'send' ? address : simulatedWallet?.address,
+      fromAddress: type === 'send' ? simulatedWallet?.address : address,
+      status: 'confirmed',
+      timestamp: new Date(),
+      gasUsed: Math.floor(Math.random() * 50000) + 21000
+    }
+    setTransactions(prev => [transaction, ...prev])
+    
+    if (simulatedWallet) {
+      setSimulatedWallet(prev => prev ? {
+        ...prev,
+        balance: type === 'send' ? prev.balance - amount : prev.balance + amount
+      } : null)
+    }
+    
+    return transaction
+  }
+
+  // Validate Ethereum-like address
+  const isValidAddress = (address: string): boolean => {
+    return /^0x[a-fA-F0-9]{40}$/.test(address)
+  }
+
+  // Security scenarios data
+  const securityScenariosData: SecurityScenario[] = [
+    {
+      id: 'phishing-email',
+      title: 'Phishing Email Detection',
+      description: 'You receive an email claiming to be from your wallet provider asking for your seed phrase.',
+      scenario: `
+        Subject: ⚠️ URGENT: Wallet Security Update Required
+        From: support@metamask-security.com
+        
+        Dear User,
+        
+        We've detected suspicious activity on your wallet. To secure your account, 
+        please verify your seed phrase immediately by clicking the link below:
+        
+        [SECURE YOUR WALLET NOW]
+        
+        Failure to verify within 24 hours will result in permanent account suspension.
+        
+        Best regards,
+        MetaMask Security Team
+      `,
+      question: 'Should you provide your seed phrase through this email link?',
+      correctAnswer: false,
+      explanation: 'This is a classic phishing attempt. Legitimate wallet providers NEVER ask for seed phrases via email. Always verify through official channels.'
+    },
+    {
+      id: 'fake-website',
+      title: 'Fake Website Recognition', 
+      description: 'You want to use Uniswap but notice something odd about the website URL.',
+      scenario: 'You search for Uniswap and find these websites. Which one is legitimate?',
+      options: [
+        'https://uniswap.org',
+        'https://uniwsap.org', 
+        'https://uniswap-app.com',
+        'https://app.uniswap.org'
+      ],
+      question: 'Which website is the real Uniswap?',
+      correctAnswer: 3, // app.uniswap.org
+      explanation: 'The official Uniswap protocol is at app.uniswap.org. Notice the subtle misspellings and different domains in the fake options.'
+    },
+    {
+      id: 'suspicious-transaction',
+      title: 'Suspicious Transaction Warning',
+      description: 'Your wallet shows a transaction request with unusual characteristics.',
+      scenario: `
+        Transaction Request:
+        To: 0x1234...unknown
+        Amount: 0.001 ETH ($2.50)
+        Gas Fee: 0.05 ETH ($125)
+        Contract: Token Approval for "GET FREE NFT"
+        
+        This transaction will approve unlimited token spending.
+      `,
+      question: 'Should you approve this transaction?',
+      correctAnswer: false,
+      explanation: 'Red flags: Unlimited approval, extremely high gas fees, unknown contract, and "free" NFT promises are common scam tactics.'
+    }
+  ]
 
   // Render different steps
   const renderIntroStep = () => (
@@ -505,6 +614,513 @@ export default function WalletSimulatorPage() {
     )
   }
 
+  const renderTransactionsStep = () => {
+    if (!simulatedWallet) return null
+
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-8">
+          <Send className="w-16 h-16 text-purple-600 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Practice Transactions</h2>
+          <p className="text-gray-600">
+            Learn to send and receive cryptocurrency safely with realistic transaction scenarios.
+          </p>
+        </div>
+
+        {/* Wallet Overview */}
+        <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Your {simulatedWallet.type} Wallet</h3>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span className="text-sm text-gray-600">Connected</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600 mb-1">Balance</div>
+              <div className="text-2xl font-bold text-gray-900">{simulatedWallet.balance.toFixed(4)} ETH</div>
+              <div className="text-sm text-gray-500">${(simulatedWallet.balance * 2500).toFixed(2)}</div>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600 mb-1">Address</div>
+              <div className="font-mono text-sm text-gray-900 break-all">{simulatedWallet.address}</div>
+              <button
+                onClick={() => copyToClipboard(simulatedWallet.address, 'address')}
+                className="text-xs text-blue-600 hover:text-blue-800 mt-1"
+              >
+                {copiedText === 'address' ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600 mb-1">Transactions</div>
+              <div className="text-2xl font-bold text-gray-900">{transactions.length}</div>
+              <div className="text-sm text-gray-500">Total sent/received</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Transaction Tabs */}
+        <div className="bg-white rounded-lg shadow-sm border mb-8">
+          <div className="border-b border-gray-200">
+            <div className="flex space-x-8 px-6">
+              {[
+                { id: 'send', label: 'Send Crypto', icon: Send },
+                { id: 'receive', label: 'Receive Crypto', icon: Download },
+                { id: 'history', label: 'Transaction History', icon: History }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setTransactionStep(tab.id as 'send' | 'receive' | 'history')}
+                  className={`py-4 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                    transactionStep === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-6">
+            {transactionStep === 'send' && (
+              <div className="max-w-md mx-auto">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Send Cryptocurrency</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Recipient Address
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="0x..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={sendAddress}
+                      onChange={(e) => setSendAddress(e.target.value)}
+                    />
+                    {sendAddress && !isValidAddress(sendAddress) && (
+                      <p className="text-red-600 text-xs mt-1">Invalid Ethereum address format</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Amount (ETH)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.0001"
+                      placeholder="0.0000"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={sendAmount}
+                      onChange={(e) => setSendAmount(e.target.value)}
+                    />
+                    {parseFloat(sendAmount) > simulatedWallet.balance && (
+                      <p className="text-red-600 text-xs mt-1">Amount exceeds wallet balance</p>
+                    )}
+                  </div>
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <div className="flex items-center space-x-2">
+                      <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                      <div className="text-sm text-yellow-800">
+                        <strong>Security Tip:</strong> Always double-check the recipient address. 
+                        Transactions cannot be reversed!
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (isValidAddress(sendAddress) && parseFloat(sendAmount) > 0 && parseFloat(sendAmount) <= simulatedWallet.balance) {
+                        createTransaction('send', parseFloat(sendAmount), sendAddress)
+                        setUserScore(prev => prev + 15)
+                        setSendAmount('')
+                        setSendAddress('')
+                        alert('✅ Transaction sent successfully!')
+                      }
+                    }}
+                    disabled={!isValidAddress(sendAddress) || parseFloat(sendAmount) <= 0 || parseFloat(sendAmount) > simulatedWallet.balance}
+                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    Send Transaction
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {transactionStep === 'receive' && (
+              <div className="max-w-md mx-auto text-center">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Receive Cryptocurrency</h3>
+                <div className="bg-gray-50 rounded-lg p-6 mb-4">
+                  <QrCode className="w-24 h-24 text-gray-400 mx-auto mb-4" />
+                  <div className="text-sm text-gray-600 mb-2">Your Wallet Address:</div>
+                  <div className="bg-white border rounded-lg p-3 font-mono text-sm break-all">
+                    {simulatedWallet.address}
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(simulatedWallet.address, 'receive-address')}
+                    className="mt-3 flex items-center justify-center space-x-2 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+                  >
+                    {copiedText === 'receive-address' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    <span>{copiedText === 'receive-address' ? 'Copied!' : 'Copy Address'}</span>
+                  </button>
+                </div>
+                <button
+                  onClick={() => {
+                    const randomAmount = Math.random() * 0.1 + 0.01
+                    const randomAddress = generateWalletAddress()
+                    createTransaction('receive', randomAmount, randomAddress)
+                    setUserScore(prev => prev + 10)
+                    alert(`✅ Received ${randomAmount.toFixed(4)} ETH from ${randomAddress.slice(0,10)}...`)
+                  }}
+                  className="bg-green-600 text-white py-2 px-6 rounded-lg hover:bg-green-700"
+                >
+                  Simulate Incoming Transaction
+                </button>
+              </div>
+            )}
+
+            {transactionStep === 'history' && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Transaction History</h3>
+                {transactions.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <History className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>No transactions yet. Try sending or receiving some crypto!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {transactions.map((tx) => (
+                      <div key={tx.id} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className={`p-2 rounded-full ${
+                              tx.type === 'send' ? 'bg-red-100' : 'bg-green-100'
+                            }`}>
+                              {tx.type === 'send' ? 
+                                <Upload className="w-4 h-4 text-red-600" /> : 
+                                <Download className="w-4 h-4 text-green-600" />
+                              }
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">
+                                {tx.type === 'send' ? 'Sent' : 'Received'} {tx.amount.toFixed(4)} ETH
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {tx.type === 'send' ? 'To' : 'From'}: {(tx.type === 'send' ? tx.toAddress : tx.fromAddress)?.slice(0, 10)}...
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-gray-500">
+                              {tx.timestamp.toLocaleTimeString()}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              Gas: {tx.gasUsed?.toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-between">
+          <button
+            onClick={() => setCurrentStep('seed-backup')}
+            className="flex items-center px-6 py-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </button>
+          
+          <button
+            onClick={() => {
+              setUserScore(prev => prev + 10)
+              setCurrentStep('security-tests')
+            }}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+          >
+            Continue to Security Tests
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const renderSecurityTestsStep = () => {
+    const currentScenario = securityScenariosData[securityScenarios]
+    
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <Shield className="w-16 h-16 text-red-600 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Security Awareness Tests</h2>
+          <p className="text-gray-600">
+            Practice recognizing and avoiding common crypto scams and security threats.
+          </p>
+        </div>
+
+        {currentScenario ? (
+          <div className="bg-white rounded-lg shadow-sm border p-8">
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-900">{currentScenario.title}</h3>
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                  {securityScenarios + 1} of {securityScenariosData.length}
+                </span>
+              </div>
+              <p className="text-gray-600 mb-6">{currentScenario.description}</p>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-6 mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Scenario:</h4>
+              {currentScenario.options ? (
+                <div>
+                  <p className="text-gray-700 mb-4">{currentScenario.scenario}</p>
+                  <div className="space-y-2">
+                    {currentScenario.options.map((option, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          const isCorrect = index === currentScenario.correctAnswer
+                          setSecurityAnswers(prev => ({ ...prev, [currentScenario.id]: isCorrect }))
+                          if (isCorrect) setUserScore(prev => prev + 20)
+                          
+                          setTimeout(() => {
+                            if (securityScenarios < securityScenariosData.length - 1) {
+                              setSecurityScenarios(prev => prev + 1)
+                            } else {
+                              setCurrentStep('completion')
+                            }
+                          }, 2000)
+                        }}
+                        className="block w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                      >
+                        {index + 1}. {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <pre className="whitespace-pre-wrap text-sm text-gray-700 bg-white border rounded-lg p-4 mb-4">
+                    {currentScenario.scenario}
+                  </pre>
+                  <div className="text-center space-x-4">
+                    <button
+                      onClick={() => {
+                        const isCorrect = !currentScenario.correctAnswer
+                        setSecurityAnswers(prev => ({ ...prev, [currentScenario.id]: isCorrect }))
+                        if (isCorrect) setUserScore(prev => prev + 20)
+                        
+                        setTimeout(() => {
+                          if (securityScenarios < securityScenariosData.length - 1) {
+                            setSecurityScenarios(prev => prev + 1)
+                          } else {
+                            setCurrentStep('completion')
+                          }
+                        }, 2000)
+                      }}
+                      className="bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      NO - Don't trust this
+                    </button>
+                    <button
+                      onClick={() => {
+                        const isCorrect = currentScenario.correctAnswer
+                        setSecurityAnswers(prev => ({ ...prev, [currentScenario.id]: isCorrect }))
+                        if (isCorrect) setUserScore(prev => prev + 20)
+                        
+                        setTimeout(() => {
+                          if (securityScenarios < securityScenariosData.length - 1) {
+                            setSecurityScenarios(prev => prev + 1)
+                          } else {
+                            setCurrentStep('completion')
+                          }
+                        }, 2000)
+                      }}
+                      className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      YES - This seems safe
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {securityAnswers[currentScenario.id] !== undefined && (
+              <div className={`rounded-lg p-4 ${
+                securityAnswers[currentScenario.id] ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+              }`}>
+                <div className="flex items-start space-x-3">
+                  {securityAnswers[currentScenario.id] ? 
+                    <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" /> :
+                    <XCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                  }
+                  <div>
+                    <h4 className={`font-medium mb-2 ${
+                      securityAnswers[currentScenario.id] ? 'text-green-800' : 'text-red-800'
+                    }`}>
+                      {securityAnswers[currentScenario.id] ? 'Correct!' : 'Incorrect'}
+                    </h4>
+                    <p className={`text-sm ${
+                      securityAnswers[currentScenario.id] ? 'text-green-700' : 'text-red-700'
+                    }`}>
+                      {currentScenario.explanation}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Security Tests Complete!</h3>
+            <p className="text-gray-600 mb-8">
+              You've completed all security awareness scenarios. Well done!
+            </p>
+          </div>
+        )}
+
+        <div className="flex justify-between mt-8">
+          <button
+            onClick={() => setCurrentStep('transactions')}
+            className="flex items-center px-6 py-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </button>
+          
+          {securityScenarios >= securityScenariosData.length && (
+            <button
+              onClick={() => setCurrentStep('completion')}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+            >
+              Complete Simulator
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  const renderCompletionStep = () => {
+    const correctAnswers = Object.values(securityAnswers).filter(answer => answer).length
+    const totalScore = userScore
+
+    // Save completion to localStorage when component renders
+    if (typeof window !== 'undefined') {
+      const completed = JSON.parse(localStorage.getItem('completedSimulators') || '[]')
+      if (!completed.includes('wallet-simulator')) {
+        localStorage.setItem('completedSimulators', JSON.stringify([...completed, 'wallet-simulator']))
+      }
+      localStorage.setItem('walletSimulatorScore', totalScore.toString())
+    }
+
+    return (
+      <div className="max-w-4xl mx-auto text-center">
+        <div className="bg-white rounded-lg shadow-sm border p-8">
+          <Award className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Congratulations!</h2>
+          <p className="text-xl text-gray-600 mb-8">
+            You've successfully completed the Crypto Wallet Simulator
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-blue-50 rounded-lg p-6">
+              <div className="text-3xl font-bold text-blue-600 mb-2">{totalScore}</div>
+              <div className="text-sm text-blue-700">Total Points Earned</div>
+            </div>
+            <div className="bg-green-50 rounded-lg p-6">
+              <div className="text-3xl font-bold text-green-600 mb-2">{correctAnswers}/3</div>
+              <div className="text-sm text-green-700">Security Tests Passed</div>
+            </div>
+            <div className="bg-purple-50 rounded-lg p-6">
+              <div className="text-3xl font-bold text-purple-600 mb-2">{transactions.length}</div>
+              <div className="text-sm text-purple-700">Transactions Completed</div>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-lg p-6 mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">What You've Learned:</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  <span className="text-sm text-gray-700">Wallet types and security trade-offs</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  <span className="text-sm text-gray-700">Seed phrase backup and recovery</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  <span className="text-sm text-gray-700">Safe transaction practices</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  <span className="text-sm text-gray-700">Phishing detection skills</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  <span className="text-sm text-gray-700">Address validation importance</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  <span className="text-sm text-gray-700">Common scam recognition</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={() => {
+                setCurrentStep('intro')
+                setSelectedWalletType(null)
+                setSimulatedWallet(null)
+                setSeedPhraseInput([])
+                setShowSeedPhrase(false)
+                setSendAmount('')
+                setSendAddress('')
+                setTransactions([])
+                setSecurityScenarios(0)
+                setSecurityAnswers({})
+                setUserScore(0)
+              }}
+              className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Practice Again
+            </button>
+            <Link
+              href="/education/simulators"
+              className="border border-blue-600 text-blue-600 px-8 py-3 rounded-lg hover:bg-blue-50 transition-colors"
+            >
+              Back to Simulators
+            </Link>
+            <Link
+              href="/education/dashboard"
+              className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Continue Learning
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Main render function
   return (
     <div className="min-h-screen bg-gray-50">
@@ -554,46 +1170,9 @@ export default function WalletSimulatorPage() {
         {currentStep === 'seed-backup' && renderSeedBackupStep()}
         {/* Other steps will be implemented next */}
         
-        {(currentStep === 'transactions' || currentStep === 'security-tests' || currentStep === 'completion') && (
-          <div className="text-center py-16">
-            <RefreshCw className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">More Features Coming Soon</h2>
-            <p className="text-gray-600 mb-8">
-              Transaction simulation and security tests are being developed. 
-              You've completed the wallet creation and seed phrase backup sections!
-            </p>
-            <div className="space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 inline-block">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  <span className="text-green-800 font-medium">
-                    You've earned {userScore} points for completing the wallet creation and backup process!
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button
-                  onClick={() => {
-                    setCurrentStep('intro')
-                    setSelectedWalletType(null)
-                    setSimulatedWallet(null)
-                    setSeedPhraseInput([])
-                    setShowSeedPhrase(false)
-                  }}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Try Another Wallet Type
-                </button>
-                <Link
-                  href="/education/simulators"
-                  className="border border-blue-600 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors text-center"
-                >
-                  Back to Simulators
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
+        {currentStep === 'transactions' && renderTransactionsStep()}
+        {currentStep === 'security-tests' && renderSecurityTestsStep()}
+        {currentStep === 'completion' && renderCompletionStep()}
       </div>
     </div>
   )

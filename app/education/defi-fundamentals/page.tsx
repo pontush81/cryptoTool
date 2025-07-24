@@ -342,7 +342,7 @@ export default function DeFiFundamentalsPage() {
                   <h5 className="font-semibold text-green-800 mb-2">Curve Finance</h5>
                   <div className="space-y-2 text-xs">
                     <p className="text-gray-700"><strong>Specialty:</strong> Optimized for stablecoin swaps</p>
-                    <p className="text-gray-700"><strong>Low slippage:</Strong> Minimal price impact on large trades</p>
+                    <p className="text-gray-700"><strong>Low slippage:</strong> Minimal price impact on large trades</p>
                     <p className="text-gray-700"><strong>CRV rewards:</strong> Governance token with vote-locking mechanism</p>
                     <p className="text-gray-700"><strong>TVL:</strong> $3+ billion in liquidity pools</p>
                   </div>

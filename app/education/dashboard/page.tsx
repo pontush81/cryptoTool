@@ -278,13 +278,13 @@ export default function EducationDashboard() {
   // Get next recommended module
   const getNextModule = () => {
     // Find first incomplete module that has prerequisites met
-    for (const module of modules) {
-      if (!module.completed) {
-        const prerequisitesMet = module.prerequisites.every(prereq => 
+    for (const learningModule of modules) {
+      if (!learningModule.completed) {
+        const prerequisitesMet = learningModule.prerequisites.every(prereq => 
           completedModules.includes(prereq)
         )
         if (prerequisitesMet) {
-          return module
+          return learningModule
         }
       }
     }
