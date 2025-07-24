@@ -55,19 +55,19 @@ export default function EducationDashboard() {
   }
 
   const modules: LearningModule[] = [
-    // Foundation Track
+    // Foundation Track - Start with hands-on approach
     {
-      id: 'money-systems',
-      title: 'Money & Financial Systems',
-      description: 'Understanding the foundation of modern money and banking',
+      id: 'getting-started',
+      title: 'Getting Started',
+      description: 'How to buy, store, and use cryptocurrency safely',
       difficulty: 'Beginner',
-      duration: '18 min',
-      icon: <Banknote className="w-6 h-6" />,
-      href: '/education/money-systems',
-      topics: ['Fiat Money', 'Central Banking', 'Inflation', 'Financial History'],
-      completed: completedModules.includes('money-systems'),
+      duration: '20 min',
+      icon: <TrendingUp className="w-6 h-6" />,
+      href: '/education/getting-started',
+      topics: ['Exchanges', 'Wallets', 'Private Keys', 'First Purchase'],
+      completed: completedModules.includes('getting-started'),
       prerequisites: [],
-      masteryLevel: getMasteryLevel('money-systems'),
+      masteryLevel: getMasteryLevel('getting-started'),
       track: 'foundation'
     },
     {
@@ -80,8 +80,22 @@ export default function EducationDashboard() {
       href: '/education/bitcoin-basics',
       topics: ['Digital Gold', 'Blockchain', 'Mining', 'Decentralization'],
       completed: completedModules.includes('bitcoin-basics'),
-      prerequisites: [],
+      prerequisites: ['getting-started'],
       masteryLevel: getMasteryLevel('bitcoin-basics'),
+      track: 'foundation'
+    },
+    {
+      id: 'money-systems',
+      title: 'Money & Financial Systems',
+      description: 'Understanding the foundation of modern money and banking',
+      difficulty: 'Beginner',
+      duration: '18 min',
+      icon: <Banknote className="w-6 h-6" />,
+      href: '/education/money-systems',
+      topics: ['Fiat Money', 'Central Banking', 'Inflation', 'Financial History'],
+      completed: completedModules.includes('money-systems'),
+      prerequisites: ['bitcoin-basics'],
+      masteryLevel: getMasteryLevel('money-systems'),
       track: 'foundation'
     },
     {
@@ -94,22 +108,8 @@ export default function EducationDashboard() {
       href: '/education/how-it-works',
       topics: ['Cryptography', 'Consensus', 'Nodes', 'Immutability'],
       completed: completedModules.includes('how-it-works'),
-      prerequisites: ['bitcoin-basics'],
+      prerequisites: ['money-systems'],
       masteryLevel: getMasteryLevel('how-it-works'),
-      track: 'foundation'
-    },
-    {
-      id: 'getting-started',
-      title: 'Getting Started',
-      description: 'How to buy, store, and use cryptocurrency safely',
-      difficulty: 'Beginner',
-      duration: '20 min',
-      icon: <TrendingUp className="w-6 h-6" />,
-      href: '/education/getting-started',
-      topics: ['Exchanges', 'Wallets', 'Private Keys', 'First Purchase'],
-      completed: completedModules.includes('getting-started'),
-      prerequisites: ['money-systems', 'bitcoin-basics'],
-      masteryLevel: getMasteryLevel('getting-started'),
       track: 'foundation'
     },
     {
@@ -122,7 +122,7 @@ export default function EducationDashboard() {
       href: '/education/defi-tools',
       topics: ['Portfolio Tracking', 'TradingView', 'Multi-Chain Wallets', 'Security Tools'],
       completed: completedModules.includes('defi-tools'),
-      prerequisites: ['getting-started'],
+      prerequisites: ['how-it-works'],
       masteryLevel: getMasteryLevel('defi-tools'),
       track: 'foundation'
     },
