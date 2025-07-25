@@ -38,7 +38,7 @@ export default function ProfessionalCryptoChart({
       case '1h': return 7     // Last 7 days in hourly data
       case '4h': return 14    // Last 14 days in 4-hour data  
       case '1d': return 90    // Last 90 days in daily data
-      case '3d': return 90    // Last 90 days in 3-day data
+      case '3d': return 90    // Last 90 days for 3D view (30 candles × 3 days)
       case '1w': return 180   // Last 180 days in weekly data
       case '1m': return 30    // Last 30 days for 1 month view
       case '3m': return 90    // Last 90 days for 3 month view
@@ -60,7 +60,7 @@ export default function ProfessionalCryptoChart({
             case '1d': 
               return { days: 90 }       // Last 90 days in daily candles
             case '3d': 
-              return { days: 90 }       // Last 90 days in 3-day candles
+              return { days: 15 }       // Last 15 3-day candles = 45 days total
             case '1w': 
               return { days: 180 }      // Last 180 days in weekly candles
             case '1m': 
