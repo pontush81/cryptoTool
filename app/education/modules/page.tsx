@@ -359,12 +359,12 @@ export default function EducationModulesPage() {
       const aCategory = getMainCategory(a.categories)
       const bCategory = getMainCategory(b.categories)
       
-      if (categoryOrder[aCategory] !== categoryOrder[bCategory]) {
-        return categoryOrder[aCategory] - categoryOrder[bCategory]
+      if (categoryOrder[aCategory as keyof typeof categoryOrder] !== categoryOrder[bCategory as keyof typeof categoryOrder]) {
+        return categoryOrder[aCategory as keyof typeof categoryOrder] - categoryOrder[bCategory as keyof typeof categoryOrder]
       }
       
-      if (difficultyOrder[a.difficulty] !== difficultyOrder[b.difficulty]) {
-        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]
+      if (difficultyOrder[a.difficulty as keyof typeof difficultyOrder] !== difficultyOrder[b.difficulty as keyof typeof difficultyOrder]) {
+        return difficultyOrder[a.difficulty as keyof typeof difficultyOrder] - difficultyOrder[b.difficulty as keyof typeof difficultyOrder]
       }
       
       return a.title.localeCompare(b.title)
