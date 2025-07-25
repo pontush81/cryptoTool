@@ -425,14 +425,22 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
         {/* Technical Indicators - Improved Design based on UX best practices */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-          {/* RSI Card - Focused on Action */}
+          {/* Price Level Card - User-Friendly RSI */}
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[180px] flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h5 className="text-sm sm:text-base font-semibold text-gray-900">RSI</h5>
-              <span className={`w-2 h-2 rounded-full ${
-                safeRSI.current <= 30 ? 'bg-green-500' :
-                safeRSI.current >= 70 ? 'bg-red-500' : 'bg-gray-400'
-              }`}></span>
+            <div className="flex items-center justify-between mb-2">
+              <h5 className="text-sm sm:text-base font-semibold text-gray-900">Price Level</h5>
+              <button 
+                className="text-xs text-blue-600 hover:text-blue-800 w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center"
+                title="Price Level shows if the price is high, low, or normal compared to recent weeks. Over 70 = may be too high (consider caution). Under 30 = may be too low (potential opportunity). 30-70 = balanced range."
+              >
+                ℹ️
+              </button>
+            </div>
+            
+            {/* Simple Status */}
+            <div className="text-xs text-gray-600 mb-3">
+              {safeRSI.current <= 30 ? 'Price looks low lately' :
+               safeRSI.current >= 70 ? 'Price seems high lately' : 'Price is in normal range'}
             </div>
             
             {/* Current Value - Most Prominent */}
@@ -443,7 +451,10 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
               }`}>
                 {safeRSI.current.toFixed(0)}
               </div>
-              <div className="text-xs text-gray-500">Current RSI</div>
+              <div className="text-xs text-gray-500">
+                {safeRSI.current <= 30 ? 'Low' :
+                 safeRSI.current >= 70 ? 'High' : 'Normal'}
+              </div>
             </div>
             
             {/* Action Signal */}
@@ -452,20 +463,28 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
                 safeRSI.current <= 30 ? 'bg-green-100 text-green-800' :
                 safeRSI.current >= 70 ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-700'
               }`}>
-                {safeRSI.current <= 30 ? 'BUY SIGNAL' :
-                 safeRSI.current >= 70 ? 'SELL SIGNAL' : 'NEUTRAL'}
+                {safeRSI.current <= 30 ? 'OPPORTUNITY' :
+                 safeRSI.current >= 70 ? 'BE CAREFUL' : 'WAIT & SEE'}
               </div>
             </div>
           </div>
 
-          {/* MACD Card - Focused on Momentum */}
+          {/* Momentum Card - User-Friendly MACD */}
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[180px] flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h5 className="text-sm sm:text-base font-semibold text-gray-900">MACD</h5>
-              <span className={`w-2 h-2 rounded-full ${
-                safeMACD.crossover === 'bullish' ? 'bg-green-500' :
-                safeMACD.crossover === 'bearish' ? 'bg-red-500' : 'bg-gray-400'
-              }`}></span>
+            <div className="flex items-center justify-between mb-2">
+              <h5 className="text-sm sm:text-base font-semibold text-gray-900">Momentum</h5>
+              <button 
+                className="text-xs text-blue-600 hover:text-blue-800 w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center"
+                title="Momentum shows if the price movement is getting stronger or weaker. Up arrow = getting stronger upward. Down arrow = getting weaker or turning down. Sideways = no clear momentum change."
+              >
+                ℹ️
+              </button>
+            </div>
+            
+            {/* Simple Status */}
+            <div className="text-xs text-gray-600 mb-3">
+              {safeMACD.crossover === 'bullish' ? 'Momentum turning positive' :
+               safeMACD.crossover === 'bearish' ? 'Momentum slowing down' : 'Momentum is mixed'}
             </div>
             
             {/* Current Value - Most Prominent */}
@@ -474,9 +493,13 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
                 safeMACD.crossover === 'bullish' ? 'text-green-600' :
                 safeMACD.crossover === 'bearish' ? 'text-red-600' : 'text-gray-700'
               }`}>
-                {safeMACD.current.histogram > 0 ? '▲' : safeMACD.current.histogram < 0 ? '▼' : '→'}
+                {safeMACD.crossover === 'bullish' ? '📈' :
+                 safeMACD.crossover === 'bearish' ? '📉' : '➡️'}
               </div>
-              <div className="text-xs text-gray-500">Momentum</div>
+              <div className="text-xs text-gray-500">
+                {safeMACD.crossover === 'bullish' ? 'Strengthening' :
+                 safeMACD.crossover === 'bearish' ? 'Weakening' : 'Steady'}
+              </div>
             </div>
             
             {/* Action Signal */}
@@ -485,20 +508,28 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
                 safeMACD.crossover === 'bullish' ? 'bg-green-100 text-green-800' :
                 safeMACD.crossover === 'bearish' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-700'
               }`}>
-                {safeMACD.crossover === 'bullish' ? 'BULLISH' :
-                 safeMACD.crossover === 'bearish' ? 'BEARISH' : 'SIDEWAYS'}
+                {safeMACD.crossover === 'bullish' ? 'GAINING POWER' :
+                 safeMACD.crossover === 'bearish' ? 'LOSING STEAM' : 'NO CLEAR MOVE'}
               </div>
             </div>
           </div>
 
-          {/* Trend Direction Card - Visual Trend */}
+          {/* Market Direction Card - User-Friendly Trend */}
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[180px] flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h5 className="text-sm sm:text-base font-semibold text-gray-900">Trend</h5>
-              <span className={`w-2 h-2 rounded-full ${
-                safeCTO.current.signal === 'bullish' ? 'bg-green-500' :
-                safeCTO.current.signal === 'bearish' ? 'bg-red-500' : 'bg-gray-400'
-              }`}></span>
+            <div className="flex items-center justify-between mb-2">
+              <h5 className="text-sm sm:text-base font-semibold text-gray-900">Direction</h5>
+              <button 
+                className="text-xs text-blue-600 hover:text-blue-800 w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center"
+                title="Direction shows which way the price is generally moving over time. Up = prices climbing overall. Down = prices falling overall. Sideways = no clear direction."
+              >
+                ℹ️
+              </button>
+            </div>
+            
+            {/* Simple Status */}
+            <div className="text-xs text-gray-600 mb-3">
+              {safeCTO.current.signal === 'bullish' ? 'Market price is climbing' :
+               safeCTO.current.signal === 'bearish' ? 'Market price is falling' : 'Market is moving sideways'}
             </div>
             
             {/* Trend Visualization */}
@@ -510,7 +541,10 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
                 {safeCTO.current.signal === 'bullish' ? '📈' :
                  safeCTO.current.signal === 'bearish' ? '📉' : '➡️'}
               </div>
-              <div className="text-xs text-gray-500">Direction</div>
+              <div className="text-xs text-gray-500">
+                {safeCTO.current.signal === 'bullish' ? 'Going Up' :
+                 safeCTO.current.signal === 'bearish' ? 'Going Down' : 'Flat'}
+              </div>
             </div>
             
             {/* Trend Strength */}
@@ -519,20 +553,28 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
                 safeCTO.current.signal === 'bullish' ? 'bg-green-100 text-green-800' :
                 safeCTO.current.signal === 'bearish' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-700'
               }`}>
-                {safeCTO.current.signal === 'bullish' ? 'UPTREND' :
-                 safeCTO.current.signal === 'bearish' ? 'DOWNTREND' : 'SIDEWAYS'}
+                {safeCTO.current.signal === 'bullish' ? 'TRENDING UP' :
+                 safeCTO.current.signal === 'bearish' ? 'TRENDING DOWN' : 'NO CLEAR TREND'}
               </div>
             </div>
           </div>
 
-          {/* Risk Assessment Card - Clear Risk Level */}
+          {/* Market Risk Card - User-Friendly Risk Assessment */}
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 min-h-[180px] flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h5 className="text-sm sm:text-base font-semibold text-gray-900">Risk</h5>
-              <span className={`w-2 h-2 rounded-full ${
-                safePeak.risk_level === 'danger' ? 'bg-red-500' :
-                safePeak.risk_level === 'warning' ? 'bg-amber-500' : 'bg-green-500'
-              }`}></span>
+            <div className="flex items-center justify-between mb-2">
+              <h5 className="text-sm sm:text-base font-semibold text-gray-900">Risk Level</h5>
+              <button 
+                className="text-xs text-blue-600 hover:text-blue-800 w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center"
+                title="Risk Level shows how volatile or unpredictable the price is. Green = low risk (stable). Yellow = medium risk (some volatility). Red = high risk (very volatile, big price swings possible)."
+              >
+                ℹ️
+              </button>
+            </div>
+            
+            {/* Simple Status */}
+            <div className="text-xs text-gray-600 mb-3">
+              {safePeak.risk_level === 'danger' ? 'High volatility - big swings possible' :
+               safePeak.risk_level === 'warning' ? 'Medium volatility - moderate changes' : 'Low volatility - relatively stable'}
             </div>
             
             {/* Risk Level - Most Prominent */}
@@ -544,7 +586,12 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
                 {safePeak.risk_level === 'danger' ? '🔴' :
                  safePeak.risk_level === 'warning' ? '🟡' : '🟢'}
               </div>
-              <div className="text-xs text-gray-500">{safePeak.confidence}% confidence</div>
+              <div className="text-xs text-gray-500">
+                {safePeak.confidence}% confidence • {
+                  safePeak.risk_level === 'danger' ? 'High Risk' :
+                  safePeak.risk_level === 'warning' ? 'Medium Risk' : 'Low Risk'
+                }
+              </div>
             </div>
             
             {/* Risk Action */}
@@ -553,8 +600,8 @@ export default function TechnicalAnalysisCard({ symbol = 'bitcoin', className = 
                 safePeak.risk_level === 'danger' ? 'bg-red-100 text-red-800' :
                 safePeak.risk_level === 'warning' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'
               }`}>
-                {safePeak.risk_level === 'danger' ? 'HIGH RISK' :
-                 safePeak.risk_level === 'warning' ? 'MEDIUM RISK' : 'LOW RISK'}
+                {safePeak.risk_level === 'danger' ? 'TRADE CAREFULLY' :
+                 safePeak.risk_level === 'warning' ? 'STAY ALERT' : 'GOOD TO GO'}
               </div>
             </div>
           </div>

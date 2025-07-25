@@ -37,7 +37,7 @@ interface ApiResponse {
 }
 
 // New simplified navigation structure
-type DashboardView = 'market' | 'charts' | 'signals' | 'insights' | 'ai'
+type DashboardView = 'market' | 'charts' | 'signals' | 'ai'
 
 // Tooltip komponent
 interface TooltipProps {
@@ -164,13 +164,6 @@ export default function Dashboard() {
       active: currentView === 'signals' 
     },
     { 
-      id: 'insights' as DashboardView, 
-      label: 'Advanced Insights', 
-      icon: Target, 
-      description: 'Professional analysis and forecasts',
-      active: currentView === 'insights' 
-    },
-    { 
       id: 'ai' as DashboardView, 
       label: 'AI Assistant', 
       icon: Brain, 
@@ -201,7 +194,7 @@ export default function Dashboard() {
                  <div>
                    <h1 className="text-2xl font-bold text-gray-900">
                      {pageInfo.title}
-                     {(currentView === 'charts' || currentView === 'signals' || currentView === 'insights' || currentView === 'ai') && cryptoData.length > 0 && (
+                     {(currentView === 'charts' || currentView === 'signals' || currentView === 'ai') && cryptoData.length > 0 && (
                        <span className="ml-3 text-lg text-blue-600 hidden sm:inline">
                          - {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'} ({cryptoData.find(c => c.id === selectedCrypto)?.symbol.toUpperCase() || 'BTC'})
                        </span>
@@ -456,49 +449,65 @@ export default function Dashboard() {
                 />
               </div>
 
-              {/* Simple Trading Signals */}
-              <SimpleTradingSignals symbol={selectedCrypto} className="w-full" />
-              
-              {/* Advanced Analysis (Optional) */}
+              {/* Main Technical Analysis - Clean Focus */}
               <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Advanced Technical Analysis</h3>
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">For experienced traders</span>
+                  <h3 className="text-lg font-semibold text-gray-900">Technical Analysis</h3>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-gray-500 bg-blue-100 px-2 py-1 rounded">Price • Momentum • Direction • Risk</span>
+                    <button className="text-xs text-blue-600 hover:text-blue-800" title="User-friendly technical indicators">
+                      ℹ️
+                    </button>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-4">
-                  Detailed technical indicators and complex analysis for {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'}.
-                </p>
-                <div className="mt-4">
-                  <TechnicalAnalysisCard symbol={selectedCrypto} className="w-full" />
+                <div className="text-sm text-gray-600 mb-6">
+                  📊 Easy-to-understand analysis for{' '}
+                  <span className="font-medium">{cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'}</span>
                 </div>
+                <TechnicalAnalysisCard symbol={selectedCrypto} className="w-full" />
               </div>
+
+              {/* Optional Advanced Features - Collapsed by Default */}
+              <details className="bg-white rounded-lg shadow-sm border border-gray-200">
+                <summary className="p-4 md:p-6 cursor-pointer hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900">Show Advanced Analysis</h3>
+                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Optional • For experienced traders</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Advanced indicators, market dominance, and professional analysis tools
+                  </p>
+                </summary>
+                
+                <div className="p-4 md:p-6 pt-0 border-t border-gray-100 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Advanced Analysis */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium text-gray-900">Advanced Analysis</h4>
+                      <span className="text-xs text-gray-500 bg-purple-100 px-2 py-1 rounded">Phase 3</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      CTO Line, Bull Market Peak Detection, and M2 Liquidity analysis
+                    </p>
+                    <AdvancedAnalysisCard symbol={selectedCrypto} className="w-full" />
+                  </div>
+
+                  {/* Market Overview (moved from individual coin to market-wide) */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium text-gray-900">Market Overview</h4>
+                      <span className="text-xs text-gray-500 bg-green-100 px-2 py-1 rounded">Market-wide</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Overall crypto market dominance and trends
+                    </p>
+                    <DominanceCard />
+                  </div>
+                </div>
+              </details>
             </div>
           )}
 
-          {currentView === 'insights' && (
-            <div className="space-y-6">
-              {/* Crypto Selector */}
-              <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Cryptocurrency</h3>
-                <CryptoSelector 
-                  selectedCrypto={selectedCrypto}
-                  onCryptoChange={handleCryptoChange}
-                  cryptoData={cryptoData}
-                />
-              </div>
-
-              {/* Advanced Insights */}
-              <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Advanced Insights</h3>
-                <p className="text-sm text-gray-700">
-                  Deep market analysis, risk assessment, and market phase evaluation for {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'}.
-                </p>
-                <div className="mt-6">
-                  <AdvancedAnalysisCard symbol={selectedCrypto} className="w-full" />
-                </div>
-              </div>
-            </div>
-          )}
 
           {currentView === 'ai' && (
             <div className="space-y-6">
