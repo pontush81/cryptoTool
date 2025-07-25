@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { TrendingUp, TrendingDown, BarChart2, Activity, X, RefreshCw, DollarSign, Globe, Zap, Target, Brain } from 'lucide-react'
 import TechnicalAnalysisCard from '../../components/TechnicalAnalysisCard'
+import SimpleTradingSignals from '../../components/SimpleTradingSignals'
 import AdvancedAnalysisCard from '../../components/AdvancedAnalysisCard'
 import DominanceCard from '../../components/DominanceCard'
 import CryptoSelector from '../../components/CryptoSelector'
@@ -455,13 +456,19 @@ export default function Dashboard() {
                 />
               </div>
 
-              {/* Trading Signals */}
+              {/* Simple Trading Signals */}
+              <SimpleTradingSignals symbol={selectedCrypto} className="w-full" />
+              
+              {/* Advanced Analysis (Optional) */}
               <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Trading Signals</h3>
-                <p className="text-sm text-gray-700">
-                  Get immediate buy/sell signals and trading recommendations for {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'}.
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Advanced Technical Analysis</h3>
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">For experienced traders</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Detailed technical indicators and complex analysis for {cryptoData.find(c => c.id === selectedCrypto)?.name || 'Bitcoin'}.
                 </p>
-                <div className="mt-6">
+                <div className="mt-4">
                   <TechnicalAnalysisCard symbol={selectedCrypto} className="w-full" />
                 </div>
               </div>
