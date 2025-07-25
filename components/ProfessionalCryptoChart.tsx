@@ -27,7 +27,7 @@ export default function ProfessionalCryptoChart({
   const [cryptoData, setCryptoData] = useState<CryptoData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedTimeframe, setSelectedTimeframe] = useState(timeframe)
+  const [selectedTimeframe, setSelectedTimeframe] = useState<'1h' | '4h' | '1d' | '3d' | '1w' | '1m' | '3m'>('1d') // Default to 1d, ignore prop
   const [mounted, setMounted] = useState(false)
 
   // Group daily data into 4-hour candles
@@ -122,33 +122,32 @@ export default function ProfessionalCryptoChart({
   // Function to fetch real historical data from CoinGecko
   const fetchRealHistoricalData = async (symbol: string, timeframe: string, currentPrice: number) => {
     try {
-      console.log(`📡 Chart: Fetching real historical data for ${symbol}...`)
       
-      // Industry standard: Match interval to timeframe and provide proper lookback
-      const getTimeframeConfig = (tf: string) => {
-        switch (tf) {
-          case '1h': 
-            return { days: 10, interval: 'hourly' }    // 10 days with hourly candles (~240 points)
-          case '4h': 
-            return { days: 90, interval: 'daily' }     // 3 months with daily data, will be grouped to 4h
-          case '3d': 
-            return { days: 365, interval: 'daily' }    // 1 year with daily data, will be grouped to 3-day
-          case '1w': 
-            return { days: 1095, interval: 'daily' }   // 3 years with daily data, will be grouped to weekly
-          case '1m': 
-            return { days: 730, interval: 'daily' }    // 2 years with daily data, will be grouped to monthly
-          case '3m': 
-            return { days: 1095, interval: 'daily' }   // 3 years with daily data, will be grouped to quarterly
-          case '1d':
-          default: 
-            return { days: 365, interval: 'daily' }    // 1 year with daily candles (~365 points)
+              // Industry standard: Match interval to timeframe and provide proper lookback
+        const getTimeframeConfig = (tf: string) => {
+          switch (tf) {
+            case '1h': 
+              return { days: 7, interval: 'hourly' }     // 7 days with hourly candles (~168 points)
+            case '4h': 
+              return { days: 30, interval: 'daily' }     // 30 days with daily data, will be grouped to 4h
+            case '3d': 
+              return { days: 90, interval: 'daily' }     // 3 months with daily data, will be grouped to 3-day
+            case '1w': 
+              return { days: 180, interval: 'daily' }    // 6 months with daily data, will be grouped to weekly
+            case '1m': 
+              return { days: 365, interval: 'daily' }    // 1 year with daily data, will be grouped to monthly
+            case '3m': 
+              return { days: 365, interval: 'daily' }    // 1 year with daily data, will be grouped to quarterly
+            case '1d':
+            default: 
+              return { days: 90, interval: 'daily' }     // 3 months with daily candles (~90 points)
+          }
         }
-      }
       
       const config = getTimeframeConfig(timeframe)
       
-      // CoinGecko API for historical market data with proper interval
-      const historyUrl = `https://api.coingecko.com/api/v3/coins/${symbol}/market_chart?vs_currency=usd&days=${config.days}&interval=${config.interval}`
+      // Use our own API proxy to avoid CORS issues (best practice per Perplexity)
+      const historyUrl = `/api/historical-prices?symbol=${symbol}&days=${config.days}&interval=${config.interval}`
       const historyResponse = await fetch(historyUrl)
       
       if (!historyResponse.ok) {
@@ -157,52 +156,50 @@ export default function ProfessionalCryptoChart({
       
       const historyData = await historyResponse.json()
       
-      if (historyData.prices && historyData.prices.length > 0) {
+      if (historyData.data && historyData.data.prices && historyData.data.prices.length > 0) {
         let processedPrices: number[] = []
         let processedTimestamps: string[] = []
         
-        // Process data based on timeframe
-        if (timeframe === '4h') {
-          // Group daily data into 4-hour candles (6 points per day)
-          const groupedData = groupDataBy4Hours(historyData.prices)
-          processedPrices = groupedData.map(item => item.price)
-          processedTimestamps = groupedData.map(item => item.timestamp)
-        } else if (timeframe === '3d') {
-          // Group daily data into 3-day candles
-          const groupedData = groupDataBy3Days(historyData.prices)
-          processedPrices = groupedData.map(item => item.price)
-          processedTimestamps = groupedData.map(item => item.timestamp)
-        } else if (timeframe === '1w') {
-          // Group daily data into weekly candles
-          const groupedData = groupDataByWeek(historyData.prices)
-          processedPrices = groupedData.map(item => item.price)
-          processedTimestamps = groupedData.map(item => item.timestamp)
-        } else if (timeframe === '1m') {
-          // Group daily data into monthly candles
-          const groupedData = groupDataByMonth(historyData.prices)
-          processedPrices = groupedData.map(item => item.price)
-          processedTimestamps = groupedData.map(item => item.timestamp)
-        } else if (timeframe === '3m') {
-          // Group daily data into quarterly candles
-          const groupedData = groupDataByQuarter(historyData.prices)
-          processedPrices = groupedData.map(item => item.price)
-          processedTimestamps = groupedData.map(item => item.timestamp)
-        } else {
-          // Use data as-is for 1h and 1d timeframes
-          processedPrices = historyData.prices.map((item: [number, number]) => item[1])
-          processedTimestamps = historyData.prices.map((item: [number, number]) => 
-            new Date(item[0]).toISOString()
-          )
-        }
+                  // Process data based on timeframe
+          if (timeframe === '4h') {
+            // Group daily data into 4-hour candles (6 points per day)
+            const groupedData = groupDataBy4Hours(historyData.data.prices)
+            processedPrices = groupedData.map(item => item.price)
+            processedTimestamps = groupedData.map(item => item.timestamp)
+          } else if (timeframe === '3d') {
+            // Group daily data into 3-day candles
+            const groupedData = groupDataBy3Days(historyData.data.prices)
+            processedPrices = groupedData.map(item => item.price)
+            processedTimestamps = groupedData.map(item => item.timestamp)
+          } else if (timeframe === '1w') {
+            // Group daily data into weekly candles
+            const groupedData = groupDataByWeek(historyData.data.prices)
+            processedPrices = groupedData.map(item => item.price)
+            processedTimestamps = groupedData.map(item => item.timestamp)
+          } else if (timeframe === '1m') {
+            // Group daily data into monthly candles
+            const groupedData = groupDataByMonth(historyData.data.prices)
+            processedPrices = groupedData.map(item => item.price)
+            processedTimestamps = groupedData.map(item => item.timestamp)
+          } else if (timeframe === '3m') {
+            // Group daily data into quarterly candles
+            const groupedData = groupDataByQuarter(historyData.data.prices)
+            processedPrices = groupedData.map(item => item.price)
+            processedTimestamps = groupedData.map(item => item.timestamp)
+          } else {
+            // Use data as-is for 1h and 1d timeframes
+            processedPrices = historyData.data.prices.map((item: [number, number]) => item[1])
+            processedTimestamps = historyData.data.prices.map((item: [number, number]) => 
+              new Date(item[0]).toISOString()
+            )
+          }
         
-        // Add current live price as the most recent point
-        processedPrices.push(currentPrice)
-        processedTimestamps.push(new Date().toISOString())
-        
-        console.log(`✅ Chart: Got ${processedPrices.length} processed price points for ${symbol} (${timeframe})`)
-        
-        setChartData(processedPrices)
-        setChartTimestamps(processedTimestamps)
+                  // Add current live price as the most recent point
+          processedPrices.push(currentPrice)
+          processedTimestamps.push(new Date().toISOString())
+          
+          setChartData(processedPrices)
+          setChartTimestamps(processedTimestamps)
       } else {
         throw new Error('No historical price data available')
       }
@@ -211,7 +208,6 @@ export default function ProfessionalCryptoChart({
       console.error(`❌ Chart: Failed to fetch real historical data for ${symbol}:`, error)
       
       // Fallback: generate coin-specific realistic mock data
-      console.log(`🔄 Chart: Using coin-specific fallback data for ${symbol}`)
       generateFallbackData(symbol, timeframe, currentPrice)
     }
   }
@@ -269,14 +265,12 @@ export default function ProfessionalCryptoChart({
 
   // Prevent hydration mismatch
   useEffect(() => {
-    console.log(`🔄 Chart: useEffect triggered with timeframe=${selectedTimeframe}, symbol=${symbol}`)
     setMounted(true)
     loadData()
   }, [selectedTimeframe, symbol])
 
   const loadData = async () => {
     try {
-      console.log(`📊 Chart: loadData called with timeframe=${selectedTimeframe}, symbol=${symbol}`)
       setLoading(true)
       setError(null)
 
@@ -291,11 +285,7 @@ export default function ProfessionalCryptoChart({
         const coinData = data.data || data
         const basePrice = coinData.current_price || data.current_price || 50000
         
-        console.log(`📊 Chart: Got price data for ${symbol}:`, {
-          basePrice,
-          coinData: coinData,
-          rawData: data
-        })
+
         
         // Fetch REAL historical price data from CoinGecko
         await fetchRealHistoricalData(symbol, selectedTimeframe, basePrice)
@@ -310,7 +300,6 @@ export default function ProfessionalCryptoChart({
   }
 
   const handleTimeframeChange = (tf: '1h' | '4h' | '1d' | '3d' | '1w' | '1m' | '3m') => {
-    console.log(`🎯 Chart: Changing timeframe from ${selectedTimeframe} to ${tf}`)
     setSelectedTimeframe(tf)
   }
 

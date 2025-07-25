@@ -430,7 +430,6 @@ export default function Dashboard() {
               <div className="bg-white rounded-lg shadow-sm">
                 <ProfessionalCryptoChart 
                   symbol={selectedCrypto}
-                  timeframe="1d"
                   height={500}
                 />
               </div>
