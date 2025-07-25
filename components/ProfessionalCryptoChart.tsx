@@ -58,7 +58,7 @@ export default function ProfessionalCryptoChart({
             case '4h': 
               return { days: 14 }       // Last 14 days in 4-hour candles  
             case '1d': 
-              return { days: 90 }       // Last 90 days in daily candles
+              return { days: 14 }       // Last 14 days in daily candles
             case '3d': 
               return { days: 15 }       // Last 15 3-day candles = 45 days total
             case '1w': 
@@ -530,6 +530,7 @@ export default function ProfessionalCryptoChart({
           highcharts={Highcharts}
           options={options}
           ref={chartRef}
+          immutable={true}
         />
       </div>
       
