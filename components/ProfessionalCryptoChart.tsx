@@ -12,7 +12,7 @@ interface CryptoData {
 
 interface ProfessionalCryptoChartProps {
   symbol: string
-  timeframe?: '1h' | '4h' | '1d' | '1w'
+  timeframe?: '1h' | '4h' | '1d' | '3d' | '1w' | '1m' | '3m'
   height?: number
 }
 
@@ -30,7 +30,85 @@ export default function ProfessionalCryptoChart({
   const [selectedTimeframe, setSelectedTimeframe] = useState(timeframe)
   const [mounted, setMounted] = useState(false)
 
-  // Convert timeframe to hours for mock data generation
+  // Group daily data into 4-hour candles
+  const groupDataBy4Hours = (prices: [number, number][]) => {
+    const grouped: { price: number; timestamp: string }[] = []
+    const hoursIn4H = 4 * 60 * 60 * 1000 // 4 hours in milliseconds
+    
+    for (let i = 0; i < prices.length; i += 1) { // Take every 6th data point for 4H intervals
+      if (i % 6 === 0 || i === prices.length - 1) { // Sample every 6th point or last point
+        const [timestamp, price] = prices[i]
+        grouped.push({
+          price: price,
+          timestamp: new Date(timestamp).toISOString()
+        })
+      }
+    }
+    
+    return grouped
+  }
+
+  // Group daily data into 3-day candles
+  const groupDataBy3Days = (prices: [number, number][]) => {
+    const grouped: { price: number; timestamp: string }[] = []
+    
+    for (let i = 0; i < prices.length; i += 3) { // Take every 3rd data point for 3-day intervals
+      const [timestamp, price] = prices[i]
+      grouped.push({
+        price: price,
+        timestamp: new Date(timestamp).toISOString()
+      })
+    }
+    
+    return grouped
+  }
+
+  // Group daily data into weekly candles  
+  const groupDataByWeek = (prices: [number, number][]) => {
+    const grouped: { price: number; timestamp: string }[] = []
+    
+    for (let i = 0; i < prices.length; i += 7) { // Take every 7th data point for weekly intervals
+      const [timestamp, price] = prices[i]
+      grouped.push({
+        price: price,
+        timestamp: new Date(timestamp).toISOString()
+      })
+    }
+    
+    return grouped
+  }
+
+  // Group daily data into monthly candles
+  const groupDataByMonth = (prices: [number, number][]) => {
+    const grouped: { price: number; timestamp: string }[] = []
+    
+    for (let i = 0; i < prices.length; i += 30) { // Take every 30th data point for monthly intervals
+      const [timestamp, price] = prices[i]
+      grouped.push({
+        price: price,
+        timestamp: new Date(timestamp).toISOString()
+      })
+    }
+    
+    return grouped
+  }
+
+  // Group daily data into quarterly candles
+  const groupDataByQuarter = (prices: [number, number][]) => {
+    const grouped: { price: number; timestamp: string }[] = []
+    
+    for (let i = 0; i < prices.length; i += 90) { // Take every 90th data point for quarterly intervals
+      const [timestamp, price] = prices[i]
+      grouped.push({
+        price: price,
+        timestamp: new Date(timestamp).toISOString()
+      })
+    }
+    
+    return grouped
+  }
+
+  // Convert timeframe to hours for fallback data generation
   const getTimeframeHours = (tf: string) => {
     switch (tf) {
       case '1h': return 24 // Last 24 hours
@@ -46,21 +124,31 @@ export default function ProfessionalCryptoChart({
     try {
       console.log(`📡 Chart: Fetching real historical data for ${symbol}...`)
       
-      // Get number of days based on timeframe
-      const getDaysForTimeframe = (tf: string) => {
+      // Industry standard: Match interval to timeframe and provide proper lookback
+      const getTimeframeConfig = (tf: string) => {
         switch (tf) {
-          case '1h': return 7   // 7 days for hourly analysis
-          case '4h': return 30  // 30 days for 4-hour analysis  
-          case '1w': return 365 // 1 year for weekly analysis
+          case '1h': 
+            return { days: 10, interval: 'hourly' }    // 10 days with hourly candles (~240 points)
+          case '4h': 
+            return { days: 90, interval: 'daily' }     // 3 months with daily data, will be grouped to 4h
+          case '3d': 
+            return { days: 365, interval: 'daily' }    // 1 year with daily data, will be grouped to 3-day
+          case '1w': 
+            return { days: 1095, interval: 'daily' }   // 3 years with daily data, will be grouped to weekly
+          case '1m': 
+            return { days: 730, interval: 'daily' }    // 2 years with daily data, will be grouped to monthly
+          case '3m': 
+            return { days: 1095, interval: 'daily' }   // 3 years with daily data, will be grouped to quarterly
           case '1d':
-          default: return 100   // 100 days for daily analysis
+          default: 
+            return { days: 365, interval: 'daily' }    // 1 year with daily candles (~365 points)
         }
       }
       
-      const days = getDaysForTimeframe(timeframe)
+      const config = getTimeframeConfig(timeframe)
       
-      // CoinGecko API for historical market data
-      const historyUrl = `https://api.coingecko.com/api/v3/coins/${symbol}/market_chart?vs_currency=usd&days=${days}&interval=daily`
+      // CoinGecko API for historical market data with proper interval
+      const historyUrl = `https://api.coingecko.com/api/v3/coins/${symbol}/market_chart?vs_currency=usd&days=${config.days}&interval=${config.interval}`
       const historyResponse = await fetch(historyUrl)
       
       if (!historyResponse.ok) {
@@ -70,20 +158,51 @@ export default function ProfessionalCryptoChart({
       const historyData = await historyResponse.json()
       
       if (historyData.prices && historyData.prices.length > 0) {
-        // Extract prices and timestamps from CoinGecko format [timestamp, price]
-        const realPrices = historyData.prices.map((item: [number, number]) => item[1])
-        const realTimestamps = historyData.prices.map((item: [number, number]) => 
-          new Date(item[0]).toISOString()
-        )
+        let processedPrices: number[] = []
+        let processedTimestamps: string[] = []
+        
+        // Process data based on timeframe
+        if (timeframe === '4h') {
+          // Group daily data into 4-hour candles (6 points per day)
+          const groupedData = groupDataBy4Hours(historyData.prices)
+          processedPrices = groupedData.map(item => item.price)
+          processedTimestamps = groupedData.map(item => item.timestamp)
+        } else if (timeframe === '3d') {
+          // Group daily data into 3-day candles
+          const groupedData = groupDataBy3Days(historyData.prices)
+          processedPrices = groupedData.map(item => item.price)
+          processedTimestamps = groupedData.map(item => item.timestamp)
+        } else if (timeframe === '1w') {
+          // Group daily data into weekly candles
+          const groupedData = groupDataByWeek(historyData.prices)
+          processedPrices = groupedData.map(item => item.price)
+          processedTimestamps = groupedData.map(item => item.timestamp)
+        } else if (timeframe === '1m') {
+          // Group daily data into monthly candles
+          const groupedData = groupDataByMonth(historyData.prices)
+          processedPrices = groupedData.map(item => item.price)
+          processedTimestamps = groupedData.map(item => item.timestamp)
+        } else if (timeframe === '3m') {
+          // Group daily data into quarterly candles
+          const groupedData = groupDataByQuarter(historyData.prices)
+          processedPrices = groupedData.map(item => item.price)
+          processedTimestamps = groupedData.map(item => item.timestamp)
+        } else {
+          // Use data as-is for 1h and 1d timeframes
+          processedPrices = historyData.prices.map((item: [number, number]) => item[1])
+          processedTimestamps = historyData.prices.map((item: [number, number]) => 
+            new Date(item[0]).toISOString()
+          )
+        }
         
         // Add current live price as the most recent point
-        realPrices.push(currentPrice)
-        realTimestamps.push(new Date().toISOString())
+        processedPrices.push(currentPrice)
+        processedTimestamps.push(new Date().toISOString())
         
-        console.log(`✅ Chart: Got ${realPrices.length} real price points for ${symbol}`)
+        console.log(`✅ Chart: Got ${processedPrices.length} processed price points for ${symbol} (${timeframe})`)
         
-        setChartData(realPrices)
-        setChartTimestamps(realTimestamps)
+        setChartData(processedPrices)
+        setChartTimestamps(processedTimestamps)
       } else {
         throw new Error('No historical price data available')
       }
@@ -150,12 +269,14 @@ export default function ProfessionalCryptoChart({
 
   // Prevent hydration mismatch
   useEffect(() => {
+    console.log(`🔄 Chart: useEffect triggered with timeframe=${selectedTimeframe}, symbol=${symbol}`)
     setMounted(true)
     loadData()
   }, [selectedTimeframe, symbol])
 
   const loadData = async () => {
     try {
+      console.log(`📊 Chart: loadData called with timeframe=${selectedTimeframe}, symbol=${symbol}`)
       setLoading(true)
       setError(null)
 
@@ -188,8 +309,103 @@ export default function ProfessionalCryptoChart({
     }
   }
 
-  const handleTimeframeChange = (tf: '1h' | '4h' | '1d' | '1w') => {
+  const handleTimeframeChange = (tf: '1h' | '4h' | '1d' | '3d' | '1w' | '1m' | '3m') => {
+    console.log(`🎯 Chart: Changing timeframe from ${selectedTimeframe} to ${tf}`)
     setSelectedTimeframe(tf)
+  }
+
+  // Get date/time label formats based on timeframe
+  const getDateTimeLabelFormats = (timeframe: string) => {
+    switch (timeframe) {
+      case '1h':
+        return {
+          millisecond: '%H:%M:%S',
+          second: '%H:%M:%S',
+          minute: '%H:%M',
+          hour: '%H:%M',
+          day: '%e %b',
+          week: '%e %b',
+          month: '%b %Y',
+          year: '%Y'
+        }
+      case '4h':
+        return {
+          millisecond: '%H:%M',
+          second: '%H:%M',
+          minute: '%H:%M',
+          hour: '%H:%M',
+          day: '%e %b',
+          week: '%e %b',
+          month: '%b %Y',
+          year: '%Y'
+        }
+      case '1d':
+        return {
+          millisecond: '%e %b',
+          second: '%e %b',
+          minute: '%e %b',
+          hour: '%e %b',
+          day: '%e %b',
+          week: '%e %b',
+          month: '%b %Y',
+          year: '%Y'
+        }
+      case '3d':
+        return {
+          millisecond: '%e %b',
+          second: '%e %b',
+          minute: '%e %b',
+          hour: '%e %b',
+          day: '%e %b',
+          week: '%e %b %Y',
+          month: '%b %Y',
+          year: '%Y'
+        }
+      case '1w':
+        return {
+          millisecond: '%e %b',
+          second: '%e %b',
+          minute: '%e %b',
+          hour: '%e %b',
+          day: '%e %b',
+          week: '%b %Y',
+          month: '%b %Y',
+          year: '%Y'
+        }
+      case '1m':
+        return {
+          millisecond: '%b %Y',
+          second: '%b %Y',
+          minute: '%b %Y',
+          hour: '%b %Y',
+          day: '%b %Y',
+          week: '%b %Y',
+          month: '%b %Y',
+          year: '%Y'
+        }
+      case '3m':
+        return {
+          millisecond: '%b %Y',
+          second: '%b %Y',
+          minute: '%b %Y',
+          hour: '%b %Y',
+          day: '%b %Y',
+          week: '%b %Y',
+          month: '%b %Y',
+          year: '%Y'
+        }
+      default:
+        return {
+          millisecond: '%e %b',
+          second: '%e %b',
+          minute: '%e %b',
+          hour: '%e %b',
+          day: '%e %b',
+          week: '%e %b',
+          month: '%b %Y',
+          year: '%Y'
+        }
+    }
   }
 
   // Don't render during SSR to prevent hydration mismatch
@@ -252,7 +468,8 @@ export default function ProfessionalCryptoChart({
           color: '#666666',
           fontSize: '11px'
         }
-      }
+      },
+      dateTimeLabelFormats: getDateTimeLabelFormats(selectedTimeframe)
     },
     yAxis: {
       title: {
@@ -284,10 +501,20 @@ export default function ProfessionalCryptoChart({
         width: 4
       },
       formatter: function() {
-        const dateFormat = selectedTimeframe === '1h' ? '%H:%M' : 
-                          selectedTimeframe === '4h' ? '%H:%M - %e %b' : 
-                          selectedTimeframe === '1d' ? '%e %b %Y' : 
-                          '%e %b %Y'
+        const getTooltipDateFormat = (tf: string) => {
+          switch (tf) {
+            case '1h': return '%H:%M - %e %b'
+            case '4h': return '%H:%M - %e %b %Y'
+            case '1d': return '%e %b %Y'
+            case '3d': return '%e %b %Y'
+            case '1w': return 'Week of %e %b %Y'
+            case '1m': return '%b %Y'
+            case '3m': return '%b %Y'
+            default: return '%e %b %Y'
+          }
+        }
+        
+        const dateFormat = getTooltipDateFormat(selectedTimeframe)
         
         return `
           <div style="text-align: center; padding: 5px;">
@@ -380,12 +607,12 @@ export default function ProfessionalCryptoChart({
         </div>
         
         {/* Professional timeframe selector */}
-        <div className="flex bg-gray-100 rounded-xl p-1">
-          {(['1h', '4h', '1d', '1w'] as const).map((tf) => (
+        <div className="flex bg-gray-100 rounded-xl p-1 overflow-x-auto">
+          {(['1h', '4h', '1d', '3d', '1w', '1m', '3m'] as const).map((tf) => (
             <button
               key={tf}
               onClick={() => handleTimeframeChange(tf)}
-              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
+              className={`px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
                 selectedTimeframe === tf
                   ? 'bg-white text-blue-600 shadow-md transform scale-105'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
