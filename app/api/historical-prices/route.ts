@@ -12,7 +12,18 @@ export async function GET(request: Request) {
     // CoinGecko API for historical market data (server-side, no CORS issues)
     // Limit days to prevent timeouts
     const maxDays = Math.min(parseInt(days), 365)
-    const historyUrl = `https://api.coingecko.com/api/v3/coins/${symbol}/market_chart?vs_currency=usd&days=${maxDays}&interval=${interval}`
+    
+    // CoinGecko auto-provides hourly data for 2-90 days, daily for longer periods
+    // hourly interval is Enterprise-only but auto-provided based on days parameter
+    let apiUrl = `https://api.coingecko.com/api/v3/coins/${symbol}/market_chart?vs_currency=usd&days=${maxDays}`
+    
+    // Only add interval for daily data (longer periods)
+    if (interval === 'daily' && maxDays > 90) {
+      apiUrl += `&interval=daily`
+    }
+    // For hourly (2-90 days): CoinGecko auto-provides hourly data, don't specify interval
+    
+    const historyUrl = apiUrl
     const historyResponse = await fetch(historyUrl, {
       headers: {
         'Accept': 'application/json',

@@ -30,19 +30,17 @@ export default function ProfessionalCryptoChart({
   const [selectedTimeframe, setSelectedTimeframe] = useState<'1h' | '4h' | '1d' | '3d' | '1w' | '1m' | '3m'>('1d') // Default to 1d, ignore prop
   const [mounted, setMounted] = useState(false)
 
-  // Group daily data into 4-hour candles
+  // Group hourly data into 4-hour candles
   const groupDataBy4Hours = (prices: [number, number][]) => {
     const grouped: { price: number; timestamp: string }[] = []
-    const hoursIn4H = 4 * 60 * 60 * 1000 // 4 hours in milliseconds
     
-    for (let i = 0; i < prices.length; i += 1) { // Take every 6th data point for 4H intervals
-      if (i % 6 === 0 || i === prices.length - 1) { // Sample every 6th point or last point
-        const [timestamp, price] = prices[i]
-        grouped.push({
-          price: price,
-          timestamp: new Date(timestamp).toISOString()
-        })
-      }
+    // For hourly data: take every 4th data point to get 4-hour intervals
+    for (let i = 0; i < prices.length; i += 4) {
+      const [timestamp, price] = prices[i]
+      grouped.push({
+        price: price,
+        timestamp: new Date(timestamp).toISOString()
+      })
     }
     
     return grouped
@@ -127,9 +125,9 @@ export default function ProfessionalCryptoChart({
         const getTimeframeConfig = (tf: string) => {
           switch (tf) {
             case '1h': 
-              return { days: 7, interval: 'hourly' }     // 7 days with hourly candles (~168 points)
+              return { days: 7, interval: 'auto' }       // 7 days - CoinGecko auto-provides hourly data
             case '4h': 
-              return { days: 30, interval: 'daily' }     // 30 days with daily data, will be grouped to 4h
+              return { days: 30, interval: 'auto' }      // 30 days - CoinGecko auto-provides hourly, group to 4h
             case '3d': 
               return { days: 90, interval: 'daily' }     // 3 months with daily data, will be grouped to 3-day
             case '1w': 
@@ -155,14 +153,26 @@ export default function ProfessionalCryptoChart({
       }
       
       const historyData = await historyResponse.json()
+      console.log(`🔍 Chart: API Response for ${symbol} (${timeframe}):`, { 
+        success: historyData.success, 
+        priceCount: historyData.data?.prices?.length, 
+        firstPrice: historyData.data?.prices?.[0],
+        hasError: !!historyData.error 
+      })
       
-      if (historyData.data && historyData.data.prices && historyData.data.prices.length > 0) {
+      if (historyData.success && historyData.data && historyData.data.prices && historyData.data.prices.length > 0) {
         let processedPrices: number[] = []
         let processedTimestamps: string[] = []
         
                   // Process data based on timeframe
-          if (timeframe === '4h') {
-            // Group daily data into 4-hour candles (6 points per day)
+          if (timeframe === '1h') {
+            // Use hourly data as-is (already provided by CoinGecko for 2-90 days)
+            processedPrices = historyData.data.prices.map((item: [number, number]) => item[1])
+            processedTimestamps = historyData.data.prices.map((item: [number, number]) => 
+              new Date(item[0]).toISOString()
+            )
+          } else if (timeframe === '4h') {
+            // Group hourly data into 4-hour candles
             const groupedData = groupDataBy4Hours(historyData.data.prices)
             processedPrices = groupedData.map(item => item.price)
             processedTimestamps = groupedData.map(item => item.timestamp)
