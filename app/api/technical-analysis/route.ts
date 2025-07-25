@@ -141,46 +141,75 @@ export async function GET(request: Request) {
       console.log('Advanced analysis unavailable, using default peak detection')
     }
     
-    // Generate mock historical data for indicators with timeframe-specific characteristics
+    // Fetch REAL historical price data from CoinGecko API
     const historicalPrices: number[] = []
-    let price = currentPrice * 0.9 // Start 10% lower
     
-    // Use a more neutral seed that creates realistic bullish patterns for all symbols
-    // This better simulates current market conditions where most cryptos are in uptrend
-    const neutralSeed = 12345 // Fixed neutral seed for consistent patterns
-    const mockRandom = (index: number) => {
-      const seed = (neutralSeed * 9301 + 49297) % 233280 + index * 777
-      return (seed / 233280) % 1
-    }
-    
-    // Timeframe-specific volatility and noise levels
-    const getTimeframeVolatility = (tf: string) => {
-      switch (tf) {
-        case '1h': return { volatility: 0.12, noise: 0.04 } // High volatility for hourly
-        case '4h': return { volatility: 0.08, noise: 0.02 } // Medium volatility  
-        case '1w': return { volatility: 0.04, noise: 0.005 } // Low volatility for weekly
-        case '1d':
-        default: return { volatility: 0.06, noise: 0.015 } // Standard for daily
+    try {
+      console.log(`📡 Fetching real historical data for ${symbol}...`)
+      
+      // Get number of days based on timeframe
+      const getDaysForTimeframe = (tf: string) => {
+        switch (tf) {
+          case '1h': return 7   // 7 days for hourly analysis
+          case '4h': return 30  // 30 days for 4-hour analysis  
+          case '1w': return 365 // 1 year for weekly analysis
+          case '1d':
+          default: return 100   // 100 days for daily analysis
+        }
       }
-    }
-    
-    const { volatility, noise } = getTimeframeVolatility(timeframe)
-    
-    for (let i = 0; i < 100; i++) {
-      const random1 = mockRandom(i * 3)
-      const random2 = mockRandom(i * 3 + 1)
-      const random3 = mockRandom(i * 3 + 2)
       
-      // Create strong bullish trend that makes v1 > v2 for CTO bullish signal  
-      const progressRatio = i / 100 // 0 to 1 over time
-      const acceleratingTrend = 0.3 + (progressRatio * 0.4) // 0.3% to 0.7% growing trend
-      const recoveryPhase = Math.max(0, Math.sin((progressRatio - 0.2) * Math.PI * 1.5)) * 0.2 // Recovery boost
-      const trendComponent = acceleratingTrend + recoveryPhase
-      const volatilityComponent = (random1 - 0.5) * volatility // Timeframe-specific volatility
-      const noiseComponent = (random2 - 0.5) * noise // Timeframe-specific noise
+      const days = getDaysForTimeframe(timeframe)
       
-      price = price * (1 + trendComponent/50 + volatilityComponent + noiseComponent)
-      historicalPrices.push(Math.max(price, 0.01)) // Ensure positive prices
+      // CoinGecko API for historical market data
+      const historyUrl = `https://api.coingecko.com/api/v3/coins/${symbol}/market_chart?vs_currency=usd&days=${days}&interval=daily`
+      const historyResponse = await fetch(historyUrl, {
+        headers: {
+          'Accept': 'application/json',
+        }
+      })
+      
+      if (!historyResponse.ok) {
+        throw new Error(`CoinGecko API error: ${historyResponse.status}`)
+      }
+      
+      const historyData = await historyResponse.json()
+      
+      if (historyData.prices && historyData.prices.length > 0) {
+        // Extract prices from CoinGecko format [timestamp, price]
+        const realPrices = historyData.prices.map((item: [number, number]) => item[1])
+        historicalPrices.push(...realPrices)
+        
+        // Add current live price as the most recent point
+        historicalPrices.push(currentPrice)
+        
+        console.log(`✅ Got ${historicalPrices.length} real price points for ${symbol}`)
+      } else {
+        throw new Error('No historical price data available')
+      }
+      
+    } catch (error) {
+      console.error(`❌ Failed to fetch real historical data for ${symbol}:`, error)
+      
+      // Fallback: generate coin-specific realistic mock data
+      console.log(`🔄 Using coin-specific fallback data for ${symbol}`)
+      let price = currentPrice * 0.95 // Start 5% lower
+      
+      // Create unique patterns for each coin based on symbol hash
+      const symbolSeed = symbol.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+      const coinRandom = (index: number) => {
+        const seed = (symbolSeed * 9301 + 49297 + index * 777) % 233280
+        return (seed / 233280) % 1
+      }
+      
+      for (let i = 0; i < 100; i++) {
+        const random = coinRandom(i)
+        const changePercent = (random - 0.5) * 4 // ±2% daily change
+        price = price * (1 + changePercent / 100)
+        historicalPrices.push(Math.max(price, 0.01)) // Ensure positive prices
+      }
+      
+      // Add current live price as final point
+      historicalPrices.push(currentPrice)
     }
     
     // Timeframe-specific parameters for indicators
@@ -271,22 +300,33 @@ export async function GET(request: Request) {
       }
     }
     
-    // Generate mock trading signals with timeframe-adjusted confidence
+    // Generate real-time trading signals based on actual analysis
     const baseConfidence = 70
     const timeframeConfidenceBonus = (2 - timeframeParams.multiplier) * 10 // Longer timeframes = higher confidence
     
-    const mockSignals: TradingSignal[] = [
+    // Calculate confidence based on actual indicator values
+    const getRSIConfidence = (rsi: number) => {
+      if (rsi <= 25 || rsi >= 75) return 85 // Strong oversold/overbought
+      if (rsi <= 35 || rsi >= 65) return 70 // Moderate levels
+      return 50 // Neutral zone
+    }
+    
+    const getMACDConfidence = (crossover: string) => {
+      return crossover === 'bullish' || crossover === 'bearish' ? 75 : 50
+    }
+    
+    const realSignals: TradingSignal[] = [
       {
         type: rsiSignal === 'oversold' ? 'buy' : rsiSignal === 'overbought' ? 'sell' : 'hold',
-        price: currentPrice * (0.95 + mockRandom(200) * 0.1),
+        price: historicalPrices[historicalPrices.length - 2] || currentPrice * 0.99, // Previous price
         timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-        confidence: baseConfidence + timeframeConfidenceBonus + mockRandom(201) * 15
+        confidence: Math.min(95, getRSIConfidence(latestRSI) + timeframeConfidenceBonus)
       },
       {
         type: macdCrossover === 'bullish' ? 'buy' : macdCrossover === 'bearish' ? 'sell' : 'hold',
-        price: currentPrice * (0.98 + mockRandom(202) * 0.04),
+        price: historicalPrices[historicalPrices.length - 3] || currentPrice * 0.98, // Earlier price
         timestamp: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-        confidence: baseConfidence + timeframeConfidenceBonus + mockRandom(203) * 15
+        confidence: Math.min(95, getMACDConfidence(macdCrossover) + timeframeConfidenceBonus)
       }
     ]
     
@@ -315,8 +355,8 @@ export async function GET(request: Request) {
       },
       peak_detection: peakDetection,
       trading_signals: {
-        latest: mockSignals[0],
-        recent: mockSignals,
+        latest: realSignals[0],
+        recent: realSignals,
         stats: {
           total: 25,
           buy: 12,

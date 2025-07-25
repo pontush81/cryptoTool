@@ -20,7 +20,7 @@ export default function Navigation({ className = '' }: NavigationProps) {
       icon: Home
     },
     {
-      name: 'Dashboard',
+      name: 'Analytics',
       href: '/dashboard',
       icon: BarChart3
     },
