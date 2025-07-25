@@ -32,14 +32,17 @@ export default function ProfessionalCryptoChart({
 
   // No more data grouping needed - Binance API provides exact timeframes!
 
-  // Convert timeframe to hours for fallback data generation
-  const getTimeframeHours = (tf: string) => {
+  // Convert timeframe to reasonable data points for fallback (matching user expectations)
+  const getTimeframeDays = (tf: string) => {
     switch (tf) {
-      case '1h': return 24 // Last 24 hours
-      case '4h': return 168 // Last 7 days (7*24)
-      case '1d': return 720 // Last 30 days (30*24)
-      case '1w': return 8760 // Last year (365*24)
-      default: return 720
+      case '1h': return 7     // Last 7 days in hourly data
+      case '4h': return 14    // Last 14 days in 4-hour data  
+      case '1d': return 90    // Last 90 days in daily data
+      case '3d': return 90    // Last 90 days in 3-day data
+      case '1w': return 180   // Last 180 days in weekly data
+      case '1m': return 30    // Last 30 days for 1 month view
+      case '3m': return 90    // Last 90 days for 3 month view
+      default: return 90
     }
   }
 
@@ -119,10 +122,12 @@ export default function ProfessionalCryptoChart({
     }
   }
 
-  // Fallback function for when API fails
+  // Fallback function for when API fails (with proper timeframe limits)
   const generateFallbackData = (symbol: string, timeframe: string, currentPrice: number) => {
-    const hours = getTimeframeHours(timeframe)
-    const dataPoints = Math.min(hours, 100)
+    const days = getTimeframeDays(timeframe)
+    const dataPoints = Math.min(days, 365) // Never more than 1 year of fallback data
+    
+    console.log(`🔄 Chart: Generating ${dataPoints} days of fallback data for ${timeframe} timeframe`)
     
     // Create unique patterns for each coin based on symbol hash
     const symbolSeed = symbol.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
@@ -138,21 +143,8 @@ export default function ProfessionalCryptoChart({
     for (let i = dataPoints - 1; i >= 0; i--) {
       const timestamp = new Date()
       
-      // Adjust time based on timeframe
-      switch (timeframe) {
-        case '1h':
-          timestamp.setHours(timestamp.getHours() - i)
-          break
-        case '4h':
-          timestamp.setHours(timestamp.getHours() - (i * 4))
-          break
-        case '1d':
-          timestamp.setDate(timestamp.getDate() - i)
-          break
-        case '1w':
-          timestamp.setDate(timestamp.getDate() - (i * 7))
-          break
-      }
+      // Always use daily intervals for fallback data (simple and works for all timeframes)
+      timestamp.setDate(timestamp.getDate() - i)
       
       fallbackTimestamps.push(timestamp.toISOString())
       
@@ -165,6 +157,8 @@ export default function ProfessionalCryptoChart({
     // Add current price as final point
     fallbackData.push(currentPrice)
     fallbackTimestamps.push(new Date().toISOString())
+    
+    console.log(`📅 Fallback data range: ${new Date(fallbackTimestamps[0]).toLocaleDateString()} to ${new Date().toLocaleDateString()}`)
     
     setChartData(fallbackData)
     setChartTimestamps(fallbackTimestamps)
