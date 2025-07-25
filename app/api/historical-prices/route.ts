@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { apiThrottle } from '../../../lib/api-throttle'
 
 export async function GET(request: Request) {
   try {
@@ -24,22 +25,12 @@ export async function GET(request: Request) {
     // For hourly (2-90 days): CoinGecko auto-provides hourly data, don't specify interval
     
     const historyUrl = apiUrl
-    const historyResponse = await fetch(historyUrl, {
-      headers: {
-        'Accept': 'application/json',
-      },
-      signal: AbortSignal.timeout(10000), // 10 second timeout
-      next: { revalidate: 300 } // Cache for 5 minutes
-    })
     
-    if (!historyResponse.ok) {
-      throw new Error(`CoinGecko API error: ${historyResponse.status}`)
-    }
-    
-    const historyData = await historyResponse.json()
+    // Use professional API throttling to prevent rate limits
+    const historyData = await apiThrottle.request(historyUrl)
     
     if (historyData.prices && historyData.prices.length > 0) {
-      console.log(`✅ Historical API: Got ${historyData.prices.length} price points for ${symbol}`)
+      console.log(`✅ Historical API: Got ${historyData.prices.length} real price points for ${symbol}`)
       
       return NextResponse.json({
         success: true,
@@ -54,7 +45,7 @@ export async function GET(request: Request) {
         timestamp: new Date().toISOString()
       })
     } else {
-      throw new Error('No historical price data available')
+      throw new Error('No historical price data available from CoinGecko')
     }
     
   } catch (error) {
@@ -85,7 +76,7 @@ export async function GET(request: Request) {
       mockPrices.push([timestamp.getTime(), Math.max(price, 0.01)])
     }
     
-    console.log(`🔄 Historical API: Using fallback data for ${symbol} (${mockPrices.length} points)`)
+    console.log(`🔄 Historical API: Using realistic fallback data for ${symbol} (${mockPrices.length} points)`)
     
     return NextResponse.json({
       success: false,
@@ -96,9 +87,10 @@ export async function GET(request: Request) {
       },
       symbol,
       days,
-      interval: 'daily',
-      error: 'Using fallback data due to API error',
-      timestamp: new Date().toISOString()
+      interval: interval === 'auto' ? 'daily' : interval,
+      error: 'Using realistic fallback data due to CoinGecko API rate limit or error',
+      timestamp: new Date().toISOString(),
+      throttleStats: apiThrottle.getCacheStats()
     }, { status: 200 })
   }
 } 

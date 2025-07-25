@@ -30,81 +30,7 @@ export default function ProfessionalCryptoChart({
   const [selectedTimeframe, setSelectedTimeframe] = useState<'1h' | '4h' | '1d' | '3d' | '1w' | '1m' | '3m'>('1d') // Default to 1d, ignore prop
   const [mounted, setMounted] = useState(false)
 
-  // Group hourly data into 4-hour candles
-  const groupDataBy4Hours = (prices: [number, number][]) => {
-    const grouped: { price: number; timestamp: string }[] = []
-    
-    // For hourly data: take every 4th data point to get 4-hour intervals
-    for (let i = 0; i < prices.length; i += 4) {
-      const [timestamp, price] = prices[i]
-      grouped.push({
-        price: price,
-        timestamp: new Date(timestamp).toISOString()
-      })
-    }
-    
-    return grouped
-  }
-
-  // Group daily data into 3-day candles
-  const groupDataBy3Days = (prices: [number, number][]) => {
-    const grouped: { price: number; timestamp: string }[] = []
-    
-    for (let i = 0; i < prices.length; i += 3) { // Take every 3rd data point for 3-day intervals
-      const [timestamp, price] = prices[i]
-      grouped.push({
-        price: price,
-        timestamp: new Date(timestamp).toISOString()
-      })
-    }
-    
-    return grouped
-  }
-
-  // Group daily data into weekly candles  
-  const groupDataByWeek = (prices: [number, number][]) => {
-    const grouped: { price: number; timestamp: string }[] = []
-    
-    for (let i = 0; i < prices.length; i += 7) { // Take every 7th data point for weekly intervals
-      const [timestamp, price] = prices[i]
-      grouped.push({
-        price: price,
-        timestamp: new Date(timestamp).toISOString()
-      })
-    }
-    
-    return grouped
-  }
-
-  // Group daily data into monthly candles
-  const groupDataByMonth = (prices: [number, number][]) => {
-    const grouped: { price: number; timestamp: string }[] = []
-    
-    for (let i = 0; i < prices.length; i += 30) { // Take every 30th data point for monthly intervals
-      const [timestamp, price] = prices[i]
-      grouped.push({
-        price: price,
-        timestamp: new Date(timestamp).toISOString()
-      })
-    }
-    
-    return grouped
-  }
-
-  // Group daily data into quarterly candles
-  const groupDataByQuarter = (prices: [number, number][]) => {
-    const grouped: { price: number; timestamp: string }[] = []
-    
-    for (let i = 0; i < prices.length; i += 90) { // Take every 90th data point for quarterly intervals
-      const [timestamp, price] = prices[i]
-      grouped.push({
-        price: price,
-        timestamp: new Date(timestamp).toISOString()
-      })
-    }
-    
-    return grouped
-  }
+  // No more data grouping needed - Binance API provides exact timeframes!
 
   // Convert timeframe to hours for fallback data generation
   const getTimeframeHours = (tf: string) => {
@@ -121,32 +47,33 @@ export default function ProfessionalCryptoChart({
   const fetchRealHistoricalData = async (symbol: string, timeframe: string, currentPrice: number) => {
     try {
       
-              // Industry standard: Match interval to timeframe and provide proper lookback
+              // Match user expectations: timeframe = how much historical data to show
         const getTimeframeConfig = (tf: string) => {
           switch (tf) {
             case '1h': 
-              return { days: 7, interval: 'auto' }       // 7 days - CoinGecko auto-provides hourly data
+              return { days: 7 }        // Last 7 days in hourly candles
             case '4h': 
-              return { days: 30, interval: 'auto' }      // 30 days - CoinGecko auto-provides hourly, group to 4h
+              return { days: 14 }       // Last 14 days in 4-hour candles  
+            case '1d': 
+              return { days: 90 }       // Last 90 days in daily candles
             case '3d': 
-              return { days: 90, interval: 'daily' }     // 3 months with daily data, will be grouped to 3-day
+              return { days: 90 }       // Last 90 days in 3-day candles
             case '1w': 
-              return { days: 180, interval: 'daily' }    // 6 months with daily data, will be grouped to weekly
+              return { days: 180 }      // Last 180 days in weekly candles
             case '1m': 
-              return { days: 365, interval: 'daily' }    // 1 year with daily data, will be grouped to monthly
+              return { days: 30 }       // Last 30 days in daily candles (1 month view)
             case '3m': 
-              return { days: 365, interval: 'daily' }    // 1 year with daily data, will be grouped to quarterly
-            case '1d':
+              return { days: 90 }       // Last 90 days in daily candles (3 month view)
             default: 
-              return { days: 90, interval: 'daily' }     // 3 months with daily candles (~90 points)
+              return { days: 90 }       // Default: 90 days
           }
         }
       
       const config = getTimeframeConfig(timeframe)
       
-      // Use our own API proxy to avoid CORS issues (best practice per Perplexity)
-      const historyUrl = `/api/historical-prices?symbol=${symbol}&days=${config.days}&interval=${config.interval}`
-      const historyResponse = await fetch(historyUrl)
+              // Use Binance API for better rate limits (1200/min vs CoinGecko's 30/min)
+        const historyUrl = `/api/binance-historical?symbol=${symbol}&timeframe=${timeframe}&days=${config.days}`
+        const historyResponse = await fetch(historyUrl)
       
       if (!historyResponse.ok) {
         throw new Error(`CoinGecko API error: ${historyResponse.status}`)
@@ -157,59 +84,29 @@ export default function ProfessionalCryptoChart({
         success: historyData.success, 
         priceCount: historyData.data?.prices?.length, 
         firstPrice: historyData.data?.prices?.[0],
-        hasError: !!historyData.error 
+        hasError: !!historyData.error,
+        throttleStats: historyData.throttleStats,
+        isRealData: historyData.success
       })
       
-      if (historyData.success && historyData.data && historyData.data.prices && historyData.data.prices.length > 0) {
-        let processedPrices: number[] = []
-        let processedTimestamps: string[] = []
+            if (historyData.data && historyData.data.prices && historyData.data.prices.length > 0) {
+        // Binance provides the exact timeframe data we requested - no grouping needed!
+        const processedPrices = historyData.data.prices.map((item: [number, number]) => item[1])
+        const processedTimestamps = historyData.data.prices.map((item: [number, number]) => 
+          new Date(item[0]).toISOString()
+        )
         
-                  // Process data based on timeframe
-          if (timeframe === '1h') {
-            // Use hourly data as-is (already provided by CoinGecko for 2-90 days)
-            processedPrices = historyData.data.prices.map((item: [number, number]) => item[1])
-            processedTimestamps = historyData.data.prices.map((item: [number, number]) => 
-              new Date(item[0]).toISOString()
-            )
-          } else if (timeframe === '4h') {
-            // Group hourly data into 4-hour candles
-            const groupedData = groupDataBy4Hours(historyData.data.prices)
-            processedPrices = groupedData.map(item => item.price)
-            processedTimestamps = groupedData.map(item => item.timestamp)
-          } else if (timeframe === '3d') {
-            // Group daily data into 3-day candles
-            const groupedData = groupDataBy3Days(historyData.data.prices)
-            processedPrices = groupedData.map(item => item.price)
-            processedTimestamps = groupedData.map(item => item.timestamp)
-          } else if (timeframe === '1w') {
-            // Group daily data into weekly candles
-            const groupedData = groupDataByWeek(historyData.data.prices)
-            processedPrices = groupedData.map(item => item.price)
-            processedTimestamps = groupedData.map(item => item.timestamp)
-          } else if (timeframe === '1m') {
-            // Group daily data into monthly candles
-            const groupedData = groupDataByMonth(historyData.data.prices)
-            processedPrices = groupedData.map(item => item.price)
-            processedTimestamps = groupedData.map(item => item.timestamp)
-          } else if (timeframe === '3m') {
-            // Group daily data into quarterly candles
-            const groupedData = groupDataByQuarter(historyData.data.prices)
-            processedPrices = groupedData.map(item => item.price)
-            processedTimestamps = groupedData.map(item => item.timestamp)
-          } else {
-            // Use data as-is for 1h and 1d timeframes
-            processedPrices = historyData.data.prices.map((item: [number, number]) => item[1])
-            processedTimestamps = historyData.data.prices.map((item: [number, number]) => 
-              new Date(item[0]).toISOString()
-            )
-          }
-        
-                  // Add current live price as the most recent point
+        // Add current live price as the most recent point if needed
+        if (processedPrices.length > 0) {
           processedPrices.push(currentPrice)
           processedTimestamps.push(new Date().toISOString())
-          
-          setChartData(processedPrices)
-          setChartTimestamps(processedTimestamps)
+        }
+        
+        console.log(`✅ Chart: Using ${processedPrices.length} real price points from ${historyData.source || 'Binance API'} for ${timeframe} timeframe`)
+        console.log(`📅 Date range: ${new Date(historyData.data.prices[0][0]).toLocaleDateString()} to ${new Date(historyData.data.prices[historyData.data.prices.length-1][0]).toLocaleDateString()}`)
+        
+        setChartData(processedPrices)
+        setChartTimestamps(processedTimestamps)
       } else {
         throw new Error('No historical price data available')
       }
