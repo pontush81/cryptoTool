@@ -41,6 +41,113 @@ export default function ProfessionalCryptoChart({
     }
   }
 
+  // Function to fetch real historical data from CoinGecko
+  const fetchRealHistoricalData = async (symbol: string, timeframe: string, currentPrice: number) => {
+    try {
+      console.log(`📡 Chart: Fetching real historical data for ${symbol}...`)
+      
+      // Get number of days based on timeframe
+      const getDaysForTimeframe = (tf: string) => {
+        switch (tf) {
+          case '1h': return 7   // 7 days for hourly analysis
+          case '4h': return 30  // 30 days for 4-hour analysis  
+          case '1w': return 365 // 1 year for weekly analysis
+          case '1d':
+          default: return 100   // 100 days for daily analysis
+        }
+      }
+      
+      const days = getDaysForTimeframe(timeframe)
+      
+      // CoinGecko API for historical market data
+      const historyUrl = `https://api.coingecko.com/api/v3/coins/${symbol}/market_chart?vs_currency=usd&days=${days}&interval=daily`
+      const historyResponse = await fetch(historyUrl)
+      
+      if (!historyResponse.ok) {
+        throw new Error(`CoinGecko API error: ${historyResponse.status}`)
+      }
+      
+      const historyData = await historyResponse.json()
+      
+      if (historyData.prices && historyData.prices.length > 0) {
+        // Extract prices and timestamps from CoinGecko format [timestamp, price]
+        const realPrices = historyData.prices.map((item: [number, number]) => item[1])
+        const realTimestamps = historyData.prices.map((item: [number, number]) => 
+          new Date(item[0]).toISOString()
+        )
+        
+        // Add current live price as the most recent point
+        realPrices.push(currentPrice)
+        realTimestamps.push(new Date().toISOString())
+        
+        console.log(`✅ Chart: Got ${realPrices.length} real price points for ${symbol}`)
+        
+        setChartData(realPrices)
+        setChartTimestamps(realTimestamps)
+      } else {
+        throw new Error('No historical price data available')
+      }
+      
+    } catch (error) {
+      console.error(`❌ Chart: Failed to fetch real historical data for ${symbol}:`, error)
+      
+      // Fallback: generate coin-specific realistic mock data
+      console.log(`🔄 Chart: Using coin-specific fallback data for ${symbol}`)
+      generateFallbackData(symbol, timeframe, currentPrice)
+    }
+  }
+
+  // Fallback function for when API fails
+  const generateFallbackData = (symbol: string, timeframe: string, currentPrice: number) => {
+    const hours = getTimeframeHours(timeframe)
+    const dataPoints = Math.min(hours, 100)
+    
+    // Create unique patterns for each coin based on symbol hash
+    const symbolSeed = symbol.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    const coinRandom = (index: number) => {
+      const seed = (symbolSeed * 9301 + 49297 + index * 777) % 233280
+      return (seed / 233280) % 1
+    }
+    
+    const fallbackData = []
+    const fallbackTimestamps = []
+    let price = currentPrice * 0.95 // Start 5% lower
+    
+    for (let i = dataPoints - 1; i >= 0; i--) {
+      const timestamp = new Date()
+      
+      // Adjust time based on timeframe
+      switch (timeframe) {
+        case '1h':
+          timestamp.setHours(timestamp.getHours() - i)
+          break
+        case '4h':
+          timestamp.setHours(timestamp.getHours() - (i * 4))
+          break
+        case '1d':
+          timestamp.setDate(timestamp.getDate() - i)
+          break
+        case '1w':
+          timestamp.setDate(timestamp.getDate() - (i * 7))
+          break
+      }
+      
+      fallbackTimestamps.push(timestamp.toISOString())
+      
+      const random = coinRandom(i)
+      const changePercent = (random - 0.5) * 4 // ±2% daily change
+      price = price * (1 + changePercent / 100)
+      fallbackData.push(Math.max(price, 0.01)) // Ensure positive prices
+    }
+    
+    // Add current price as final point
+    fallbackData.push(currentPrice)
+    fallbackTimestamps.push(new Date().toISOString())
+    
+    setChartData(fallbackData)
+    setChartTimestamps(fallbackTimestamps)
+  }
+
   // Prevent hydration mismatch
   useEffect(() => {
     setMounted(true)
@@ -59,43 +166,18 @@ export default function ProfessionalCryptoChart({
         setCryptoData(data)
         
         // Generate professional mock data based on current price
-        const basePrice = data.current_price || 50000
-        const hours = getTimeframeHours(selectedTimeframe)
-        const dataPoints = Math.min(hours, 100) // Limit to 100 points for performance
+        // Handle both new format (data.data.current_price) and backward compatible format (data.current_price)
+        const coinData = data.data || data
+        const basePrice = coinData.current_price || data.current_price || 50000
         
-        const mockData = []
-        const mockTimestamps = []
+        console.log(`📊 Chart: Got price data for ${symbol}:`, {
+          basePrice,
+          coinData: coinData,
+          rawData: data
+        })
         
-        for (let i = dataPoints - 1; i >= 0; i--) {
-          const timestamp = new Date()
-          
-          // Adjust time based on timeframe
-          switch (selectedTimeframe) {
-            case '1h':
-              timestamp.setHours(timestamp.getHours() - i)
-              break
-            case '4h':
-              timestamp.setHours(timestamp.getHours() - (i * 4))
-              break
-            case '1d':
-              timestamp.setDate(timestamp.getDate() - i)
-              break
-            case '1w':
-              timestamp.setDate(timestamp.getDate() - (i * 7))
-              break
-          }
-          
-          mockTimestamps.push(timestamp.toISOString())
-          
-          // More realistic price simulation
-          const trendFactor = 1 + (data.price_change_percentage_24h / 100 / dataPoints * (dataPoints - i))
-          const volatility = Math.sin(i * 0.3) * 0.02 + (Math.random() - 0.5) * 0.05
-          const price = basePrice * trendFactor * (1 + volatility)
-          mockData.push(Number(price.toFixed(2)))
-        }
-        
-        setChartData(mockData)
-        setChartTimestamps(mockTimestamps)
+        // Fetch REAL historical price data from CoinGecko
+        await fetchRealHistoricalData(symbol, selectedTimeframe, basePrice)
       } else {
         throw new Error('Failed to fetch crypto data')
       }

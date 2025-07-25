@@ -66,6 +66,34 @@ export async function GET(request: Request) {
       })
     }
 
+    // If we have a specific symbol request, get data for that coin
+    if (symbol) {
+      console.log(`📡 Fetching data for specific symbol: ${symbol}`)
+      
+      const coinResponse = await fetch(
+        `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${symbol}&order=market_cap_desc&sparkline=false&locale=en`,
+        { next: { revalidate: 60 } }
+      )
+
+      if (!coinResponse.ok) {
+        throw new Error(`CoinGecko API error for ${symbol}: ${coinResponse.status}`)
+      }
+
+      const coinData: CryptoData[] = await coinResponse.json()
+      
+      if (coinData.length > 0) {
+        console.log(`✅ Got data for ${symbol}:`, coinData[0])
+        return NextResponse.json({
+          success: true,
+          data: coinData[0], // Wrap coin data for chart compatibility
+          ...coinData[0], // Also spread at root level for backward compatibility
+          timestamp: new Date().toISOString()
+        })
+      } else {
+        throw new Error(`No data found for symbol: ${symbol}`)
+      }
+    }
+
     // Original logic for regular data fetching
     // Hämta både individual coins OCH global market cap data
     const [coinsResponse, globalResponse] = await Promise.all([
@@ -100,7 +128,60 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Error fetching crypto data:', error)
     
-    // Fallback med mock data om API:et inte fungerar
+    const { searchParams } = new URL(request.url)
+    const symbol = searchParams.get('symbol')
+    
+    // If this was a symbol-specific request, return fallback data for that symbol
+    if (symbol) {
+      const symbolFallbacks: { [key: string]: CryptoData } = {
+        'bitcoin': {
+          id: 'bitcoin',
+          name: 'Bitcoin',
+          symbol: 'btc',
+          current_price: 43250.00,
+          price_change_24h: 1250.30,
+          price_change_percentage_24h: 2.98,
+          market_cap: 847000000000,
+          total_volume: 23400000000,
+          image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png'
+        },
+        'ethereum': {
+          id: 'ethereum', 
+          name: 'Ethereum',
+          symbol: 'eth',
+          current_price: 2650.75,
+          price_change_24h: -45.20,
+          price_change_percentage_24h: -1.68,
+          market_cap: 318000000000,
+          total_volume: 12100000000,
+          image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png'
+        },
+        'ripple': {
+          id: 'ripple',
+          name: 'XRP',
+          symbol: 'xrp',
+          current_price: 0.625,
+          price_change_24h: 0.045,
+          price_change_percentage_24h: 7.75,
+          market_cap: 35400000000,
+          total_volume: 1800000000,
+          image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png'
+        }
+      }
+      
+      const fallbackData = symbolFallbacks[symbol] || symbolFallbacks['bitcoin']
+      
+      console.log(`🔄 Using fallback data for ${symbol}:`, fallbackData)
+      return NextResponse.json({
+        success: false,
+        data: fallbackData, // Wrap fallback data for chart compatibility
+        ...fallbackData, // Also spread at root level for backward compatibility
+        error: 'Using fallback data due to API error',
+        timestamp: new Date().toISOString()
+      }, { status: 200 })
+    }
+    
+    // Fallback med mock data om API:et inte fungerar (for general requests)
     const mockData: CryptoData[] = [
       {
         id: 'bitcoin',
