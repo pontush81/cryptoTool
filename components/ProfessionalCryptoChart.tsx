@@ -50,23 +50,23 @@ export default function ProfessionalCryptoChart({
   const fetchRealHistoricalData = async (symbol: string, timeframe: string, currentPrice: number) => {
     try {
       
-              // Match user expectations: timeframe = how much historical data to show
+              // Industry standard: Optimal candle count for chart visualization (50-200 candles)
         const getTimeframeConfig = (tf: string) => {
           switch (tf) {
             case '1h': 
-              return { days: 7 }        // Last 7 days in hourly candles
+              return { days: 7 }        // 7 days = ~168 hourly candles
             case '4h': 
-              return { days: 14 }       // Last 14 days in 4-hour candles  
+              return { days: 30 }       // 30 days = ~180 4-hour candles  
             case '1d': 
-              return { days: 14 }       // Last 14 days in daily candles
+              return { days: 90 }       // 90 days = 90 daily candles
             case '3d': 
-              return { days: 15 }       // Last 15 3-day candles = 45 days total
+              return { days: 180 }      // 180 days = 60 3-day candles
             case '1w': 
-              return { days: 180 }      // Last 180 days in weekly candles
+              return { days: 365 }      // 365 days = ~52 weekly candles
             case '1m': 
-              return { days: 30 }       // Last 30 days in daily candles (1 month view)
+              return { days: 1095 }     // ~3 years = 36 monthly candles
             case '3m': 
-              return { days: 90 }       // Last 90 days in daily candles (3 month view)
+              return { days: 1825 }     // ~5 years = 60 monthly candles
             default: 
               return { days: 90 }       // Default: 90 days
           }

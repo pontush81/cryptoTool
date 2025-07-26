@@ -24,22 +24,32 @@ export async function GET(request: Request) {
       'polygon': 'MATICUSDT'
     }
     
-    // Convert user timeframe to Binance interval (matching user expectations)
+    // Industry standard: timeframe button = candle interval (per Perplexity research)
     const intervalMap: { [key: string]: string } = {
-      '1h': '1h',    // 1 hour candles
-      '4h': '4h',    // 4 hour candles
-      '1d': '1d',    // 1 day candles
-      '3d': '3d',    // 3 day candles  
-      '1w': '1w',    // 1 week candles
-      '1m': '1d',    // For "1 month view" -> use daily candles for last 30 days
-      '3m': '1d'     // For "3 month view" -> use daily candles for last 90 days
+      '1h': '1h',    // 1H timeframe = 1-hour candles
+      '4h': '4h',    // 4H timeframe = 4-hour candles
+      '1d': '1d',    // 1D timeframe = 1-day candles
+      '3d': '3d',    // 3D timeframe = 3-day candles
+      '1w': '1w',    // 1W timeframe = 1-week candles
+      '1m': '1M',    // 1M timeframe = 1-month candles
+      '3m': '1M'     // 3M timeframe = 1-month candles (3 months apart)
     }
     
     const binanceSymbol = symbolMap[symbol] || 'BTCUSDT'
     const binanceInterval = intervalMap[timeframe] || '1d'
     
-    // Calculate how many candles we need
-    const candleCount = Math.min(days * (timeframe === '1h' ? 24 : timeframe === '4h' ? 6 : 1), 1000)
+    // Calculate how many candles we need (max 1000 per Binance limit)
+    let candleCount
+    switch (timeframe) {
+      case '1h': candleCount = Math.min(days * 24, 1000); break      // 24 hourly candles per day
+      case '4h': candleCount = Math.min(days * 6, 1000); break       // 6 4-hour candles per day  
+      case '1d': candleCount = Math.min(days, 1000); break           // 1 daily candle per day
+      case '3d': candleCount = Math.min(days / 3, 1000); break       // 1 3-day candle per 3 days
+      case '1w': candleCount = Math.min(days / 7, 1000); break       // 1 weekly candle per 7 days
+      case '1m': candleCount = Math.min(days / 30, 1000); break      // 1 monthly candle per 30 days
+      case '3m': candleCount = Math.min(days / 30, 1000); break      // Monthly candles for 3M view
+      default: candleCount = Math.min(days, 1000)
+    }
     
     // Binance Klines API - completely free with 1200 requests/minute limit!
     const binanceUrl = `https://api.binance.com/api/v3/klines?symbol=${binanceSymbol}&interval=${binanceInterval}&limit=${candleCount}`
